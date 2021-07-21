@@ -1,4 +1,0 @@
-defaults:
-  - default
-
-_target_: calvin.models.play_lmp.GCBC
