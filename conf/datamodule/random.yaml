@@ -1,4 +1,4 @@
-_target_: lfp.datasets.random.RandomDataModule
+_target_: calvin.datasets.random.RandomDataModule
 batch_size: 16
 action_space: 7
 action_max: [1, 1, 1, 1, 1, 1, 1]

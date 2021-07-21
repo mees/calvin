@@ -1,2 +1,2 @@
-_target_: lfp.visualization.plan_plot.NoPlanCallback
+_target_: calvin.visualization.plan_plot.NoPlanCallback
 # Hack, this passes an empty callback

@@ -1,1 +1,1 @@
-_target_: lfp.utils.kl_callbacks.KLConstantSchedule
+_target_: calvin.utils.kl_callbacks.KLConstantSchedule

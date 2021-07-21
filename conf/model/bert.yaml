@@ -1,1 +1,1 @@
-_target_: lfp.models.encoders.language_network.Bert
+_target_: calvin.models.encoders.language_network.Bert

@@ -11,7 +11,7 @@ defaults:
   - lr_scheduler: constant
 
 
-_target_: lfp.models.play_lmp.PlayLMP
+_target_: calvin.models.play_lmp.PlayLMP
 _recursive_: false
 
 proprio_state: ${datamodule.proprioception_dims}

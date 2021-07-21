@@ -1,4 +1,4 @@
-_target_: lfp.models.decoders.logistic_discrete_gripper.LogisticDiscreteGripperPolicyNetwork
+_target_: calvin.models.decoders.logistic_discrete_gripper.LogisticDiscreteGripperPolicyNetwork
 n_mixtures: 10
 hidden_size: 2048
 out_features: ${datamodule.action_space}

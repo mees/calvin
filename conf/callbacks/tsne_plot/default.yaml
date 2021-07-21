@@ -1,4 +1,4 @@
-_target_: lfp.visualization.tsne_plot.TSNEPlot
+_target_: calvin.visualization.tsne_plot.TSNEPlot
 perplexity: 40
 n_jobs: 8
 plot_percentage: 0.2

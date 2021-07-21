@@ -1,4 +1,4 @@
-_target_: lfp.models.decoders.logistic_policy_network.LogisticPolicyNetwork
+_target_: calvin.models.decoders.logistic_policy_network.LogisticPolicyNetwork
 n_mixtures: 10
 hidden_size: 2048
 out_features: ${datamodule.action_space}

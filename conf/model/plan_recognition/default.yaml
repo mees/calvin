@@ -1,4 +1,4 @@
-_target_: lfp.models.encoders.plan_recognition_net.PlanRecognitionNetwork
+_target_: calvin.models.encoders.plan_recognition_net.PlanRecognitionNetwork
 visual_features: ???
 plan_features: 256
 action_space: ${datamodule.action_space}

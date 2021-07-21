@@ -1,4 +1,4 @@
-_target_: lfp.visualization.plan_plot.PlanPlot
+_target_: calvin.visualization.plan_plot.PlanPlot
 max_num_samples: 20
 perplexity: 40
 n_jobs: 8

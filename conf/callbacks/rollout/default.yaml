@@ -1,6 +1,6 @@
 defaults:
   - tasks: new_tasks
-_target_: lfp.rollout.rollout.Rollout
+_target_: calvin.rollout.rollout.Rollout
 _recursive_: false
 env_cfg:
   _target_: vr_env.envs.play_lmp_wrapper.PlayLMPWrapper

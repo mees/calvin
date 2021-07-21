@@ -1,4 +1,4 @@
-_target_: lfp.datasets.npz_dataset.NpzDataset
+_target_: calvin.datasets.npz_dataset.NpzDataset
 key: "vis"
 save_format: "npz"
 batch_size: 64

@@ -1,4 +1,4 @@
-_target_: lfp.datasets.disk_dataset_DiskDataset
+_target_: calvin.datasets.disk_dataset_DiskDataset
 key: "vis"
 save_format: "pkl"
 batch_size: 32

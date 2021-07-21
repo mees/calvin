@@ -1,4 +1,4 @@
-_target_: lfp.models.encoders.vision_network_gripper.VisionNetwork
+_target_: calvin.models.encoders.vision_network_gripper.VisionNetwork
 input_width: 84
 input_height: 84
 activation_function: ReLU #ELU

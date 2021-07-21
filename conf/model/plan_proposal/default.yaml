@@ -1,4 +1,4 @@
-_target_: lfp.models.encoders.plan_proposal_net.PlanProposalNetwork
+_target_: calvin.models.encoders.plan_proposal_net.PlanProposalNetwork
 visual_features: ???
 latent_goal_features: 32
 plan_features: 256
