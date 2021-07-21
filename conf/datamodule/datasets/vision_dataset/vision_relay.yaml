@@ -1,0 +1,9 @@
+_target_: lfp.datasets.disk_dataset_DiskDataset
+key: "vis"
+save_format: "pkl"
+batch_size: 32
+min_window_size: 16
+max_window_size: 32
+obs_space: ${observation_space}
+proprio_state: ${proprioception_dims}
+pad: true

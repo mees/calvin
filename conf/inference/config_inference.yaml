@@ -1,0 +1,15 @@
+train_folder: ???  # config path to the config.yaml of the training folder (in .hydra)
+load_checkpoint: ???
+seed: 42
+log_dir: /tmp
+visualize: True
+ep_len: 120
+replan_freq: 30
+
+hydra:
+  run:
+    dir: ${log_dir}/inference_runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+defaults:
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog

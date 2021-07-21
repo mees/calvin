@@ -1,0 +1,19 @@
+defaults:
+  - plan_proposal: default
+  - plan_recognition: transformers
+  - vision_static: default
+  - vision_gripper: default
+  - visual_goal: default
+  - language_goal: none
+  - decoder: logistic_discrete_gripper #(logistic, gaussian)
+  - state_decoder: default
+  - optimizer: adam
+  - lr_scheduler: constant
+
+_target_: lfp.models.play_lmp.PlayLMP
+_recursive_: false
+
+proprio_state: ${datamodule.proprioception_dims}
+kl_beta: ${loss.kl_beta}
+state_reconstruction: false
+state_recon_beta: ${loss.state_recon_beta}

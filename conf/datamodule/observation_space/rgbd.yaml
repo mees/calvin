@@ -1,0 +1,4 @@
+rgb_obs: ['rgb_static', 'rgb_gripper']
+depth_obs: ['depth_static', 'depth_gripper']
+state_obs: ['robot_obs', 'scene_obs']
+actions: ['actions']

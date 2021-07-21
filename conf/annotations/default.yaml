@@ -1,0 +1,117 @@
+# rotation
+rotate_banana_right: [ "grasp the banana, then rotate it right",
+                       "rotate right the banana",
+                       "rotate the banana to the right",
+                       "rotate the yellow banana to the right" ]
+rotate_banana_left: [ "grasp the banana, then rotate it left",
+                      "rotate left the banana",
+                      "rotate the banana to the left",
+                      "rotate the yellow banana to the left" ]
+rotate_salt_right: [ "grasp the salt, then rotate it right",
+                     "rotate right the salt",
+                     "rotate the salt to the right",
+                     "rotate the salt package to the right",
+                     "turn the salt right",
+                     "grasp the salt and then roate it towards the right"]
+rotate_salt_left: [ "grasp the salt, then rotate it left",
+                    "rotate left the salt",
+                    "rotate the salt to the left",
+                    "rotate the salt package to the left",
+                    "turn the salt left",
+                    "grasp the salt and then roate it towards the left"]
+
+# sliding
+slide_banana_right: [ "push the banana towards the right",
+                      "push right the banana",
+                      "push the banana to the right",
+                      "go push the banana to the right",
+                      "push the yellow banana to the right" ]
+slide_bowl_right: [ "push the bowl towards the right",
+                    "push right the bowl",
+                    "push the bowl to the right",
+                    "go push the bowl to the right",
+                    "push the red bowl to the right",
+                    "push the bowl towards the right"]
+slide_bowl_left: [ "push the bowl towards the left",
+                     "push left the bowl",
+                     "push the bowl to the left",
+                     "go push the bowl to the left",
+                     "push the red bowl to the left",
+                     "push the bowl towards the left"]
+slide_salt_right: [ "push the salt towards the right",
+                    "push right the salt",
+                    "push the salt to the right",
+                    "go push the salt to the right",
+                    "push the blue salt to the right",
+                    "push the salt towards the right"]
+slide_salt_left: [ "push the salt towards the left",
+                   "push right the left",
+                   "push the salt to the left",
+                   "go push the salt to the left",
+                   "push the blue salt to the left",
+                   "push the salt towards the left"]
+slide_thuna_right: [ "push the thuna can towards the right",
+                     "push right the thuna",
+                     "push the thuna can to the right",
+                     "go push the thuna to the right",
+                     "push the thuna to the right",
+                     "push the thuna can towards the right"]
+slide_thuna_left: [ "push the thuna can towards the left",
+                    "push left the thuna",
+                    "push the thuna can to the left",
+                    "go push the thuna to the left",
+                    "push the thuna to the left",
+                    "push the thuna can towards the left"]
+
+# open/close
+move_slider_left: [ "grasp the door handle, then slide the door to the left",
+                    "move the door all the way to the left",
+                    "slide the door to the left",
+                    "slide the door to the left, then let it go",
+                    "move the door all the way to the left and let go" ]
+move_slider_right: [ "grasp the door handle, then slide the door to the right",
+                     "move the door all the way to the right",
+                     "slide the door to the right",
+                     "slide the door to the right, then let it go",
+                     "move the door all the way to the right and let go" ]
+open_drawer: [ "grasp the drawer handle, then open it",
+               "open the drawer",
+               "go open the drawer",
+               "pull the handle of the drawer",
+               "open the cabinet drawer" ]
+close_drawer: [ "grasp the drawer handle, then close it",
+                "close the drawer",
+                "go close the drawer",
+                "push the handle of the drawer",
+                "close the cabinet drawer" ]
+
+# lifting
+lift_banana_table: [ "lift the banana",
+                     "pick up the banana",
+                     "lift the yellow banana up",
+                     "grasp the banana and lift it up" ]
+
+lift_bowl_table: [ "pick up the bowl on the table",
+                   "grasp the bowl on the table and lift it up",
+                   "approach the bowl and pick it up",
+                   "lift the bowl laying on the table"]
+lift_salt_table: [ "pick up the salt package from the table",
+                   "grasp the salt from the table",
+                   "go towards the salt that is in the table and pick it up",
+                   "lift the blue salt package on the table"]
+lift_thuna_table: [ "pick up the thuna can from the table",
+                    "grasp the thuna from the table",
+                    "go towards the thuna can that is in the table and pick it up",
+                    "lift the thuna can on the table" ]
+grasp_bowl_left_shelf: [ "pick up the bowl from the left shelf",
+                         "grasp the bowl laying on the left shelf",
+                         "on the left shelf pick up the bowl",
+                         "lift the bowl on the left shelf"]
+grasp_salt_right_shelf: [ "grasp the salt form the right shelf",
+                          "pick up the salt laying on the right shelf",
+                          "go towards the salt on the right shelf and pick it up",
+                          "lift the salt on the right shelf"]
+lift_thuna_drawer: [ "grasp the thuna can form the drawer",
+                     "pick up the thuna laying on the drawer",
+                     "go towards the thuna can on the drawer and pick it up",
+                    " lift the thuna on the drawer"]

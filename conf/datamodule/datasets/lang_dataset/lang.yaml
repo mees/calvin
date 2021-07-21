@@ -1,0 +1,10 @@
+_target_: lfp.datasets.npz_dataset.NpzDataset
+key: "lang"
+save_format: "npz"
+batch_size: 32
+min_window_size: 16
+max_window_size: 32
+proprio_state: ${datamodule.proprioception_dims}
+obs_space: ${datamodule.observation_space}
+skip_frames: 32 #Two per annotation
+pad: true

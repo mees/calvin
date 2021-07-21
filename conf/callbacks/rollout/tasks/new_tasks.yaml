@@ -1,0 +1,56 @@
+_target_: vr_env.envs.tasks.Tasks
+tasks:
+  # rotation
+  rotate_banana_right: [rotate_object, 'banana', -60]
+  rotate_banana_left: [rotate_object, 'banana', 60]
+  rotate_salt_right: [rotate_object, 'salt', -60]
+  rotate_salt_left: [rotate_object, 'salt', 60]
+
+  # sliding
+  slide_banana_right: [push_object, 'banana', 0.1, 0]
+  slide_banana_left: [push_object, 'banana', -0.1, 0]
+  slide_bowl_right: [push_object, 'bowl', 0.1, 0]
+  slide_bowl_left: [push_object, 'bowl', -0.1, 0]
+  slide_salt_right: [push_object, 'salt', 0.1, 0]
+  slide_salt_left: [push_object, 'salt', -0.1, 0]
+  slide_thuna_right: [push_object, 'thuna', 0.1, 0]
+  slide_thuna_left: [push_object, 'thuna', -0.1, 0]
+
+  # open/close
+  move_slider_left: [move_door_rel, 'table', 'slide_door_joint', 0.28]  # 0 - 0.56
+  move_slider_right: [move_door_rel, 'table', 'slide_door_joint', -0.28]
+  open_drawer: [move_door_rel, 'drawer', 'drawer_joint', 0.12]  # 0 - 0.24
+  close_drawer: [move_door_rel, 'drawer', 'drawer_joint', -0.12]
+#  open_left_top_door: [move_door, 'table', 'top_left_door_joint', 0.78, 1.5]
+#  close_left_top_door: [move_door, 'table', 'top_left_door_joint', 0.78, 0.07]
+
+  # lifting
+  lift_banana_table: [lift_object, 'banana', 0.05, 'table', 'base_link']
+  lift_bowl_table: [lift_object, 'bowl', 0.05, 'table', 'base_link']
+  lift_salt_table: [lift_object, 'salt', 0.05, 'table', 'base_link']
+  lift_thuna_table: [lift_object, 'thuna', 0.05, 'table', 'base_link']
+  grasp_bowl_left_shelf: [lift_object, 'bowl', 0.05, 'table', 'bottom_left_table']
+  grasp_salt_right_shelf: [lift_object, 'salt', 0.02, 'table', 'bottom_right_table']
+  lift_thuna_drawer: [lift_object, 'thuna', 0.05, 'drawer']
+
+  # placing
+  place_on_bottom_left_shelf: [place_object, 'table', 'bottom_left_table']
+  place_on_bottom_right_shelf: [place_object, 'table', 'bottom_right_table']
+  place_in_drawer: [place_object, 'drawer', 'drawer']
+#  place_on_top_left_shelf: [place_object, 'table']
+
+  # pushing into drawer
+  push_in_drawer: [push_object_into, ['banana', 'salt', 'bowl', 'thuna'], 'table', 'drawer']
+#  push_banana_in_drawer: [push_object_into, 'banana', 'table', 'drawer']
+#  push_salt_in_drawer: [push_object_into, 'salt', 'table', 'drawer']
+#  push_bowl_in_drawer: [push_object_into, 'bowl', 'table', 'drawer']
+#  push_thuna_in_drawer: [push_object_into, 'thuna', 'table', 'drawer']
+
+# signatures of available base tasks:
+# rotate_object(obj_name, degrees, x_y_threshold=30, z_treshold=180):
+# push_object(obj_name, x_direction, y_direction):
+# lift_object(obj_name, z_direction, surface_body=None, surface_link=None):
+# place_object(dest_body, dest_link=None):
+# push_object_into(obj_name, src_body, dest_body):
+# move_door_abs(start_info, end_info, obj_name, joint_name, start_threshold, end_threshold):
+# move_door_rel(obj_name, joint_name, threshold):

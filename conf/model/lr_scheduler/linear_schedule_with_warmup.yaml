@@ -1,0 +1,3 @@
+_target_: transformers.get_linear_schedule_with_warmup
+num_training_steps: -1  # -1 specifies to infer number of training steps
+num_warmup_steps: 0.1  # float values determines percentage of training steps to use as warmup

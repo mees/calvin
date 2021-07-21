@@ -1,0 +1,4 @@
+n_state_obs: 9
+keep_indices: [[0, 9]]
+normalize: True
+normalize_robot_orientation: False

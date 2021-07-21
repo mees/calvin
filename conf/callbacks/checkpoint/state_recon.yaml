@@ -1,0 +1,7 @@
+_target_: pytorch_lightning.callbacks.ModelCheckpoint
+save_top_k: 3
+verbose: True
+monitor: val/state_recon_loss
+mode: min
+dirpath: saved_models
+filename: '{epoch}' #put back in when PL fixes this _{val/accuracy:.4f}'

@@ -1,0 +1,30 @@
+train:
+  rgb_static:
+    - _target_: torchvision.transforms.Resize
+      size: 300
+    - _target_: lfp.utils.transforms.ScaleImageTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.5,]
+      std: [0.5,]
+  rgb_gripper:
+    - _target_: torchvision.transforms.Resize
+      size: 300
+    - _target_: lfp.utils.transforms.ScaleImageTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.5,]
+      std: [0.5,]
+val:
+  rgb_static:
+    - _target_: torchvision.transforms.Resize
+      size: 300
+    - _target_: lfp.utils.transforms.ScaleImageTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.5,]
+      std: [0.5,]
+  rgb_gripper:
+    - _target_: torchvision.transforms.Resize
+      size: 300
+    - _target_: lfp.utils.transforms.ScaleImageTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.5,]
+      std: [0.5,]

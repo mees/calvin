@@ -1,0 +1,4 @@
+defaults:
+  - default
+
+_target_: lfp.models.play_lmp.GCBC

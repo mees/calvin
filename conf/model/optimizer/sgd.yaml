@@ -1,0 +1,4 @@
+_target_: torch.optim.SGD
+lr: ${training.lr}
+momentum: 0.9
+#weight_decay: 0.0005

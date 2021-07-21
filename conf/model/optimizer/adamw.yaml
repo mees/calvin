@@ -1,0 +1,4 @@
+_target_: torch.optim.AdamW
+lr: ${training.lr}
+weight_decay: 1e-6
+#amsgrad: False

@@ -1,0 +1,7 @@
+_target_: lfp.models.encoders.goal_encoders.LanguageGoalEncoder
+language_features: 768
+hidden_size: 2048
+latent_goal_features: 32
+word_dropout_p: 0.0
+l2_normalize_goal_embeddings: False
+activation_function: ReLU #ELU

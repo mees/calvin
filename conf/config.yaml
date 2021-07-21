@@ -1,0 +1,34 @@
+defaults:
+  - callbacks: default
+  - datamodule: default
+  - model: default
+  - loss: default
+  - training: default_training
+  - trainer: play_trainer
+  - logger: wandb
+
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+
+seed: 42
+log_dir: ../
+slurm: false
+
+hydra:
+  run:
+    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.override_dirname}
+  job:
+    config:
+      override_dirname:
+        exclude_keys:
+          - log_dir
+          - datamodule.root_data_dir
+          - trainer.gpus
+          - model.tsne_plot
+          - datamodule.num_workers
+          - trainer.limit_train_batches
+          - trainer.limit_val_batches
+          - model.decoder.load_action_bounds
