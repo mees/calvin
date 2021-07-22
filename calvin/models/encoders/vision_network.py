@@ -31,17 +31,14 @@ class VisionNetwork(nn.Module):
         self.conv_model = nn.Sequential(
             # input shape: [N, 3, 200, 200]
             nn.Conv2d(in_channels=3, out_channels=32, kernel_size=8, stride=4),  # shape: [N, 32, 49, 49]
-            nn.BatchNorm2d(32),
             self.act_fn,
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2),  # shape: [N, 64, 23, 23]
-            nn.BatchNorm2d(64),
             self.act_fn,
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),  # shape: [N, 64, 21, 21]
-            nn.BatchNorm2d(64),
             self.act_fn,
         )
         self.fc1 = nn.Sequential(
-            nn.Linear(in_features=128, out_features=512), nn.BatchNorm1d(512), self.act_fn, nn.Dropout(dropout_vis_fc)
+            nn.Linear(in_features=128, out_features=512), self.act_fn, nn.Dropout(dropout_vis_fc)
         )  # shape: [N, 512]
         self.fc2 = nn.Linear(in_features=512, out_features=visual_features)  # shape: [N, 64]
 

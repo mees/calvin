@@ -21,10 +21,8 @@ class VisualGoalEncoder(nn.Module):
         self.act_fn = getattr(nn, activation_function)()
         self.mlp = nn.Sequential(
             nn.Linear(in_features=input_features, out_features=hidden_size),
-            nn.BatchNorm1d(hidden_size),
             self.act_fn,
             nn.Linear(in_features=hidden_size, out_features=hidden_size),
-            nn.BatchNorm1d(hidden_size),
             self.act_fn,
             nn.Linear(in_features=hidden_size, out_features=latent_goal_features),
         )
@@ -52,10 +50,8 @@ class LanguageGoalEncoder(nn.Module):
         self.mlp = nn.Sequential(
             nn.Dropout(word_dropout_p),
             nn.Linear(in_features=language_features, out_features=hidden_size),
-            nn.BatchNorm1d(hidden_size),
             self.act_fn,
             nn.Linear(in_features=hidden_size, out_features=hidden_size),
-            nn.BatchNorm1d(hidden_size),
             self.act_fn,
             nn.Linear(in_features=hidden_size, out_features=latent_goal_features),
         )

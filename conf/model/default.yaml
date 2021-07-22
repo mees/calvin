@@ -5,7 +5,7 @@ defaults:
   - vision_gripper: none
   - visual_goal: default
   - language_goal: none
-  - decoder: logistic_discrete_gripper #(logistic, gaussian)
+  - decoder: logistic #(logistic, gaussian)
   - state_decoder: default
   - optimizer: adam
   - lr_scheduler: constant

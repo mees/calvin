@@ -11,17 +11,13 @@ from torch.nn.parameter import Parameter
 def nature_cnn(act_fn):
     return nn.Sequential(
         nn.Conv2d(3, 32, 8, stride=4),
-        nn.BatchNorm2d(32),
         act_fn,
         nn.Conv2d(32, 64, 4, stride=2),
-        nn.BatchNorm2d(64),
         act_fn,
         nn.Conv2d(64, 64, 3, stride=1),
-        nn.BatchNorm2d(64),
         act_fn,
         nn.Flatten(start_dim=1),
         nn.Linear(64 * 7 * 7, 128),
-        nn.BatchNorm1d(128),
         act_fn,
     )
 
@@ -73,7 +69,7 @@ class VisionNetwork(nn.Module):
         self.conv_model = eval(conv_encoder)
         self.conv_model = self.conv_model(self.act_fn)
         self.fc1 = nn.Sequential(
-            nn.Linear(in_features=128, out_features=512), nn.BatchNorm1d(512), self.act_fn, nn.Dropout(dropout_vis_fc)
+            nn.Linear(in_features=128, out_features=512), self.act_fn, nn.Dropout(dropout_vis_fc)
         )  # shape: [N, 512]
         self.fc2 = nn.Linear(in_features=512, out_features=visual_features)  # shape: [N, 64]
 

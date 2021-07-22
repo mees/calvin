@@ -28,13 +28,10 @@ class PlanProposalNetwork(nn.Module):
         self.act_fn = getattr(nn, activation_function)()
         self.fc_model = nn.Sequential(
             nn.Linear(in_features=self.in_features, out_features=2048),  # shape: [N, 136]
-            nn.BatchNorm1d(2048),
             self.act_fn,
             nn.Linear(in_features=2048, out_features=2048),
-            nn.BatchNorm1d(2048),
             self.act_fn,
             nn.Linear(in_features=2048, out_features=2048),
-            nn.BatchNorm1d(2048),
             self.act_fn,
             nn.Linear(in_features=2048, out_features=2048),
             self.act_fn,

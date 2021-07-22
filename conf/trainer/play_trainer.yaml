@@ -2,7 +2,4 @@ gpus: 1
 precision: 16
 val_check_interval: 1.0
 max_epochs: 100
-gradient_clip_val: 0.0
-gradient_clip_algorithm: 'value'
-sync_batchnorm: true
-track_grad_norm: 2
+
