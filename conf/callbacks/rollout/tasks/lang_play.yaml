@@ -8,7 +8,6 @@ tasks:
 
   # sliding
   slide_banana_right: [push_object, 'banana', 0.1, 0]
-  #slide_banana_left: [push_object, 'banana', -0.1, 0]
   slide_bowl_right: [push_object, 'bowl', 0.1, 0]
   slide_bowl_left: [push_object, 'bowl', -0.1, 0]
   slide_salt_right: [push_object, 'salt', 0.1, 0]
@@ -27,6 +26,6 @@ tasks:
   lift_bowl_table: [lift_object, 'bowl', 0.05, 'table', 'base_link']
   lift_salt_table: [lift_object, 'salt', 0.05, 'table', 'base_link']
   lift_thuna_table: [lift_object, 'thuna', 0.05, 'table', 'base_link']
+  lift_thuna_drawer: [lift_object, 'thuna', 0.05, 'drawer']
   grasp_bowl_left_shelf: [lift_object, 'bowl', 0.05, 'table', 'bottom_left_table']
   grasp_salt_right_shelf: [lift_object, 'salt', 0.02, 'table', 'bottom_right_table']
-  lift_thuna_drawer: [lift_object, 'thuna', 0.05, 'drawer']
