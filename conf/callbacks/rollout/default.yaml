@@ -19,3 +19,4 @@ add_goal_thumbnail: true
 min_window_size: ${datamodule.datasets.vision_dataset.min_window_size}
 max_window_size: ${datamodule.datasets.vision_dataset.max_window_size}
 id_selection_strategy: "select_longest"
+lang_folder: "10inst_play_sbertMPNet"
