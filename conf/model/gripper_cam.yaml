@@ -1,6 +1,6 @@
 defaults:
   - plan_proposal: default
-  - plan_recognition: transformers
+  - plan_recognition: default
   - vision_static: default
   - vision_gripper: default
   - visual_goal: default
