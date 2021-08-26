@@ -2,7 +2,7 @@ defaults:
   - datasets: vision_only
   - transforms: play_basic
   - proprioception_dims: robot_no_joints #robot_full
-  - observation_space: rel_actions
+  - observation_space: lang_rgb_static_robot
 _target_: calvin.datasets.play_data_module.PlayDataModule
 _recursive_: false
 root_data_dir: "play_data"
