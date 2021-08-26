@@ -1,12 +1,12 @@
 defaults:
   - callbacks: default
   - datamodule: default
-  - model: bert
+  - model: sbert
   - loss: default
   - training: default_training
   - trainer: play_trainer
   - logger: wandb
-  - annotations: default
+  - annotations: validation_expert
 
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
@@ -14,9 +14,12 @@ defaults:
 seed: 42
 log_dir: ../
 slurm: false
-train: true
-eps: 0.001
+eps: 0.01
 postprocessing: true
+lang_folder: "10inst_per_task_sbert"
+with_text: false
+reannotate: true
+rollout_sentences: validation_expert
 
 hydra:
   run:

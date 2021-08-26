@@ -1,0 +1,2 @@
+_target_: lfp.models.encoders.language_network.SBert
+nlp_model: mini

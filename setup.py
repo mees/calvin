@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Setup LfP installation."""
+"""Setup Calvin installation."""
 
 from os import path as op
 import re
