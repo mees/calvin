@@ -43,6 +43,7 @@ class BaseDataset(Dataset):
         min_window_size: int = 16,
         max_window_size: int = 32,
         pad: bool = True,
+        lang_folder: str = "10inst_per_task_use",
     ):
         self.observation_space = obs_space
         self.proprio_state = proprio_state
@@ -61,6 +62,7 @@ class BaseDataset(Dataset):
         self.min_window_size = min_window_size
         self.max_window_size = max_window_size
         self.abs_datasets_dir = datasets_dir
+        self.lang_folder = lang_folder  # if self.with_lang else None
         assert "validation" in self.abs_datasets_dir.as_posix() or "training" in self.abs_datasets_dir.as_posix()
         self.validation = "validation" in self.abs_datasets_dir.as_posix()
         assert self.abs_datasets_dir.is_dir()

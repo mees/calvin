@@ -138,7 +138,13 @@ class NpzDataset(BaseDataset):
 
         episode_lookup = []
 
-        lang_data = np.load(abs_datasets_dir / "auto_lang_ann.npy", allow_pickle=True).reshape(-1)[0]
+        try:
+            lang_data = np.load(abs_datasets_dir / self.lang_folder / "auto_lang_ann.npy", allow_pickle=True).reshape(
+                -1
+            )[0]
+        except Exception:
+            lang_data = np.load(abs_datasets_dir / "auto_lang_ann.npy", allow_pickle=True).reshape(-1)[0]
+
         ep_start_end_ids = lang_data["info"]["indx"]  # each of them are 64
         lang_ann = lang_data["language"]["emb"]  # length total number of annotations
         lang_lookup = []
@@ -153,7 +159,6 @@ class NpzDataset(BaseDataset):
                 cnt += 1
             possible_indices = end_idx + 1 - start_idx - self.max_window_size  # TODO: check it for skip_frames
             max_batched_length_per_demo.append(possible_indices)
-        logger.info(f"Window Annotations: {len(episode_lookup)} // Annotations : {len(set(lang_lookup))}")
 
         return episode_lookup, lang_lookup, max_batched_length_per_demo, lang_ann
 

@@ -78,6 +78,7 @@ class Rollout(Callback):
         add_goal_thumbnail,
         min_window_size,
         max_window_size,
+        lang_folder,
         id_selection_strategy="select_first",
     ):
         self.env = None  # type: Any
@@ -104,6 +105,7 @@ class Rollout(Callback):
         self.modalities = []  # ["vis", "lang"] if self.lang else ["vis"]
         self.embeddings = None
         self.add_goal_thumbnail = add_goal_thumbnail
+        self.lang_folder = lang_folder
         self.pick_task_ids = partial(
             eval(id_selection_strategy), min_window_size=min_window_size, max_window_size=max_window_size
         )
@@ -123,7 +125,7 @@ class Rollout(Callback):
                     save_dir=self.save_dir,
                 )
             self.embeddings = (
-                np.load(dataset.abs_datasets_dir / "embeddings.npy", allow_pickle=True,).reshape(
+                np.load(dataset.abs_datasets_dir / self.lang_folder / "embeddings.npy", allow_pickle=True,).reshape(
                     -1
                 )[0]
                 if "lang" in self.modalities
@@ -304,20 +306,21 @@ class Rollout(Callback):
                     if self.start_robot_neutral:
                         obs_neutral = self.env.reset()
                     current_img_obs = obs_neutral["rgb_obs"] if self.start_robot_neutral else obs["rgb_obs"]
+                    current_depth_obs = obs_neutral["depth_obs"] if self.start_robot_neutral else obs["depth_obs"]
                     current_state_obs = obs["state_obs"]
 
                     if mod == "lang":
                         _task = np.random.choice(list(groundtruth_task))
-                        task_embeddings = self.embeddings[_task]
-                        goal_lang = (
-                            torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])])
-                            .unsqueeze(0)
-                            .to(self.device)
+                        task_embeddings = self.embeddings[_task]["emb"]
+                        task_sentence = self.embeddings[_task]["ann"]
+                        goal_lang = torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])]).to(
+                            self.device
                         )
 
                     else:
                         # goal image is last step of the episode
                         goal_imgs = [rgb_ob[i, -1].unsqueeze(0).to(self.device) for rgb_ob in rgb_obs]
+                        goal_depths = [depth_ob[i, -1].unsqueeze(0).to(self.device) for depth_ob in depth_obs]
                         goal_state = state_obs[i, -1].unsqueeze(0).to(self.device)
 
                     # only save video of first task execution per rollout
@@ -333,12 +336,17 @@ class Rollout(Callback):
                             if mod == "lang":
                                 if not gcbc:
                                     plan, latent_goal = pl_module.get_pp_plan_lang(
-                                        current_img_obs, current_state_obs, goal_lang
+                                        current_img_obs, current_depth_obs, current_state_obs, goal_lang
                                     )  # type: ignore
                             else:
                                 if not gcbc:
                                     plan, latent_goal = pl_module.get_pp_plan_vision(
-                                        current_img_obs, goal_imgs, current_state_obs, goal_state
+                                        current_img_obs,
+                                        current_depth_obs,
+                                        goal_imgs,
+                                        goal_depths,
+                                        current_state_obs,
+                                        goal_state,
                                     )  # type: ignore
                         if gcbc:
                             if mod == "lang":
@@ -349,7 +357,7 @@ class Rollout(Callback):
                                 )  # type: ignore
                         else:
                             # use plan to predict actions with current observations
-                            action = pl_module.predict_with_plan(current_img_obs, current_state_obs, latent_goal, plan)  # type: ignore
+                            action = pl_module.predict_with_plan(current_img_obs, current_depth_obs, current_state_obs, latent_goal, plan)  # type: ignore
                         obs, _, _, current_info = self.env.step(action)
                         # check if current step solves a task
                         current_task_info = self.tasks.get_task_info_for_set(start_info, current_info, groundtruth_task)
@@ -419,6 +427,8 @@ class Rollout(Callback):
 
             # check if task was achieved in sequence
             task_info = self.tasks.get_task_info(start_info, goal_info)
+            if len(task_info) != 1:
+                continue
             for task in task_info:
                 task_ids.append(self.tasks.task_to_id[task])
                 batch_seq_ids.append(idx.cpu().numpy()[i])

@@ -7,7 +7,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything, Trainer
 import submitit
 
-from lfp.utils.utils import get_git_commit_hash, get_last_checkpoint
+from calvin.utils.utils import get_git_commit_hash, get_last_checkpoint
 
 logger = logging.getLogger(__name__)
 
