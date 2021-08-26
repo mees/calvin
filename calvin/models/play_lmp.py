@@ -15,7 +15,6 @@ import torch.nn as nn
 from torch.nn.functional import mse_loss
 
 from calvin.models.decoders.action_decoder import ActionDecoder
-from calvin.utils.visualizations import visualize_temporal_consistency
 
 logger = logging.getLogger(__name__)
 
@@ -28,18 +27,14 @@ class PlayLMP(pl.LightningModule):
         vision_static: DictConfig,
         visual_goal: DictConfig,
         language_goal: DictConfig,
-        state_decoder: DictConfig,
         decoder: DictConfig,
         proprio_state: DictConfig,
         vision_gripper: Optional[DictConfig],
         kl_beta: float,
-        state_recon_beta: float,
         optimizer: DictConfig,
         lr_scheduler: DictConfig,
-        state_reconstruction: bool,
     ):
         super(PlayLMP, self).__init__()
-        self.state_recons = state_reconstruction
         self.setup_input_sizes(
             vision_static,
             vision_gripper,
@@ -47,7 +42,6 @@ class PlayLMP(pl.LightningModule):
             plan_recognition,
             visual_goal,
             decoder,
-            state_decoder,
             proprio_state,
         )
 
@@ -58,10 +52,7 @@ class PlayLMP(pl.LightningModule):
         self.visual_goal = hydra.utils.instantiate(visual_goal)
         self.language_goal = hydra.utils.instantiate(language_goal) if language_goal else None
         self.action_decoder: ActionDecoder = hydra.utils.instantiate(decoder)
-        if self.state_recons:
-            self.state_decoder = hydra.utils.instantiate(state_decoder)
         self.kl_beta = kl_beta
-        self.st_recon_beta = state_recon_beta
         self.modality_scope = "vis"
         self.optimizer_config = optimizer
         self.lr_scheduler = lr_scheduler
@@ -80,7 +71,6 @@ class PlayLMP(pl.LightningModule):
         plan_recognition,
         visual_goal,
         decoder,
-        state_decoder,
         proprio_state,
     ):
         # remove a dimension if we convert robot orientation quaternion to euler angles
@@ -90,7 +80,6 @@ class PlayLMP(pl.LightningModule):
         plan_recognition.n_state_obs = n_state_obs
         visual_goal.n_state_obs = n_state_obs
         decoder.n_state_obs = n_state_obs
-        state_decoder.n_state_obs = n_state_obs
 
         visual_features = vision_static.visual_features
         if vision_gripper:
@@ -300,10 +289,6 @@ class PlayLMP(pl.LightningModule):
         for self.modality_scope, dataset_batch in batch.items():
             batch_obs, batch_rgbs, batch_depths, batch_acts, batch_encoded_lang, _, idx = dataset_batch
             visual_emb = self.visual_embedding(batch_rgbs)
-            if self.state_recons:
-                proprio_pred = self.state_decoder(visual_emb)
-                p_loss = mse_loss(batch_obs, proprio_pred)
-                proprio_loss += p_loss
             perceptual_emb = self.perceptual_embedding(visual_emb, batch_obs)
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
@@ -321,7 +306,6 @@ class PlayLMP(pl.LightningModule):
         kl_loss = kl_loss / len(batch)
         action_loss = action_loss / len(batch)
         proprio_loss = proprio_loss / len(batch)
-        total_loss = total_loss + self.st_recon_beta * proprio_loss if self.state_recons else total_loss
         self.log("train/kl_loss", kl_loss, on_step=False, on_epoch=True, sync_dist=True)
         self.log("train/action_loss", action_loss, on_step=False, on_epoch=True, sync_dist=True)
         self.log("train/total_loss", total_loss, on_step=False, on_epoch=True, sync_dist=True)
@@ -380,10 +364,6 @@ class PlayLMP(pl.LightningModule):
         for self.modality_scope, dataset_batch in batch.items():
             batch_obs, batch_rgbs, batch_depths, batch_acts, batch_encoded_lang, _, idx = dataset_batch
             visual_emb = self.visual_embedding(batch_rgbs)
-            if self.state_recons:
-                proprio_pred = self.state_decoder(visual_emb)
-                p_loss = mse_loss(batch_obs, proprio_pred)
-                output[f"proprio_pred_{self.modality_scope}"] = p_loss
             perceptual_emb = self.perceptual_embedding(visual_emb, batch_obs)
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
@@ -452,9 +432,7 @@ class PlayLMP(pl.LightningModule):
             val_total_act_loss_pp += act_loss_pp
             val_total_act_loss_pr += act_loss_pr
             val_kl_loss += kl_loss
-            if self.state_recons:
-                proprio_loss = torch.stack([x[f"proprio_pred_{mod}"] for x in validation_step_outputs]).mean()
-                val_total_proprio_loss += proprio_loss
+
             self.log(f"val_act/{mod}_act_loss_pp", act_loss_pp, sync_dist=True)
             self.log(f"val_act/{mod}_act_loss_pr", act_loss_pr, sync_dist=True)
             self.log(f"val_total_mae/{mod}_total_mae_pr", pr_mae_mean, sync_dist=True)
@@ -485,10 +463,6 @@ class PlayLMP(pl.LightningModule):
         self.log("val_orn_mae/orn_mae_pp", val_orn_mae_pp / len(self.trainer.datamodule.modalities), sync_dist=True)
         self.log("val_grip/grip_sr_pr", val_grip_sr_pr / len(self.trainer.datamodule.modalities), sync_dist=True)
         self.log("val_grip/grip_sr_pp", val_grip_sr_pp / len(self.trainer.datamodule.modalities), sync_dist=True)
-        if self.state_recons:
-            self.log(
-                "val/proprio_loss", val_total_proprio_loss / len(self.trainer.datamodule.modalities), sync_dist=True
-            )
 
     def predict_with_plan(
         self,
