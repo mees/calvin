@@ -4,7 +4,7 @@ defaults:
   - vision_static: default
   - vision_gripper: default
   - visual_goal: default
-  - language_goal: none
+  - language_goal: default
   - decoder: logistic
   - optimizer: adam
   - lr_scheduler: constant
