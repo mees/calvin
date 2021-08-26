@@ -4,7 +4,7 @@ from typing import Dict
 
 import numpy as np
 
-import lfp
+import calvin
 from calvin.datasets.base_dataset import load_npz, load_pkl
 
 TRAINING_DIR: str = "training"

@@ -15,4 +15,3 @@ _recursive_: false
 
 proprio_state: ${datamodule.proprioception_dims}
 kl_beta: ${loss.kl_beta}
-

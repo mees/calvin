@@ -13,7 +13,7 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, RandomSampler, Sampler, SequentialSampler
 import torchvision
 
-import lfp
+import calvin
 from calvin.datasets.custom_sampler import CustomSampler
 from calvin.datasets.utils.episode_utils import load_dataset_statistics
 

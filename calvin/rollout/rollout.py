@@ -12,7 +12,7 @@ from pytorch_lightning import Callback, LightningModule, Trainer
 import torch
 import torch.distributed as dist
 
-import lfp
+import calvin
 from calvin.datasets.base_dataset import get_validation_window_size
 from calvin.models.play_lmp import PlayLMP
 from calvin.rollout.rollout_video import RolloutVideo

@@ -62,4 +62,3 @@ class AddDepthNoise(object):
 
     def __repr__(self):
         return self.__class__.__name__ + "(shape={0}, scale={1})".format(self.shape, self.scale)
-

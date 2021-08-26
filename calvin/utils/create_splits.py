@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple, TypedDict, Union
 import numpy as np
 import torch
 
-import lfp
+import calvin
 
 TRAINING_DIR: str = "training"
 VAL_DIR: str = "validation"

@@ -13,7 +13,7 @@ from omegaconf.errors import MissingMandatoryValue
 from pytorch_lightning import seed_everything
 import torch
 
-import lfp
+import calvin
 from calvin.inference.env_wrappers.utils import imshow_tensor
 from calvin.models.play_lmp import PlayLMP
 from calvin.utils.utils import get_last_checkpoint

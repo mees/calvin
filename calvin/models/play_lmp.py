@@ -105,7 +105,7 @@ class PlayLMP(pl.LightningModule):
     def num_training_steps(self) -> int:
         """Total training steps inferred from datamodule and devices."""
         assert isinstance(self.trainer, pl.Trainer)
-        combined_loader_dict = self.trainer.datamodule.train_dataloader()
+        combined_loader_dict = self.trainer.datamodule.train_dataloader()  # type: ignore
         dataset_lengths = [len(combined_loader_dict[k]) for k in combined_loader_dict.keys()]
         dataset_size = max(dataset_lengths)
         if isinstance(self.trainer.limit_train_batches, int) and self.trainer.limit_train_batches != 0:
@@ -118,11 +118,11 @@ class PlayLMP(pl.LightningModule):
         if self.trainer.tpu_cores:
             num_devices = max(num_devices, self.trainer.tpu_cores)
 
-        effective_batch_size = self.trainer.accumulate_grad_batches * num_devices
-        max_estimated_steps = (dataset_size // effective_batch_size) * self.trainer.max_epochs
+        effective_batch_size = self.trainer.accumulate_grad_batches * num_devices  # type: ignore
+        max_estimated_steps = (dataset_size // effective_batch_size) * self.trainer.max_epochs  # type: ignore
 
-        if self.trainer.max_steps and self.trainer.max_steps < max_estimated_steps:
-            return self.trainer.max_steps
+        if self.trainer.max_steps and self.trainer.max_steps < max_estimated_steps:  # type: ignore
+            return self.trainer.max_steps  # type: ignore
         return max_estimated_steps
 
     def compute_warmup(self, num_training_steps: int, num_warmup_steps: Union[int, float]) -> Tuple[int, int]:

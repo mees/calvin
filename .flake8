@@ -1,0 +1,15 @@
+[flake8]
+exclude = .git
+# Default is 79 in PEP 8
+max-line-length = 120
+select = E,F,W,C
+ignore=W503, # line break before binary operator, need for black
+       E203, # whitespace before ':'. Opposite convention enforced by black
+       E731, # do not assign a lambda expression, use a def
+       E722,
+       F401,
+       F841,
+       E402,  # module level import not at top of file
+       E741,  # ambiguous variable name
+       E501, # line too long. Handled by black
+       C406,  # Unnecessary list literal - rewrite as a dict literal

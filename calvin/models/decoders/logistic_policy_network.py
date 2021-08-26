@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import lfp
+import calvin
 from calvin.models.decoders.action_decoder import ActionDecoder
 
 logger = logging.getLogger(__name__)

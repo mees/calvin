@@ -7,7 +7,6 @@ import torch
 from torch.distributions import Independent, Normal
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.modules import MultiheadAttention
 
 
 class PlanRecognitionNetwork(nn.Module):
@@ -50,4 +49,3 @@ class PlanRecognitionNetwork(nn.Module):
         mean, std = super().__call__(*args, **kwargs)
         pr_dist = Independent(Normal(mean, std), 1)
         return pr_dist
-

@@ -14,12 +14,12 @@ from pytorch_lightning import seed_everything
 import torch
 
 from calvin.inference.env_wrappers.utils import imshow_tensor
-from calvin.models.encoders.language_network import Bert
+from calvin.models.encoders.language_network import SBert
 
 logger = logging.getLogger(__name__)
 
 
-def rollout(model, episode, env, tasks, demo_task_counter, live_task_counter, cfg, bert):
+def rollout(model, episode, env, tasks, demo_task_counter, live_task_counter, cfg, sbert):
     """
     Args:
         model: PlayLMP model
@@ -64,7 +64,7 @@ def rollout(model, episode, env, tasks, demo_task_counter, live_task_counter, cf
         logger.info(f"Recognized task: {task_info}")
         # logger.info(f"Noise rate: {eps}")
         lang_input = [input("What should I do? \n")]
-        goal_lang = bert(lang_input)
+        goal_lang = sbert(lang_input)
         goal_img = rgb_obs[0][i, -1].unsqueeze(0)
 
         for step in range(cfg.ep_len):
@@ -159,7 +159,7 @@ def test_policy(input_cfg: DictConfig) -> None:
     env = hydra.utils.instantiate(
         cfg.rollout.env_cfg, dataloader.dataset.datasets["lang"].dataset_loader, "cpu", show_gui=False
     )
-    bert = Bert()
+    sbert = SBert("mpnet")
     tasks = hydra.utils.instantiate(cfg.rollout.task_cfg)
     checkpoint = get_checkpoint(cfg)
     logger.info("Loading model from checkpoint.")
@@ -171,7 +171,7 @@ def test_policy(input_cfg: DictConfig) -> None:
     demo_task_counter = Counter()  # type: typing.Counter[str]
     live_task_counter = Counter()  # type: typing.Counter[str]
     for i, episode in enumerate(dataloader):
-        rollout(model, episode["vis"], env, tasks, demo_task_counter, live_task_counter, cfg, bert)
+        rollout(model, episode["vis"], env, tasks, demo_task_counter, live_task_counter, cfg, sbert)
 
 
 if __name__ == "__main__":
