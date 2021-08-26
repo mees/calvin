@@ -309,7 +309,6 @@ class PlayLMP(pl.LightningModule):
         self.log("train/kl_loss", kl_loss, on_step=False, on_epoch=True, sync_dist=True)
         self.log("train/action_loss", action_loss, on_step=False, on_epoch=True, sync_dist=True)
         self.log("train/total_loss", total_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("train/pred_proprio", self.st_recon_beta * proprio_loss, on_step=False, on_epoch=True, sync_dist=True)
         return {"loss": total_loss, "encoders_dict": encoders_dict}
 
     def compute_kl_loss(
@@ -398,7 +397,6 @@ class PlayLMP(pl.LightningModule):
         val_total_act_loss_pr = torch.tensor(0.0).to(self.device)
         val_total_act_loss_pp = torch.tensor(0.0).to(self.device)
         val_kl_loss = torch.tensor(0.0).to(self.device)
-        val_total_proprio_loss = torch.tensor(0.0).to(self.device)
         val_total_mae_pr = torch.tensor(0.0).to(self.device)
         val_total_mae_pp = torch.tensor(0.0).to(self.device)
         val_pos_mae_pp = torch.tensor(0.0).to(self.device)
