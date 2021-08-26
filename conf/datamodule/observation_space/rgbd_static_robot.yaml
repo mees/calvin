@@ -1,4 +1,0 @@
-rgb_obs: ['rgb_static']
-depth_obs: ['depth_static']
-state_obs: ['robot_obs']
-actions: ['actions']
