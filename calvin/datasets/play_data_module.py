@@ -14,7 +14,6 @@ from torch.utils.data import DataLoader, Dataset, DistributedSampler, RandomSamp
 import torchvision
 
 import calvin
-from calvin.datasets.custom_sampler import CustomSampler
 from calvin.datasets.utils.episode_utils import load_dataset_statistics
 
 logger = logging.getLogger(__name__)
@@ -78,19 +77,6 @@ class PlayDataModule(pl.LightningDataModule):
             val_dataset = hydra.utils.instantiate(dataset, datasets_dir=self.val_dir, transforms=self.val_transforms)
             train_sampler = get_sampler(train_dataset, shuffle=True)
             val_sampler = get_sampler(val_dataset, shuffle=self.shuffle_val)
-            if train_dataset.is_varying:
-                train_sampler = CustomSampler(
-                    sampler=train_sampler,
-                    batch_size=train_dataset.batch_size,
-                    min_ws_size=train_dataset.min_window_size,
-                    max_ws_size=train_dataset.max_window_size,
-                )
-                val_sampler = CustomSampler(
-                    sampler=val_sampler,
-                    batch_size=val_dataset.batch_size,
-                    min_ws_size=val_dataset.min_window_size,
-                    max_ws_size=val_dataset.max_window_size,
-                )
             key = dataset.key
             self.train_datasets[key] = train_dataset
             self.train_sampler[key] = train_sampler
