@@ -1,7 +1,7 @@
 _target_: calvin.datasets.npz_dataset.NpzDataset
 key: "vis"
 save_format: "npz"
-batch_size: 64
+batch_size: 32
 min_window_size: 16
 max_window_size: 32
 proprio_state: ${datamodule.proprioception_dims}
