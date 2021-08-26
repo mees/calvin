@@ -6,7 +6,6 @@ defaults:
   - visual_goal: default
   - language_goal: none
   - decoder: logistic #(logistic, gaussian)
-  - state_decoder: default
   - optimizer: adam
   - lr_scheduler: constant
 
