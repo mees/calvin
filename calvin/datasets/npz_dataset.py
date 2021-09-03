@@ -139,10 +139,12 @@ class NpzDataset(BaseDataset):
         episode_lookup = []
 
         try:
+            print("trying to load lang data from: ", abs_datasets_dir / self.lang_folder / "auto_lang_ann.npy")
             lang_data = np.load(abs_datasets_dir / self.lang_folder / "auto_lang_ann.npy", allow_pickle=True).reshape(
                 -1
             )[0]
         except Exception:
+            print("Exception, trying to load lang data from: ", abs_datasets_dir / "auto_lang_ann.npy")
             lang_data = np.load(abs_datasets_dir / "auto_lang_ann.npy", allow_pickle=True).reshape(-1)[0]
 
         ep_start_end_ids = lang_data["info"]["indx"]  # each of them are 64
