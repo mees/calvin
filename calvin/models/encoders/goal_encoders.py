@@ -57,6 +57,7 @@ class LanguageGoalEncoder(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        print("language input size: ", x.shape)
         x = self.mlp(x)
         if self.l2_normalize_output:
             x = F.normalize(x, p=2, dim=1)
