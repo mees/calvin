@@ -4,6 +4,8 @@ from pathlib import Path
 import sys
 from typing import Callable, List, Union
 
+from pytorch_lightning.plugins import DDPPlugin
+
 sys.path.insert(0, Path(__file__).parents[1].as_posix())
 import hydra
 import numpy as np
@@ -52,7 +54,8 @@ def wrap_train(config_name):
 
         # Configure multi-GPU training
         if is_multi_gpu_training(trainer_args["gpus"]):  # type: ignore
-            trainer_args["accelerator"] = "ddp"
+            # trainer_args["accelerator"] = "ddp"
+            trainer_args["plugins"] = DDPPlugin(find_unused_parameters=False)
             # trainer_args["plugins"] = "ddp_sharded"
 
             if not cfg.slurm:

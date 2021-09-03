@@ -91,7 +91,7 @@ class PlayDataModule(pl.LightningDataModule):
                 sampler=self.train_sampler[key],
                 batch_size=dataset.batch_size,
                 num_workers=self.num_workers,
-                pin_memory=False,
+                pin_memory=True,
             )
             for key, dataset in self.train_datasets.items()
         }
@@ -103,7 +103,7 @@ class PlayDataModule(pl.LightningDataModule):
                 sampler=self.val_sampler[key],
                 batch_size=dataset.batch_size,
                 num_workers=self.num_workers,
-                pin_memory=False,
+                pin_memory=True,
             )
             for key, dataset in self.val_datasets.items()
         }
