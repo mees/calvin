@@ -55,7 +55,7 @@ def wrap_train(config_name):
         # Configure multi-GPU training
         if is_multi_gpu_training(trainer_args["gpus"]):  # type: ignore
             trainer_args["accelerator"] = "ddp"
-            # trainer_args["plugins"] = DDPPlugin(find_unused_parameters=False)
+            trainer_args["plugins"] = DDPPlugin(find_unused_parameters=False)
             # trainer_args["plugins"] = "ddp_sharded"
 
             if not cfg.slurm:
