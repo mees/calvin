@@ -37,13 +37,13 @@ class BaseDataset(Dataset):
         obs_space: DictConfig,
         proprio_state: DictConfig,
         key: str,
+        lang_folder: str,
         save_format: str = None,
         transforms: Dict = {},
         batch_size: int = 32,
         min_window_size: int = 16,
         max_window_size: int = 32,
         pad: bool = True,
-        lang_folder: str = "10inst_per_task_use",
     ):
         self.observation_space = obs_space
         self.proprio_state = proprio_state
