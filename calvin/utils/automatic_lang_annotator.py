@@ -4,11 +4,12 @@ from pathlib import Path
 import typing
 
 import hydra
-import lfp
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 import torch
+
+import calvin
 
 """This script will collect data snt store it with a fixed window size"""
 
@@ -95,7 +96,9 @@ def main(cfg: DictConfig) -> None:
 
         if mod == "val":
             model = hydra.utils.instantiate(cfg.model)
-            val_sent = OmegaConf.load(Path(lfp.__file__).parent / f"../conf/annotations/{cfg.rollout_sentences}.yaml")
+            val_sent = OmegaConf.load(
+                Path(calvin.__file__).parent / f"../conf/annotations/{cfg.rollout_sentences}.yaml"
+            )
             embeddings = {}  # type: typing.Dict
             for task, ann in val_sent.items():
                 embeddings[task] = {}

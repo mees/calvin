@@ -53,8 +53,8 @@ def save_executed_code() -> None:
     print(hydra.utils.get_original_cwd())
     print(os.getcwd())
     shutil.copytree(
-        os.path.join(hydra.utils.get_original_cwd(), "lfp"),
-        os.path.join(hydra.utils.get_original_cwd(), f"{os.getcwd()}/code/lfp"),
+        os.path.join(hydra.utils.get_original_cwd(), "calvin"),
+        os.path.join(hydra.utils.get_original_cwd(), f"{os.getcwd()}/code/calvin"),
     )
 
 
