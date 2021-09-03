@@ -164,7 +164,7 @@ def load_dataset_statistics(train_dataset_dir, val_dataset_dir, transforms):
     paths = {"train": train_dataset_dir, "val": val_dataset_dir}
     for dataset_type in ["train", "val"]:
         try:
-            statistics = OmegaConf.load(Path(paths[dataset_type]) / "statistics.yaml")
+            statistics = OmegaConf.load(Path(paths[dataset_type]) / "statistics_calvin.yaml")
 
             # this ugly piece of code only exists because OmegaConf actually can't merge ListConfigs.
             # we do not want to override everything, but just the transforms that are specified in both
