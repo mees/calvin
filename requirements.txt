@@ -8,7 +8,7 @@ opencv-python
 omegaconf
 plotly
 pyhash
-pytorch-lightning==1.4.0
+pytorch-lightning==1.4.5
 fairscale
 torch==1.8.1
 torchvision
