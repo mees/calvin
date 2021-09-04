@@ -2,7 +2,7 @@ defaults:
   - plan_proposal: default
   - plan_recognition: default
   - vision_static: default
-  - vision_depth: none
+  - depth_static: none
   - vision_gripper: none
   - depth_gripper: none
   - visual_goal: default
