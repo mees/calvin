@@ -9,7 +9,6 @@ defaults:
   - language_goal: default
   - decoder: logistic
   - optimizer: adam
-  - lr_scheduler: constant
 
 _target_: calvin.models.play_lmp.PlayLMP
 _recursive_: false

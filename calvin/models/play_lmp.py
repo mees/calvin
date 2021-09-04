@@ -34,7 +34,6 @@ class PlayLMP(pl.LightningModule):
         depth_gripper: Optional[DictConfig],
         kl_beta: float,
         optimizer: DictConfig,
-        lr_scheduler: DictConfig,
     ):
         super(PlayLMP, self).__init__()
         self.setup_input_sizes(
@@ -59,7 +58,6 @@ class PlayLMP(pl.LightningModule):
         self.kl_beta = kl_beta
         self.modality_scope = "vis"
         self.optimizer_config = optimizer
-        self.lr_scheduler = lr_scheduler
         # workaround to resolve hydra config file before calling save_hyperparams  until they fix this issue upstream
         # without this, there is conflict between lightning and hydra
         decoder.out_features = decoder.out_features
@@ -99,54 +97,9 @@ class PlayLMP(pl.LightningModule):
         visual_goal.visual_features = visual_features
         decoder.visual_features = visual_features
 
-    @property
-    def num_training_steps(self) -> int:
-        """Total training steps inferred from datamodule and devices."""
-        assert isinstance(self.trainer, pl.Trainer)
-        combined_loader_dict = self.trainer.datamodule.train_dataloader()  # type: ignore
-        dataset_lengths = [len(combined_loader_dict[k]) for k in combined_loader_dict.keys()]
-        dataset_size = max(dataset_lengths)
-        if isinstance(self.trainer.limit_train_batches, int) and self.trainer.limit_train_batches != 0:
-            dataset_size = self.trainer.limit_train_batches
-        elif isinstance(self.trainer.limit_train_batches, float):
-            # limit_train_batches is a percentage of batches
-            dataset_size = int(dataset_size * self.trainer.limit_train_batches)
-
-        num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
-        if self.trainer.tpu_cores:
-            num_devices = max(num_devices, self.trainer.tpu_cores)
-
-        effective_batch_size = self.trainer.accumulate_grad_batches * num_devices  # type: ignore
-        max_estimated_steps = (dataset_size // effective_batch_size) * self.trainer.max_epochs  # type: ignore
-
-        if self.trainer.max_steps and self.trainer.max_steps < max_estimated_steps:  # type: ignore
-            return self.trainer.max_steps  # type: ignore
-        return max_estimated_steps
-
-    def compute_warmup(self, num_training_steps: int, num_warmup_steps: Union[int, float]) -> Tuple[int, int]:
-        if num_training_steps < 0:
-            # less than 0 specifies to infer number of training steps
-            num_training_steps = self.num_training_steps
-        if isinstance(num_warmup_steps, float):
-            # Convert float values to percentage of training steps to use as warmup
-            num_warmup_steps *= num_training_steps
-        num_warmup_steps = int(num_warmup_steps)
-        return num_training_steps, num_warmup_steps
-
     def configure_optimizers(self):
         optimizer = hydra.utils.instantiate(self.optimizer_config, params=self.parameters())
-        if "num_warmup_steps" in self.lr_scheduler:
-            self.lr_scheduler.num_training_steps, self.lr_scheduler.num_warmup_steps = self.compute_warmup(
-                num_training_steps=self.lr_scheduler.num_training_steps,
-                num_warmup_steps=self.lr_scheduler.num_warmup_steps,
-            )
-            rank_zero_info(f"Inferring number of training steps, set to {self.lr_scheduler.num_training_steps}")
-            rank_zero_info(f"Inferring number of warmup steps from ratio, set to {self.lr_scheduler.num_warmup_steps}")
-        scheduler = hydra.utils.instantiate(self.lr_scheduler, optimizer)
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": 1},
-        }
+        return optimizer
 
     def visual_embedding(self, imgs: List[torch.Tensor], depth_imgs: List[torch.Tensor]) -> torch.Tensor:  # type: ignore
         if len(imgs) != 2:
