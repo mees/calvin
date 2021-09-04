@@ -26,9 +26,10 @@ class PlanRecognitionNetwork(nn.Module):
         self.action_space = action_space
         self.min_std = min_std
         self.in_features = self.visual_features + self.n_state_obs
-        self.birnn_model = nn.LSTM(
+        self.birnn_model = nn.RNN(
             input_size=self.in_features,
             hidden_size=2048,
+            nonlinearity="relu",
             num_layers=2,
             bidirectional=True,
             batch_first=True,
