@@ -2,10 +2,12 @@ defaults:
   - plan_proposal: default
   - plan_recognition: default
   - vision_static: default
+  - vision_depth: none
   - vision_gripper: none
+  - depth_gripper: none
   - visual_goal: default
   - language_goal: default
-  - decoder: logistic #(logistic, gaussian)
+  - decoder: logistic
   - optimizer: adam
   - lr_scheduler: constant
 

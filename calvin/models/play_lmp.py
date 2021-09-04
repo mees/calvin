@@ -25,11 +25,13 @@ class PlayLMP(pl.LightningModule):
         plan_proposal: DictConfig,
         plan_recognition: DictConfig,
         vision_static: DictConfig,
+        depth_static: Optional[DictConfig],
         visual_goal: DictConfig,
         language_goal: DictConfig,
         decoder: DictConfig,
         proprio_state: DictConfig,
         vision_gripper: Optional[DictConfig],
+        depth_gripper: Optional[DictConfig],
         kl_beta: float,
         optimizer: DictConfig,
         lr_scheduler: DictConfig,
@@ -37,7 +39,9 @@ class PlayLMP(pl.LightningModule):
         super(PlayLMP, self).__init__()
         self.setup_input_sizes(
             vision_static,
+            depth_static,
             vision_gripper,
+            depth_gripper,
             plan_proposal,
             plan_recognition,
             visual_goal,
@@ -66,7 +70,9 @@ class PlayLMP(pl.LightningModule):
     @staticmethod
     def setup_input_sizes(
         vision_static,
+        depth_static,
         vision_gripper,
+        depth_gripper,
         plan_proposal,
         plan_recognition,
         visual_goal,
@@ -84,7 +90,10 @@ class PlayLMP(pl.LightningModule):
         visual_features = vision_static.visual_features
         if vision_gripper:
             visual_features += vision_gripper.visual_features
-
+        if depth_gripper:
+            vision_gripper.num_c += depth_gripper.num_c
+        if depth_static:
+            vision_static.num_c += depth_static.num_c
         plan_proposal.visual_features = visual_features
         plan_recognition.visual_features = visual_features
         visual_goal.visual_features = visual_features
@@ -139,21 +148,40 @@ class PlayLMP(pl.LightningModule):
             "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": 1},
         }
 
-    def visual_embedding(self, imgs: List[torch.Tensor]) -> torch.Tensor:  # type: ignore
+    def visual_embedding(self, imgs: List[torch.Tensor], depth_imgs: List[torch.Tensor]) -> torch.Tensor:  # type: ignore
         if len(imgs) != 2:
             imgs_static, imgs_gripper = imgs[0], None
         else:
             imgs_static, imgs_gripper = imgs
+        if len(depth_imgs) == 0:
+            depth_static, depth_gripper = None, None
+        else:
+            if len(depth_imgs) == 2:
+                depth_static, depth_gripper = depth_imgs
+            elif depth_imgs[0].shape[-1] < 100:
+                depth_static, depth_gripper = torch.empty(1), depth_imgs[0]
+            else:
+                depth_static, depth_gripper = depth_imgs[0], torch.empty(1)
+
         b, s, c, h, w = imgs_static.shape
-        imgs_static = imgs_static.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 300, 300)
+        imgs_static = imgs_static.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 200, 200)
+        if depth_static is not None:
+            depth_static = torch.unsqueeze(depth_static, 2)
+            depth_static = depth_static.reshape(-1, 1, h, w)  # (batch_size * sequence_length, 1, 200, 200)
+            imgs_static = torch.cat([imgs_static, depth_static], dim=1)  # (batch_size * sequence_length, 3, 200, 200)
         # ------------ Vision Network ------------ #
         encoded_imgs = self.vision_static(imgs_static)  # (batch*seq_len, 64)
         encoded_imgs = encoded_imgs.reshape(b, s, -1)  # (batch, seq, 64)
 
         if imgs_gripper is not None:
             b, s, c, h, w = imgs_gripper.shape
-            imgs_gripper = imgs_gripper.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 300, 300)
-            # ------------ Vision Network ------------ #
+            imgs_gripper = imgs_gripper.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 84, 84)
+            if depth_gripper is not None:
+                depth_gripper = torch.unsqueeze(depth_gripper, 2)
+                depth_gripper = depth_gripper.reshape(-1, 1, h, w)  # (batch_size * sequence_length, 1, 84, 84)
+                imgs_gripper = torch.cat(
+                    [imgs_gripper, depth_gripper], dim=1
+                )  # (batch_size * sequence_length, 4, 84, 84)
             encoded_imgs_gripper = self.vision_gripper(imgs_gripper)  # (batch*seq_len, 64)
             encoded_imgs_gripper = encoded_imgs_gripper.reshape(b, s, -1)  # (batch, seq, 64)
             encoded_imgs = torch.cat([encoded_imgs, encoded_imgs_gripper], dim=-1)
@@ -288,7 +316,7 @@ class PlayLMP(pl.LightningModule):
         encoders_dict = {}
         for self.modality_scope, dataset_batch in batch.items():
             batch_obs, batch_rgbs, batch_depths, batch_acts, batch_encoded_lang, _, idx = dataset_batch
-            visual_emb = self.visual_embedding(batch_rgbs)
+            visual_emb = self.visual_embedding(batch_rgbs, batch_depths)
             perceptual_emb = self.perceptual_embedding(visual_emb, batch_obs)
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
@@ -362,7 +390,7 @@ class PlayLMP(pl.LightningModule):
         output = {}
         for self.modality_scope, dataset_batch in batch.items():
             batch_obs, batch_rgbs, batch_depths, batch_acts, batch_encoded_lang, _, idx = dataset_batch
-            visual_emb = self.visual_embedding(batch_rgbs)
+            visual_emb = self.visual_embedding(batch_rgbs, batch_depths)
             perceptual_emb = self.perceptual_embedding(visual_emb, batch_obs)
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
@@ -465,16 +493,18 @@ class PlayLMP(pl.LightningModule):
     def predict_with_plan(
         self,
         curr_imgs: List[torch.Tensor],
+        curr_depths: torch.Tensor,
         curr_state: torch.Tensor,
         latent_goal: torch.Tensor,
         sampled_plan: torch.Tensor,
     ) -> torch.Tensor:
 
         imgs = [curr_img.unsqueeze(0) for curr_img in curr_imgs]
+        depth_imgs = [curr_depth.unsqueeze(0) for curr_depth in curr_depths]
         curr_state = curr_state.unsqueeze(0)
 
         with torch.no_grad():
-            visual_emb = self.visual_embedding(imgs)
+            visual_emb = self.visual_embedding(imgs, depth_imgs)
             perceptual_emb = self.perceptual_embedding(visual_emb, curr_state)
             action = self.action_decoder.act(sampled_plan, perceptual_emb, latent_goal)
 
@@ -483,37 +513,49 @@ class PlayLMP(pl.LightningModule):
     def get_pp_plan_vision(
         self,
         curr_imgs: List[torch.Tensor],
+        curr_depths: List[torch.Tensor],
         goal_imgs: List[torch.Tensor],
+        goal_depths: torch.Tensor,
         curr_state: torch.Tensor,
         goal_state: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         assert len(curr_imgs) == len(goal_imgs)
+        assert len(curr_depths) == len(goal_depths)
         imgs = [
             torch.cat([curr_img, goal_img]).unsqueeze(0) for curr_img, goal_img in zip(curr_imgs, goal_imgs)
         ]  # (1, 2, C, H, W)
+        depth_imgs = [
+            torch.cat([curr_depth, goal_depth]).unsqueeze(0) for curr_depth, goal_depth in zip(curr_depths, goal_depths)
+        ]  # (1, 2, C, H, W)
         state = torch.cat((curr_state, goal_state)).unsqueeze(0)
         with torch.no_grad():
-            visual_emb = self.visual_embedding(imgs)
+            visual_emb = self.visual_embedding(imgs, depth_imgs)
             perceptual_emb = self.perceptual_embedding(visual_emb, state)
             latent_goal = self.visual_goal(perceptual_emb[:, -1])
             # ------------Plan Proposal------------ #
-            pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)  # (batch, 256) each
+            pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
             sampled_plan = pp_dist.sample()  # sample from proposal net
-        self.action_decoder.clear_hidden_state()
+        # self.action_decoder.clear_hidden_state()
         return sampled_plan, latent_goal
 
     def get_pp_plan_lang(
-        self, curr_imgs: List[torch.Tensor], curr_state: torch.Tensor, goal_lang: torch.Tensor
+        self,
+        curr_imgs: List[torch.Tensor],
+        curr_depths: List[torch.Tensor],
+        curr_state: torch.Tensor,
+        goal_lang: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         imgs = [curr_img.unsqueeze(0) for curr_img in curr_imgs]
+        depth_imgs = [curr_depth.unsqueeze(0) for curr_depth in curr_depths]
         curr_state = curr_state.unsqueeze(0)
         with torch.no_grad():
-            visual_emb = self.visual_embedding(imgs)
+            visual_emb = self.visual_embedding(imgs, depth_imgs)
             perceptual_emb = self.perceptual_embedding(visual_emb, curr_state)
             latent_goal = self.language_goal(goal_lang)
             # ------------Plan Proposal------------ #
-            pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)  # (batch, 256) each
+            pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
             sampled_plan = pp_dist.sample()  # sample from proposal net
+
         return sampled_plan, latent_goal
 
     @rank_zero_only

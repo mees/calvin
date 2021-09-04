@@ -18,6 +18,7 @@ class VisionNetwork(nn.Module):
         dropout_vis_fc: float,
         l2_normalize_output: bool,
         visual_features: int,
+        num_c: int,
     ):
         super(VisionNetwork, self).__init__()
         self.l2_normalize_output = l2_normalize_output
@@ -30,7 +31,7 @@ class VisionNetwork(nn.Module):
         # model
         self.conv_model = nn.Sequential(
             # input shape: [N, 3, 200, 200]
-            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=8, stride=4),  # shape: [N, 32, 49, 49]
+            nn.Conv2d(in_channels=num_c, out_channels=32, kernel_size=8, stride=4),  # shape: [N, 32, 49, 49]
             self.act_fn,
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2),  # shape: [N, 64, 23, 23]
             self.act_fn,

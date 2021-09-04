@@ -2,7 +2,9 @@ defaults:
   - plan_proposal: default
   - plan_recognition: default
   - vision_static: default
+  - depth_static: none
   - vision_gripper: default
+  - depth_gripper: none
   - visual_goal: default
   - language_goal: default
   - decoder: logistic
