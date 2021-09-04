@@ -11,7 +11,6 @@ import hydra
 import numpy as np
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import Callback, LightningModule, seed_everything, Trainer
-from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import LightningLoggerBase
 from pytorch_lightning.utilities import rank_zero_only
 
@@ -41,8 +40,6 @@ def wrap_train(config_name):
 
         train_logger = setup_logger(cfg, model)
         callbacks = setup_callbacks(cfg.callbacks)
-        lr_logger = LearningRateMonitor(logging_interval="step")
-        callbacks.append((lr_logger))
 
         trainer_args = {
             **cfg.trainer,
