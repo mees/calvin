@@ -5,4 +5,4 @@ monitor: tasks/average_sr
 mode: max
 dirpath: saved_models
 filename: '{epoch}' #put back in when PL fixes this _{val/accuracy:.4f}'
-every_n_epochs: ${callbacks.rollout.rollout_freq}
+period: ${callbacks.rollout.rollout_freq}
