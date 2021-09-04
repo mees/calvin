@@ -1,2 +1,0 @@
-_target_: calvin.visualization.plan_plot.NoPlanCallback
-# Hack, this passes an empty callback

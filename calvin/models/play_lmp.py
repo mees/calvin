@@ -242,7 +242,7 @@ class PlayLMP(pl.LightningModule):
             ],
         ],
         batch_idx: int,
-    ) -> Dict[str, Union[torch.Tensor, Dict]]:
+    ) -> torch.Tensor:
         """
         batch: list( batch_dataset_vision, batch_dataset_lang, ..., batch_dataset_differentModalities)
             - batch_dataset_vision: tuple( train_obs: Tensor,
@@ -259,14 +259,12 @@ class PlayLMP(pl.LightningModule):
                                          info: Dict,
                                          idx: int
         """
-        kl_loss, action_loss, proprio_loss, total_loss = (
-            torch.tensor(0.0).to(self.device),
+        kl_loss, action_loss, total_loss = (
             torch.tensor(0.0).to(self.device),
             torch.tensor(0.0).to(self.device),
             torch.tensor(0.0).to(self.device),
         )
 
-        encoders_dict = {}
         for self.modality_scope, dataset_batch in batch.items():
             batch_obs, batch_rgbs, batch_depths, batch_acts, batch_encoded_lang, _, idx = dataset_batch
             visual_emb = self.visual_embedding(batch_rgbs, batch_depths)
@@ -277,7 +275,6 @@ class PlayLMP(pl.LightningModule):
                 else self.language_goal(batch_encoded_lang)
             )
             kl, act_loss, mod_loss, pp_dist, pr_dist = self.lmp_train(perceptual_emb, latent_goal, batch_acts)
-            encoders_dict[self.modality_scope] = [pp_dist, pr_dist]
             kl_loss += kl
             action_loss += act_loss
             total_loss += mod_loss
@@ -286,11 +283,10 @@ class PlayLMP(pl.LightningModule):
         total_loss = total_loss / len(batch)  # divide accumulated gradients by number of datasets
         kl_loss = kl_loss / len(batch)
         action_loss = action_loss / len(batch)
-        proprio_loss = proprio_loss / len(batch)
         self.log("train/kl_loss", kl_loss, on_step=False, on_epoch=True, sync_dist=True)
         self.log("train/action_loss", action_loss, on_step=False, on_epoch=True, sync_dist=True)
         self.log("train/total_loss", total_loss, on_step=False, on_epoch=True, sync_dist=True)
-        return {"loss": total_loss, "encoders_dict": encoders_dict}
+        return total_loss
 
     def compute_kl_loss(
         self, pr_dist: torch.distributions.Distribution, pp_dist: torch.distributions.Distribution
