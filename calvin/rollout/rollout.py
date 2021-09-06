@@ -289,7 +289,6 @@ class Rollout(Callback):
         state_obs, rgb_obs, depth_obs, actions, _, reset_info, idx = batch
         # create tensor of zeros to count number of successful tasks in
         counter = {}
-        gcbc = "GCBC" in str(pl_module.__class__)  # ugly hack
 
         for mod in self.modalities:
             rollout_task_counter = torch.LongTensor([0] * self.tasks.num_tasks).to(self.device)
@@ -334,30 +333,20 @@ class Rollout(Callback):
                         #  sample plan every `replan_freq` steps (default 30 steps i.e. every second)
                         if step % self.replan_freq == 0:
                             if mod == "lang":
-                                if not gcbc:
-                                    plan, latent_goal = pl_module.get_pp_plan_lang(
-                                        current_img_obs, current_depth_obs, current_state_obs, goal_lang
-                                    )  # type: ignore
-                            else:
-                                if not gcbc:
-                                    plan, latent_goal = pl_module.get_pp_plan_vision(
-                                        current_img_obs,
-                                        current_depth_obs,
-                                        goal_imgs,
-                                        goal_depths,
-                                        current_state_obs,
-                                        goal_state,
-                                    )  # type: ignore
-                        if gcbc:
-                            if mod == "lang":
-                                action = pl_module.gcbc_rollout_lang(current_img_obs, current_state_obs, goal_lang)  # type: ignore
-                            else:
-                                action = pl_module.gcbc_rollout_vis(
-                                    current_img_obs, goal_imgs, current_state_obs, goal_state
+                                plan, latent_goal = pl_module.get_pp_plan_lang(
+                                    current_img_obs, current_depth_obs, current_state_obs, goal_lang
                                 )  # type: ignore
-                        else:
-                            # use plan to predict actions with current observations
-                            action = pl_module.predict_with_plan(current_img_obs, current_depth_obs, current_state_obs, latent_goal, plan)  # type: ignore
+                            else:
+                                plan, latent_goal = pl_module.get_pp_plan_vision(
+                                    current_img_obs,
+                                    current_depth_obs,
+                                    goal_imgs,
+                                    goal_depths,
+                                    current_state_obs,
+                                    goal_state,
+                                )  # type: ignore
+                        # use plan to predict actions with current observations
+                        action = pl_module.predict_with_plan(current_img_obs, current_depth_obs, current_state_obs, latent_goal, plan)  # type: ignore
                         obs, _, _, current_info = self.env.step(action)
                         # check if current step solves a task
                         current_task_info = self.tasks.get_task_info_for_set(start_info, current_info, groundtruth_task)
