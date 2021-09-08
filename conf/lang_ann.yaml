@@ -6,7 +6,7 @@ defaults:
   - training: default_training
   - trainer: play_trainer
   - logger: wandb
-  - annotations: validation_expert
+  - annotations: new_playtable
 
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog

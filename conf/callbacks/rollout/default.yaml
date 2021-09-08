@@ -1,5 +1,5 @@
 defaults:
-  - tasks: new_tasks
+  - tasks: new_playtable_tasks
 _target_: calvin.rollout.rollout.Rollout
 _recursive_: false
 env_cfg:
