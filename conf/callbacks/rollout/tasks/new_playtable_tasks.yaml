@@ -39,6 +39,7 @@ tasks:
 
   # stacking
   stack_block: [stack_objects]
+  unstack_block: [unstack_objects]
 
   # lights
   turn_on_lightbulb: [toggle_light, 'lightbulb', 0, 1]

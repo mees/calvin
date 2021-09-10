@@ -74,7 +74,7 @@ def main(input_params: Dict) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_root", type=str, default="data", help="directory where  dataset is allocated")
-    parser.add_argument("--save_format", type=str, default="pkl", help="file format")
+    parser.add_argument("--save_format", type=str, default="npz", help="file format")
     args = parser.parse_args()
     params = vars(args)  # convert to ordinary dict
     main(params)

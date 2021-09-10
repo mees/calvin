@@ -16,7 +16,7 @@ log_dir: ../
 slurm: false
 eps: 0.01
 postprocessing: true
-lang_folder: "10inst_per_task_sbert"
+lang_folder: "lang_annotations"
 with_text: false
 reannotate: true
 rollout_sentences: validation_expert
