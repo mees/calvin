@@ -31,10 +31,10 @@ train:
   depth_gripper:
     - _target_: torchvision.transforms.Resize
       size: 84
-    - _target_: lfp.utils.transforms.AddDepthNoise
-      shape: [ 1000.0 ]
-      rate: [ 1000.0 ]
-    - _target_: lfp.utils.transforms.AddGaussianNoise
+#    - _target_: calvin.utils.transforms.AddDepthNoise
+#      shape: [ 1000.0 ]
+#      rate: [ 1000.0 ]
+    - _target_: calvin.utils.transforms.AddGaussianNoise
       mean: [ 0.0 ]
       std: [ 0.01 ]
   robot_obs:
