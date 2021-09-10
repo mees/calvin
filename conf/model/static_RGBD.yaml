@@ -1,0 +1,17 @@
+defaults:
+  - plan_proposal: default
+  - plan_recognition: default
+  - vision_static: default
+  - depth_static: default
+  - vision_gripper: none
+  - depth_gripper: none
+  - visual_goal: default
+  - language_goal: default
+  - decoder: logistic
+  - optimizer: adam
+
+_target_: calvin.models.play_lmp.PlayLMP
+_recursive_: false
+
+proprio_state: ${datamodule.proprioception_dims}
+kl_beta: ${loss.kl_beta}
