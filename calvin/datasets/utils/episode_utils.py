@@ -163,26 +163,23 @@ def load_dataset_statistics(train_dataset_dir, val_dataset_dir, transforms):
     """
     paths = {"train": train_dataset_dir, "val": val_dataset_dir}
     for dataset_type in ["train", "val"]:
-        try:
-            statistics = OmegaConf.load(Path(paths[dataset_type]) / "statistics_calvin.yaml")
 
-            # this ugly piece of code only exists because OmegaConf actually can't merge ListConfigs.
-            # we do not want to override everything, but just the transforms that are specified in both
-            # see https://stackoverflow.com/questions/61315623/omegaconf-can-i-influence-how-lists-are-merged
-            for modality in transforms[dataset_type]:
-                if modality in statistics:
-                    conf_transforms = transforms[dataset_type][modality]
-                    dataset_transforms = statistics[modality]
-                    for dataset_trans in dataset_transforms:
-                        exists = False
-                        for i, conf_trans in enumerate(conf_transforms):
-                            if dataset_trans["_target_"] == conf_trans["_target_"]:
-                                exists = True
-                                transforms[dataset_type][modality][i] = dataset_trans
-                                break
-                        if not exists:
-                            transforms[dataset_type][modality] = ListConfig([*conf_transforms, dataset_trans])
-        except FileNotFoundError:
-            logger.warning("Could not load statistics.yaml")
-            pass
+        statistics = OmegaConf.load(Path(paths[dataset_type]) / "statistics.yaml")
+
+        # this ugly piece of code only exists because OmegaConf actually can't merge ListConfigs.
+        # we do not want to override everything, but just the transforms that are specified in both
+        # see https://stackoverflow.com/questions/61315623/omegaconf-can-i-influence-how-lists-are-merged
+        for modality in transforms[dataset_type]:
+            if modality in statistics:
+                conf_transforms = transforms[dataset_type][modality]
+                dataset_transforms = statistics[modality]
+                for dataset_trans in dataset_transforms:
+                    exists = False
+                    for i, conf_trans in enumerate(conf_transforms):
+                        if dataset_trans["_target_"] == conf_trans["_target_"]:
+                            exists = True
+                            transforms[dataset_type][modality][i] = dataset_trans
+                            break
+                    if not exists:
+                        transforms[dataset_type][modality] = ListConfig([*conf_transforms, dataset_trans])
     return transforms
