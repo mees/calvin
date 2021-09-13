@@ -146,14 +146,14 @@ def main(input_params: Dict) -> None:
     for x in val_ep_start_end_ids:
         range_ids = np.arange(x[0], x[1] + 1)  # to include end frame
         for frame_id in range_ids:
-            filename = f"episode_{frame_id:06d}.npz"
+            filename = f"episode_{frame_id:07d}.npz"
             (dataset_root / filename).rename(split_data_path / VAL_DIR / filename)
     print("moving files to play_data/training")
     print("-------")
     for x in train_ep_start_end_ids:
         range_ids = np.arange(x[0], x[1] + 1)  # to include end frame
         for frame_id in range_ids:
-            filename = f"episode_{frame_id:06d}.npz"
+            filename = f"episode_{frame_id:07d}.npz"
             (dataset_root / filename).rename(split_data_path / TRAINING_DIR / filename)
     print("finished creating splits!")
 
