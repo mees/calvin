@@ -6,6 +6,7 @@ import numpy as np
 
 import calvin
 from calvin.datasets.base_dataset import load_npz, load_pkl
+import tqdm
 
 TRAINING_DIR: str = "training"
 
@@ -26,7 +27,7 @@ def main(input_params: Dict) -> None:
         acc_robot_state = np.zeros((), "float64")
         acc_scene_state = np.zeros((), "float64")
         acc_actions = np.zeros((), "float64")
-        for idx, f in enumerate(file_names):
+        for idx, f in enumerate(tqdm.tqdm(file_names)):
             episode = load_episode(f)
             if "observations" in episode:
                 if idx == 0:
