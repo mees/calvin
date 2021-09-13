@@ -19,4 +19,4 @@ class SBert(nn.Module):
 
     def forward(self, x: List) -> torch.Tensor:
         emb = self.model.encode(x, convert_to_tensor=True)
-        return torch.unsqueeze(emb, 1)
+        return torch.unsqueeze(emb, 1).cpu().numpy()
