@@ -5,6 +5,7 @@ log_dir: /tmp
 visualize: True
 ep_len: 120
 replan_freq: 30
+processes: 1
 
 hydra:
   run:
