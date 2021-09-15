@@ -1,4 +1,5 @@
 import logging
+from collections import Counter
 from pathlib import Path
 import sys
 import time
@@ -9,6 +10,7 @@ import numpy as np
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 import torch
+from tqdm import tqdm
 
 from calvin.evaluation.multistep_sequences import get_sequences
 from calvin.evaluation.utils import get_eval_env_state, imshow_tensor, format_sftp_path, get_checkpoint
@@ -61,10 +63,14 @@ def evaluate_policy_multistep(input_cfg: DictConfig) -> None:
     task_embeddings = np.load(dataset.abs_datasets_dir / dataset.lang_folder / "embeddings.npy", allow_pickle=True).item()
     results = {}
 
-    for eval_sequence in eval_sequences:
+    for eval_sequence in tqdm(eval_sequences):
         result = evaluate_sequence(env, model, task_checker, eval_sequence, task_embeddings, cfg, device)
-        print(f"{' '.join(eval_sequence)}: achieved {result} / {len(eval_sequence)} subtasks")
+        # print(f"{' '.join(eval_sequence)}: achieved {result} / {len(eval_sequence)} subtasks")
         results[eval_sequence] = result
+    print(f"Average successful sequence length: {np.mean(list(results.values()))}")
+    count = Counter(np.array(list(results.values())))
+    for i in range(5):
+        print(f"{i} successful tasks: {count[i]} / {len(eval_sequences)} sequences")
 
 
 def evaluate_sequence(env, model, task_checker, eval_sequence, embeddings, cfg, device):
