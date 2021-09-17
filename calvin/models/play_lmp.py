@@ -88,9 +88,9 @@ class PlayLMP(pl.LightningModule):
         visual_features = vision_static.visual_features
         if vision_gripper:
             visual_features += vision_gripper.visual_features
-        if depth_gripper:
+        if depth_gripper and vision_gripper.num_c < 4:
             vision_gripper.num_c += depth_gripper.num_c
-        if depth_static:
+        if depth_static and vision_static.num_c < 4:
             vision_static.num_c += depth_static.num_c
         plan_proposal.visual_features = visual_features
         plan_recognition.visual_features = visual_features
