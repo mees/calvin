@@ -9,3 +9,26 @@ Our aim is to make it possible to develop agents that can solve many robotic man
 suites.
 
 ![](media/teaser.png)
+
+# :computer:  Quick Start
+To begin, clone this repository locally
+```bash
+git clone https://github.com/mees/calvin.git
+```
+
+## Citation
+
+If you find the dataset or code useful, please cite:
+
+```
+@article{calvin21,
+author = {Oier Mees and Lukas Hermann and Erick Rosete and Wolfram Burgard},
+title = {CALVIN - A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
+journal={arXiv preprint arXiv:foo},
+year = 2020,
+}
+```
+
+## License
+
+MIT License
