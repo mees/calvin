@@ -38,6 +38,14 @@ $ cd $CALVIN_ROOT
 $ python train.py
 ```
 
+## :framed_picture: Sensory Observations
+ CALVIN  supports a range of sensors commonly utilized for visuomotor  control:
+1. **Static camera RGB images** - with shape `200x200x3`.
+2. **Static camera Depth maps** - with shape `200x200x1`.
+3. **Gripper camera RGB images** - with shape `200x200x3`.
+4. **Gripper camera Depth maps** - with shape `200x200x1`.
+5. **Tactile image** - with shape `120x160x2x3`.
+6. **Proprioceptive state** - EE position (3), EE orientation in euler angles (3), gripper width (1), joint positions (7), gripper action (1).
 ## Citation
 
 If you find the dataset or code useful, please cite:
