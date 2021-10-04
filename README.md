@@ -46,7 +46,8 @@ $ python train.py
 4. **Gripper camera Depth maps** - with shape `200x200x1`.
 5. **Tactile image** - with shape `120x160x2x3`.
 6. **Proprioceptive state** - EE position (3), EE orientation in euler angles (3), gripper width (1), joint positions (7), gripper action (1).
-![](media/sensors.png)
+
+<img src="media/sensors.png" alt="" width="75%">
 
 ## :joystick: Action Space
 In CALVIN, the  agent  must perform  closed-loop  continuous  control  to  follow  unconstrained  language  instructions  characterizing  complex  robot manipulation tasks, sending continuous actions to the robot at  30hz.
