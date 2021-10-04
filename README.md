@@ -14,6 +14,28 @@ suites.
 To begin, clone this repository locally
 ```bash
 git clone https://github.com/mees/calvin.git
+$ export CALVIN_ROOT=$(pwd)/calvin
+
+```
+Install requirements:
+```bash
+$ cd $CALVIN_ROOT
+$ virtualenv -p $(which python3) --system-site-packages calvin_env # or use conda
+$ source calvin_env/bin/activate
+$ pip install --upgrade pip
+$ pip install -r requirements.txt
+```
+
+Download dataset:
+```bash
+$ cd $CALVIN_ROOT/data
+$ sh download_data.sh
+```
+
+Train baseline models:
+```bash
+$ cd $CALVIN_ROOT
+$ python train.py
 ```
 
 ## Citation
