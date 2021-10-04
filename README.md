@@ -46,6 +46,13 @@ $ python train.py
 4. **Gripper camera Depth maps** - with shape `200x200x1`.
 5. **Tactile image** - with shape `120x160x2x3`.
 6. **Proprioceptive state** - EE position (3), EE orientation in euler angles (3), gripper width (1), joint positions (7), gripper action (1).
+
+## :joystick: Action Space
+In CALVIN, the  agent  must perform  closed-loop  continuous  control  to  follow  unconstrained  language  instructions  characterizing  complex  robot manipulation tasks, sending continuous actions to the robot at  30hz.
+In  order  to  give  researchers  and  practitioners  the freedom to experiment with different action spaces, CALVIN supports  the following actions spaces:
+1. **Absolute cartesian pose**  - EE position (3), EE orientation in euler angles (3),  gripper action (1).
+2. **Relative cartesian displacement**  - EE position (3), EE orientation in euler angles (3),  gripper action (1).
+3. **Joint action** -  Joint positions (7),  gripper action (1).
 ## Citation
 
 If you find the dataset or code useful, please cite:
