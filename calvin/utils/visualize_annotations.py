@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from omegaconf import DictConfig
 from pytorch_lightning import seed_everything
-from sklearn.decomposition import KernelPCA
 from sklearn.manifold import TSNE
+from tqdm import tqdm
 
 """This script will collect data snt store it with a fixed window size"""
 
@@ -47,7 +47,7 @@ def generate_single_seq_gif(seq_img, seq_length, imgs, idx, i, data):
 def generate_all_seq_gifs(data, dataset):
     imgs = []
     fig = plt.figure()
-    for i, idx in enumerate(data["info"]["indx"]):
+    for i, idx in enumerate(tqdm(data["info"]["indx"])):
         seq_length = idx[1] - idx[0]
         dataset.max_window_size, dataset.min_window_size = seq_length, seq_length
         start = dataset.episode_lookup.index(idx[0])
@@ -73,7 +73,7 @@ def plot_and_save_gifs(imgs, fig):
     plt.axis("off")
     plt.title("Annotated Sequences")
     plt.show()
-    anim.save("summary_lang_anns.gif", writer="imagemagick", fps=15)
+    anim.save("/tmp/summary_lang_anns.mp4", writer='ffmpeg', fps=15)
 
 
 def generate_task_id(tasks):
@@ -84,10 +84,9 @@ def generate_task_id(tasks):
 
 def visualize_embeddings(data, with_text=True):
     emb = data["language"]["emb"].squeeze()
-    # tsne_emb = TSNE(n_components=2, random_state=40, perplexity=20.0).fit_transform(emb)
-    kpca_emb = KernelPCA(n_components=2, random_state=40, kernel="rbf").fit_transform(emb)
+    tsne_emb = TSNE(n_components=2, random_state=40, perplexity=20.0).fit_transform(emb)
 
-    emb_2d = kpca_emb
+    emb_2d = tsne_emb
 
     task_ids = generate_task_id(data["language"]["task"])
 

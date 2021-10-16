@@ -12,10 +12,10 @@ from omegaconf import DictConfig
 logger = logging.getLogger(__name__)
 
 
-@hydra.main(config_path="../../conf", config_name="lang_annotator.yaml")
+@hydra.main(config_path="../../conf", config_name="lang_ann.yaml")
 def main(cfg: DictConfig) -> None:
     # sets seeds for numpy, torch, python.random and PYTHONHASHSEED.
-    data_module = hydra.utils.instantiate(cfg.dataset)
+    data_module = hydra.utils.instantiate(cfg.datamodule)
     bert = hydra.utils.instantiate(cfg.model)
     data_module.setup()
     if cfg.training:
