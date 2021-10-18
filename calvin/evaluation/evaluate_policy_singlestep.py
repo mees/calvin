@@ -11,7 +11,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 import torch
 
-from calvin.evaluation.utils import imshow_tensor, get_checkpoint, format_sftp_path, print_task_log
+from calvin.evaluation.utils import format_sftp_path, get_checkpoint, imshow_tensor, print_task_log
 from calvin.models.play_lmp import PlayLMP
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,9 @@ def test_policy(input_cfg: DictConfig) -> None:
     lang_dataset = dataloader.dataset.datasets["lang"]
     env = hydra.utils.instantiate(cfg.callbacks.rollout.env_cfg, dataset, device, show_gui=False)
 
-    embeddings = np.load(lang_dataset.abs_datasets_dir / lang_dataset.lang_folder / "embeddings.npy", allow_pickle=True).item()
+    embeddings = np.load(
+        lang_dataset.abs_datasets_dir / lang_dataset.lang_folder / "embeddings.npy", allow_pickle=True
+    ).item()
 
     task_checker = hydra.utils.instantiate(cfg.callbacks.rollout.tasks)
 

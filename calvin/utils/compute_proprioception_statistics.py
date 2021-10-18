@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import Dict
 
 import numpy as np
+import tqdm
 
 import calvin
 from calvin.datasets.base_dataset import load_npz, load_pkl
-import tqdm
 
 TRAINING_DIR: str = "training"
 

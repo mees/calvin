@@ -73,7 +73,7 @@ def plot_and_save_gifs(imgs, fig):
     plt.axis("off")
     plt.title("Annotated Sequences")
     plt.show()
-    anim.save("/tmp/summary_lang_anns.mp4", writer='ffmpeg', fps=15)
+    anim.save("/tmp/summary_lang_anns.mp4", writer="ffmpeg", fps=15)
 
 
 def generate_task_id(tasks):

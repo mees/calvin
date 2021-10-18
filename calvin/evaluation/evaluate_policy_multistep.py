@@ -1,5 +1,5 @@
-import logging
 from collections import Counter
+import logging
 from pathlib import Path
 import sys
 import time
@@ -13,7 +13,7 @@ import torch
 from tqdm import tqdm
 
 from calvin.evaluation.multistep_sequences import get_sequences
-from calvin.evaluation.utils import get_eval_env_state, imshow_tensor, format_sftp_path, get_checkpoint
+from calvin.evaluation.utils import format_sftp_path, get_checkpoint, get_eval_env_state, imshow_tensor
 from calvin.models.play_lmp import PlayLMP
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,9 @@ def evaluate_policy_multistep(input_cfg: DictConfig) -> None:
     logger.info("Successfully loaded model.")
 
     eval_sequences = get_sequences()
-    task_embeddings = np.load(dataset.abs_datasets_dir / dataset.lang_folder / "embeddings.npy", allow_pickle=True).item()
+    task_embeddings = np.load(
+        dataset.abs_datasets_dir / dataset.lang_folder / "embeddings.npy", allow_pickle=True
+    ).item()
     results = {}
 
     for eval_sequence in tqdm(eval_sequences):
