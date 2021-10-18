@@ -2,9 +2,10 @@ import argparse
 from pathlib import Path
 import shutil
 from typing import Dict, List, Tuple
-from tqdm import tqdm
 
 import numpy as np
+from tqdm import tqdm
+
 import calvin
 
 TRAINING_DIR: str = "training"
@@ -16,12 +17,7 @@ def slice_split(
     ep_start_end_ids: np.ndarray,
     eps_list: List[int],
     idx: int,
-) -> Tuple[
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     val_indx = eps_list[-idx:]
     train_indx = [ep for ep in list(range(0, len(ep_lens))) if ep not in val_indx]
     val_ep_lens = ep_lens[val_indx]

@@ -290,7 +290,7 @@ lift_pink_block_drawer: ["grasp the pink block from the drawer",
                         "go towards the pink block in the drawer and lift it",
                         "lift the pink block in the drawer",
                         "lift the pink block lying in the drawer"]
-  
+
 place_in_slider: [ "place in slider",
                    "put it in the slider",
                    "place the block in the sliding cabinet",
@@ -362,7 +362,7 @@ turn_on_lightbulb: ["turn on the light bulb",
                     "toggle the light switch to turn on the light bulb",
                     "move the light switch to turn on the yellow light",
                     "toggle the light switch to turn on the yellow light"]
-  
+
 turn_off_lightbulb: ["turn off the light bulb",
                     "turn off the yellow light",
                     "turn off the yellow lamp",
@@ -373,7 +373,7 @@ turn_off_lightbulb: ["turn off the light bulb",
                     "toggle the light switch to turn off the light bulb",
                     "move the light switch to turn off the yellow light",
                     "toggle the light switch to turn off the yellow light"]
-  
+
 turn_on_led: ["turn on the led light",
               "turn on the led",
               "turn on the led lamp",
@@ -388,7 +388,7 @@ turn_on_led: ["turn on the led light",
               "toggle the button to turn on the led light",
               "toggle the button to turn on the led",
               "toggle the button to turn on the green light"]
-  
+
 turn_off_led: ["turn off the led light",
               "turn off the led",
               "turn off the led lamp",

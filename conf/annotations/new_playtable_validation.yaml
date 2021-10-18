@@ -32,7 +32,7 @@ lift_pink_block_slider: [ "pick up the pink block in the sliding cabinet"]
 lift_red_block_drawer: ["grasp the red block in the drawer"]
 lift_blue_block_drawer: ["grasp the blue block in the drawer"]
 lift_pink_block_drawer: ["grasp the pink block in the drawer"]
-  
+
 place_in_slider: [ "put the block in the sliding cabinet"]
 place_in_drawer: [ "put the block in the drawer"]
 
