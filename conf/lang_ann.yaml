@@ -10,7 +10,7 @@ defaults:
 
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
-
+  - override datamodule/observation_space: state_only
 seed: 42
 log_dir: ../
 slurm: false
@@ -20,6 +20,7 @@ lang_folder: "lang_annotations"
 with_text: false
 reannotate: true
 rollout_sentences: validation_expert
+prior_steps_window: 16
 
 hydra:
   run:

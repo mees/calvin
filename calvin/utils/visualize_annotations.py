@@ -62,7 +62,7 @@ def load_data(cfg):
     data_module = hydra.utils.instantiate(cfg.datamodule, num_workers=4)
     data_module.prepare_data()
     data_module.setup()
-    dataset = data_module.train_dataloader()["vis"].dataset
+    dataset = data_module.val_dataloader().dataset.datasets["vis"]
 
     file_name = dataset.abs_datasets_dir / cfg.lang_folder / "auto_lang_ann.npy"
     return np.load(file_name, allow_pickle=True).reshape(-1)[0], dataset
@@ -110,7 +110,7 @@ def visualize_embeddings(data, with_text=True):
 @hydra.main(config_path="../../conf", config_name="lang_ann.yaml")
 def main(cfg: DictConfig) -> None:
     data, dataset_obj = load_data(cfg)
-    visualize_embeddings(data)
+    # visualize_embeddings(data)
     gifs, fig = generate_all_seq_gifs(data, dataset_obj)
     plot_and_save_gifs(gifs, fig)
 
