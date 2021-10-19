@@ -28,6 +28,7 @@ class PlayLMP(pl.LightningModule):
         depth_static: Optional[DictConfig],
         visual_goal: DictConfig,
         language_goal: DictConfig,
+        tactile: DictConfig,
         decoder: DictConfig,
         proprio_state: DictConfig,
         vision_gripper: Optional[DictConfig],
@@ -46,6 +47,7 @@ class PlayLMP(pl.LightningModule):
             visual_goal,
             decoder,
             proprio_state,
+            tactile,
         )
 
         self.plan_proposal = hydra.utils.instantiate(plan_proposal)
@@ -54,6 +56,7 @@ class PlayLMP(pl.LightningModule):
         self.vision_gripper = hydra.utils.instantiate(vision_gripper) if vision_gripper else None
         self.visual_goal = hydra.utils.instantiate(visual_goal)
         self.language_goal = hydra.utils.instantiate(language_goal) if language_goal else None
+        self.tactile_enc = hydra.utils.instantiate(tactile) if tactile else None
         self.action_decoder: ActionDecoder = hydra.utils.instantiate(decoder)
         self.kl_beta = kl_beta
         self.modality_scope = "vis"
@@ -76,6 +79,7 @@ class PlayLMP(pl.LightningModule):
         visual_goal,
         decoder,
         proprio_state,
+        tactile,
     ):
         # remove a dimension if we convert robot orientation quaternion to euler angles
         n_state_obs = int(np.sum(np.diff([list(x) for x in [list(y) for y in proprio_state.keep_indices]])))
@@ -92,6 +96,8 @@ class PlayLMP(pl.LightningModule):
             vision_gripper.num_c += depth_gripper.num_c
         if depth_static and vision_static.num_c < 4:
             vision_static.num_c += depth_static.num_c
+        if tactile:
+            visual_features += tactile.visual_features
         plan_proposal.visual_features = visual_features
         plan_recognition.visual_features = visual_features
         visual_goal.visual_features = visual_features
@@ -102,10 +108,15 @@ class PlayLMP(pl.LightningModule):
         return optimizer
 
     def visual_embedding(self, imgs: List[torch.Tensor], depth_imgs: List[torch.Tensor]) -> torch.Tensor:  # type: ignore
-        if len(imgs) != 2:
-            imgs_static, imgs_gripper = imgs[0], None
-        else:
-            imgs_static, imgs_gripper = imgs
+        # @fixme: do this less hacky
+        if len(imgs) == 1:
+            imgs_static, imgs_gripper, imgs_tactile = imgs[0], None, None
+        elif len(imgs) == 3:
+            imgs_static, imgs_gripper, imgs_tactile = imgs
+        if len(imgs) == 2 and imgs[1].shape[-1] == 84:
+            imgs_static, imgs_gripper, imgs_tactile = imgs[0], imgs[1], None
+        if len(imgs) == 2 and imgs[1].shape[-1] == 64:
+            imgs_static, imgs_gripper, imgs_tactile = imgs[0], None, imgs[1]
         if len(depth_imgs) == 0:
             depth_static, depth_gripper = None, None
         else:
@@ -138,6 +149,13 @@ class PlayLMP(pl.LightningModule):
             encoded_imgs_gripper = self.vision_gripper(imgs_gripper)  # (batch*seq_len, 64)
             encoded_imgs_gripper = encoded_imgs_gripper.reshape(b, s, -1)  # (batch, seq, 64)
             encoded_imgs = torch.cat([encoded_imgs, encoded_imgs_gripper], dim=-1)
+
+        if imgs_tactile is not None:
+            b, s, c, h, w = imgs_tactile.shape
+            imgs_tactile = imgs_tactile.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 84, 84)
+            encoded_tactile = self.tactile_enc(imgs_tactile)
+            encoded_tactile = encoded_tactile.reshape(b, s, -1)
+            encoded_imgs = torch.cat([encoded_imgs, encoded_tactile], dim=-1)
         return encoded_imgs
 
     def perceptual_embedding(self, visual_emb: torch.Tensor, obs: torch.Tensor) -> torch.Tensor:  # type: ignore
