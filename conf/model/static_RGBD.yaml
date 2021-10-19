@@ -5,6 +5,7 @@ defaults:
   - depth_static: default
   - vision_gripper: none
   - depth_gripper: none
+  - tactile: none
   - visual_goal: default
   - language_goal: default
   - decoder: logistic

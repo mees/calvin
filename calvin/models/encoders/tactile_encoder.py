@@ -5,7 +5,7 @@ import torchvision.models as models
 
 
 class TactileEncoder(nn.Module):
-    def __init__(self, freeze_tactile_backbone=True):
+    def __init__(self, visual_features: int, freeze_tactile_backbone: bool = True):
         super(TactileEncoder, self).__init__()
         # Load pre-trained resnet-18
         net = models.resnet18(pretrained=True)
@@ -15,13 +15,14 @@ class TactileEncoder(nn.Module):
         if freeze_tactile_backbone:
             for param in self.net.parameters():
                 param.requires_grad = False
-        self.fc1 = nn.Linear(512, 256)
-        self.fc2 = nn.Linear(256, 64)
+        self.fc1 = nn.Linear(1024, 512)
+        self.fc2 = nn.Linear(512, visual_features)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.net(x)  # batch, 512, 1, 1
+        x_l = self.net(x[:, :3, :, :]).squeeze()
+        x_r = self.net(x[:, 3:, :, :]).squeeze()
+        x = torch.cat((x_l, x_r), dim=-1)
         # Add fc layer for final prediction
-        x = torch.flatten(x, start_dim=1)  # batch, 512
-        output = F.relu(self.fc1(x))  # batch, 256
+        output = F.relu(self.fc1(x))  # batch, 512
         output = self.fc2(output)  # batch, 64
         return output

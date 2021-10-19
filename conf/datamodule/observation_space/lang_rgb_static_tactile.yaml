@@ -1,0 +1,5 @@
+rgb_obs: ['rgb_static', 'rgb_tactile']
+depth_obs: []
+state_obs: ['robot_obs']
+actions: ['actions']
+language: ['language']

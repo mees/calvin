@@ -1,5 +1,5 @@
 _target_: calvin.models.encoders.goal_encoders.LanguageGoalEncoder
-language_features: 768
+language_features: 384
 hidden_size: 2048
 latent_goal_features: 32
 word_dropout_p: 0.0

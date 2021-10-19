@@ -37,6 +37,27 @@ train:
     - _target_: calvin.utils.transforms.AddGaussianNoise
       mean: [ 0.0 ]
       std: [ 0.01 ]
+  rgb_tactile:
+    - _target_: torchvision.transforms.Resize
+      size: 70
+    - _target_: torchvision.transforms.RandomCrop
+      size: 64
+    - _target_: calvin.utils.transforms.ScaleImageTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.5,]
+      std: [0.5,]
+    - _target_: calvin.utils.transforms.AddGaussianNoise
+      mean: [ 0.0 ]
+      std: [ 0.01 ]
+  depth_tactile:
+    - _target_: torchvision.transforms.Resize
+      size: 64
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.1,]
+      std: [0.2,]
+    - _target_: calvin.utils.transforms.AddGaussianNoise
+      mean: [ 0.0 ]
+      std: [ 0.01 ]
   robot_obs:
     - _target_: calvin.utils.transforms.NormalizeVector
       mean: [0.126922,  0.599949,  0.680575,  0.235347,  0.324178, -1.396408,
@@ -82,6 +103,21 @@ val:
   depth_gripper:
     - _target_: torchvision.transforms.Resize
       size: 84
+  rgb_tactile:
+    - _target_: torchvision.transforms.Resize
+      size: 70
+    - _target_: torchvision.transforms.RandomCrop
+      size: 64
+    - _target_: calvin.utils.transforms.ScaleImageTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.5,]
+      std: [0.5,]
+  depth_tactile:
+    - _target_: torchvision.transforms.Resize
+      size: 64
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.1,]
+      std: [0.2,]
   robot_obs:
     - _target_: calvin.utils.transforms.NormalizeVector
       mean: [0.126922,  0.599949,  0.680575,  0.235347,  0.324178, -1.396408,
