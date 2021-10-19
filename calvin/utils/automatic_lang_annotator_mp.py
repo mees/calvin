@@ -245,7 +245,6 @@ class Annotator(Callback):
             goal_info = self.env.get_info()
 
             prior_steps = np.random.randint(16, 32)
-            # reset self.env to state of first step in the episode
             self.env.reset(reset_info, i, prior_steps)
             middle_info = self.env.get_info()
 
@@ -260,7 +259,10 @@ class Annotator(Callback):
             self.env.reset(reset_info, i, 0)
             start_info = self.env.get_info()
 
-            if len(self.tasks.get_task_info_for_set(start_info, goal_info, task_info)) and not len(self.tasks.get_task_info(start_info, middle_info)):
+            self.env.reset(reset_info, i, 32)
+            middle_info2 = self.env.get_info()
+
+            if len(self.tasks.get_task_info_for_set(start_info, goal_info, task_info)) and not len(self.tasks.get_task_info(start_info, middle_info2)):
                 start_idx = idx[i]
                 window_size = seq_length
             else:
