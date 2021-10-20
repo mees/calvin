@@ -16,7 +16,6 @@ from pytorch_lightning.plugins import DDPPlugin
 from pytorch_lightning.utilities import rank_zero_only
 import torch.distributed as dist
 from torch.nn import Linear
-
 import calvin
 from calvin.training import is_multi_gpu_training, log_rank_0
 
@@ -46,7 +45,7 @@ def merge_data(list_of_data):
 
 class Annotator(Callback):
     def __init__(self, cfg):
-        self.env = None  # type: Any
+        self.envs = None  # type: Any
         self.cfg = cfg
         self.device = None
         self.lang_folder = cfg.lang_folder
@@ -70,6 +69,7 @@ class Annotator(Callback):
         self.num_samples_train = None
         self.num_samples_val = None
         self.finished_annotation_val = False
+        self.scene_idx_info = None
 
     @rank_zero_only
     def create_folders(self):
@@ -88,7 +88,7 @@ class Annotator(Callback):
         for task, ann in val_sent.items():
             embeddings[task] = {}
             language_embedding = self.lang_model(list(ann))
-            embeddings[task]["emb"] = language_embedding
+            embeddings[task]["emb"] = language_embedding.cpu().numpy()
             embeddings[task]["ann"] = ann
         np.save(self.val_lang_folder / "embeddings", embeddings)
         logger.info(f"Done saving val language embeddings for Rollouts !")
@@ -97,21 +97,25 @@ class Annotator(Callback):
         self.device = pl_module.device
         self.val_dataset = trainer.val_dataloaders[0].dataset.datasets["vis"]  # type: ignore
         self.train_dataset = trainer.train_dataloader.dataset.datasets["vis"]
-        self.env = hydra.utils.instantiate(self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, cameras=())
+        self.scene_idx_info = np.load(self.train_dataset.abs_datasets_dir / "scene_info.npy", allow_pickle=True).item()
+
+        self.envs = {scene: hydra.utils.instantiate(self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=scene, cameras=()) for scene, _ in self.scene_idx_info.items()}
+        if self.cfg.validation_scene not in self.envs:
+            self.envs[self.cfg.validation_scene] = hydra.utils.instantiate(self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=self.cfg.validation_scene, cameras=())
 
         self.create_folders()
         self.lang_model = hydra.utils.instantiate(self.cfg.model)
         self.compute_val_embeddings()
         self.num_samples_train = int(self.cfg.eps * len(self.train_dataset) / len(self.cfg.annotations.keys()))
-        self.num_samples_val = 1
+        self.num_samples_val = int(self.cfg.eps * len(self.val_dataset) / len(self.cfg.annotations.keys()))
 
     def on_validation_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
         """Called when the validation loop begins."""
-        if self.env is None:
+        if self.envs is None:
             self.init_vars(trainer, pl_module)
 
     def on_train_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        if self.env is None:
+        if self.envs is None:
             self.init_vars(trainer, pl_module)
 
     def on_validation_batch_end(
@@ -124,19 +128,18 @@ class Annotator(Callback):
             dataloader_idx: int,
     ) -> None:
         batch = batch["vis"] if isinstance(batch, dict) else batch
-        self.collected_data_val, self.demo_task_counter_val = self.annotate(batch,
-                                                                            self.val_dataset,
-                                                                            self.collected_data_val,
-                                                                            self.demo_task_counter_val,
-                                                                            self.num_samples_val,
-                                                                            )
+        self.collected_data_val, self.demo_task_counter_val, current_task_counter = self.annotate(batch,
+                                                                                    self.val_dataset,
+                                                                                    self.collected_data_val,
+                                                                                    self.demo_task_counter_val,
+                                                                                    self.num_samples_val,
+                                                                                    )
         if dist.is_available() and dist.is_initialized():
             global_counters = [None for _ in range(torch.distributed.get_world_size())]
-            torch.distributed.all_gather_object(global_counters, self.demo_task_counter_val)
-            counter = reduce(add, global_counters)
-        else:
-            counter = self.demo_task_counter_val
-        if self.check_done(counter, self.num_samples_val, batch_idx, trainer.num_val_batches[0], "val"):
+            torch.distributed.all_gather_object(global_counters, current_task_counter)
+            current_task_counter = reduce(add, global_counters)
+        self.demo_task_counter_val += current_task_counter
+        if self.check_done(self.demo_task_counter_val, self.num_samples_val, batch_idx, trainer.num_val_batches[0], "val"):
             print()
             print()
             print()
@@ -157,18 +160,17 @@ class Annotator(Callback):
     ) -> None:
         batch = batch["vis"] if isinstance(batch, dict) else batch
 
-        self.collected_data_train, self.demo_task_counter_train = self.annotate(batch,
-                                                                                self.train_dataset,
-                                                                                self.collected_data_train,
-                                                                                self.demo_task_counter_train,
-                                                                                self.num_samples_train)
+        self.collected_data_train, self.demo_task_counter_train, current_task_counter = self.annotate(batch,
+                                                                                        self.train_dataset,
+                                                                                        self.collected_data_train,
+                                                                                        self.demo_task_counter_train,
+                                                                                        self.num_samples_train)
         if dist.is_available() and dist.is_initialized():
             global_counters = [None for _ in range(torch.distributed.get_world_size())]
-            torch.distributed.all_gather_object(global_counters, self.demo_task_counter_train)
-            counter = reduce(add, global_counters)
-        else:
-            counter = self.demo_task_counter_train
-        if self.check_done(counter, self.num_samples_train, batch_idx, trainer.num_training_batches, "train"):
+            torch.distributed.all_gather_object(global_counters, current_task_counter)
+            current_task_counter = reduce(add, global_counters)
+        self.demo_task_counter_train += current_task_counter
+        if self.check_done(self.demo_task_counter_train, self.num_samples_train, batch_idx, trainer.num_training_batches, "train"):
             print()
             print()
             print()
@@ -236,31 +238,45 @@ class Annotator(Callback):
             )
         return len(counter.values()) >= len(self.cfg.annotations) and min(counter.values()) >= num_samples
 
-    def annotate(self, episode, dataset, collected_data, demo_task_counter, num_samples):
+    def select_env(self, dataset, idx):
+        if "validation" in dataset.abs_datasets_dir.as_posix():
+            return self.envs[self.cfg.validation_scene]
+        seq_idx = dataset.episode_lookup[idx]
+        for scene, interval in self.scene_idx_info.items():
+            if interval[0] <= seq_idx <= interval[1]:
+                return self.envs[scene]
+        raise ValueError
+
+    def annotate(self, episode, dataset, collected_data, global_task_counter, num_samples):
         state_obs, rgb_obs, depth_obs, actions, _, reset_info, idx = episode
         batch_size, seq_length = state_obs.shape[0], state_obs.shape[1]
+        current_task_counter = Counter()
         for i in range(batch_size):
+            env = self.select_env(dataset, idx[i])
             # reset env to state of last step in the episode (goal state)
-            self.env.reset(reset_info, i, -1)
-            goal_info = self.env.get_info()
+            env.reset(reset_info, i, -1)
+            goal_info = env.get_info()
 
             prior_steps = np.random.randint(16, 32)
-            self.env.reset(reset_info, i, prior_steps)
-            middle_info = self.env.get_info()
+            env.reset(reset_info, i, prior_steps)
+            middle_info = env.get_info()
+
+            env.reset(reset_info, i, seq_length - 16)
+            close_to_end_info = env.get_info()
 
             # check if task was achieved in sequence
             task_info = self.tasks.get_task_info(middle_info, goal_info)
-            if len(task_info) != 1 or not task_info <= self.cfg.annotations.keys():
+            if len(task_info) != 1 or not task_info <= self.cfg.annotations.keys() or len(self.tasks.get_task_info_for_set(middle_info, close_to_end_info, task_info)):
                 continue
             task = list(task_info)[0]
-            if demo_task_counter[task] >= num_samples:
+            if global_task_counter[task] + current_task_counter[task] >= num_samples:
                 continue
             # reset self.env to state of first step in the episode
-            self.env.reset(reset_info, i, 0)
-            start_info = self.env.get_info()
+            env.reset(reset_info, i, 0)
+            start_info = env.get_info()
 
-            self.env.reset(reset_info, i, 32)
-            middle_info2 = self.env.get_info()
+            env.reset(reset_info, i, 32)
+            middle_info2 = env.get_info()
 
             if len(self.tasks.get_task_info_for_set(start_info, goal_info, task_info)) and not len(self.tasks.get_task_info(start_info, middle_info2)):
                 start_idx = idx[i]
@@ -270,9 +286,9 @@ class Annotator(Callback):
                 window_size = seq_length - prior_steps
 
             # seq_length = torch.unique(actions[i], dim=0).shape[0]
-            demo_task_counter += Counter(task_info)
+            current_task_counter += Counter(task_info)
             collected_data = self.label_seq(collected_data, dataset, window_size, start_idx, task)
-        return collected_data, demo_task_counter
+        return collected_data, global_task_counter, current_task_counter
 
     def label_seq(self, collected_data, dataset, seq_length, idx, task):
         seq_idx = dataset.episode_lookup[idx]
@@ -330,6 +346,7 @@ def main(cfg: DictConfig) -> None:
     trainer = Trainer(**trainer_args)
 
     trainer.fit(dummy_model, datamodule=datamodule)
+    trainer.validate(dummy_model, datamodule=datamodule)
 
 
 if __name__ == "__main__":

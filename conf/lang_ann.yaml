@@ -21,6 +21,7 @@ with_text: false
 reannotate: true
 rollout_sentences: validation_expert
 prior_steps_window: 16
+validation_scene: calvin_scene_A
 
 hydra:
   run:
