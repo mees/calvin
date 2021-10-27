@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 import re
 from typing import Dict, List, Optional, Tuple
@@ -44,13 +45,21 @@ class NpzDataset(BaseDataset):
         else:
             self.episode_lookup, self.max_batched_length_per_demo = self.load_file_indices(self.abs_datasets_dir)
 
-        glob_generator = self.abs_datasets_dir.glob(f"*.{self.save_format}")
-        file_names = [x for x in glob_generator if x.is_file()]
-        aux_naming_pattern = re.split(r"\d+", file_names[0].stem)
-        self.naming_pattern = [file_names[0].parent / aux_naming_pattern[0], file_names[0].suffix]
-        self.n_digits = n_digits if n_digits is not None else len(re.findall(r"\d+", file_names[0].stem)[0])
-        assert len(self.naming_pattern) == 2
-        assert self.n_digits > 0
+        self.naming_pattern, self.n_digits = self.lookup_naming_pattern(n_digits)
+
+    def lookup_naming_pattern(self, n_digits):
+        it = os.scandir(self.abs_datasets_dir)
+        while True:
+            filename = Path(next(it))
+            if self.save_format in filename.suffix:
+                break
+        aux_naming_pattern = re.split(r"\d+", filename.stem)
+        naming_pattern = [filename.parent / aux_naming_pattern[0], filename.suffix]
+        n_digits = n_digits if n_digits is not None else len(re.findall(r"\d+", filename.stem)[0])
+        assert len(naming_pattern) == 2
+        assert n_digits > 0
+        return naming_pattern, n_digits
+
 
     def get_episode_name(self, idx: int) -> Path:
         """
