@@ -347,7 +347,7 @@ stack_block: ["stack blocks on top of each other",
 unstack_block: ["collapse the stacked blocks",
                 "take off the stacked block",
                 "unstack the blocks",
-                "go to the tower of blocks and take of the top one",
+                "go to the tower of blocks and take off the top one",
                 "remove a block from the stack",
                 "take off the block that is on top of the other one",
                 "remove the top block"]
