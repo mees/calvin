@@ -44,8 +44,8 @@ train:
       size: 64
     - _target_: calvin.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
-      mean: [0.5,]
-      std: [0.5,]
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
     - _target_: calvin.utils.transforms.AddGaussianNoise
       mean: [ 0.0 ]
       std: [ 0.01 ]
@@ -91,8 +91,8 @@ val:
       size: 64
     - _target_: calvin.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
-      mean: [0.5,]
-      std: [0.5,]
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
   depth_tactile:
     - _target_: torchvision.transforms.Resize
       size: 64
