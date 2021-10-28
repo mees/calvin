@@ -39,6 +39,7 @@ def merge_data(list_of_data):
                 elif isinstance(v2, np.ndarray) and len(merged_data[k][k2]) != 0:
                     merged_data[k][k2] = np.concatenate((merged_data[k][k2], v2), axis=0)
                 else:
+                    print(type(v2))
                     raise ValueError
     return merged_data
 
@@ -200,7 +201,7 @@ class Annotator(Callback):
         if self.cfg.postprocessing:
             language = collected_data["language"]["ann"]
             language_embedding = self.lang_model(language)
-            collected_data["language"]["emb"] = language_embedding
+            collected_data["language"]["emb"] = language_embedding.cpu().numpy()
             logger.info(f"Done extracting {mod} language embeddings !")
 
         if dist.is_available() and dist.is_initialized():
