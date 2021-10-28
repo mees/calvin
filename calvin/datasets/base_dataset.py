@@ -75,30 +75,10 @@ class BaseDataset(Dataset):
         return self.min_window_size != self.max_window_size and not self.pad
 
     @abstractmethod
-    def get_sequences(
-        self, idx: int, window_size: int
-    ) -> Tuple[
-        torch.Tensor,
-        Tuple[torch.Tensor, ...],
-        Tuple[torch.Tensor, ...],
-        torch.Tensor,
-        torch.Tensor,
-        Dict[str, torch.Tensor],
-        int,
-    ]:
+    def get_sequences(self, idx: int, window_size: int) -> Dict:
         pass
 
-    def __getitem__(
-        self, idx: Union[int, Tuple[int, int]]
-    ) -> Tuple[
-        torch.Tensor,
-        Tuple[torch.Tensor, ...],
-        Tuple[torch.Tensor, ...],
-        torch.Tensor,
-        torch.Tensor,
-        Dict[str, torch.Tensor],
-        int,
-    ]:
+    def __getitem__(self, idx: Union[int, Tuple[int, int]]) -> Dict:
         if isinstance(idx, int):
             # When max_ws_size and min_ws_size are equal, avoid unnecessary padding
             # acts like Constant dataset. Currently, used for language data
@@ -129,48 +109,32 @@ class BaseDataset(Dataset):
 
     def pad_sequence(
         self,
-        sequence: Tuple[
-            torch.Tensor,
-            Tuple[torch.Tensor, ...],
-            Tuple[torch.Tensor, ...],
-            torch.Tensor,
-            torch.Tensor,
-            Dict[str, torch.Tensor],
-            int,
-        ],
+        seq: Dict,
         window_size: int,
-    ) -> Tuple[
-        torch.Tensor,
-        Tuple[torch.Tensor, ...],
-        Tuple[torch.Tensor, ...],
-        torch.Tensor,
-        torch.Tensor,
-        Dict[str, torch.Tensor],
-        int,
-    ]:
-        seq_state_obs, seq_rgb_obs, seq_depth_obs, seq_acts, seq_lang, info, id = sequence
+    ) -> Dict:
         pad_size = self.max_window_size - window_size
-        seq_state_obs = self.pad_with_repetition(seq_state_obs, pad_size)
-        seq_rgb_obs = tuple([self.pad_with_repetition(item, pad_size) for item in seq_rgb_obs])
-        seq_depth_obs = tuple([self.pad_with_repetition(item, pad_size) for item in seq_depth_obs])
+        seq.update({"robot_obs": self.pad_with_repetition(seq["robot_obs"], pad_size)})
+        seq.update({"rgb_obs": {k: self.pad_with_repetition(v, pad_size) for k, v in seq["rgb_obs"].items()}})
+        seq.update({"depth_obs": {k: self.pad_with_repetition(v, pad_size) for k, v in seq["depth_obs"].items()}})
         #  todo: find better way of distinguishing rk and play action spaces
         if self.save_format == "npz" and not self.relative_actions:
             # repeat action for world coordinates action space
-            seq_acts = self.pad_with_repetition(seq_acts, pad_size)
+            seq.update({"actions": self.pad_with_repetition(seq["actions"], pad_size)})
         elif self.save_format == "npz" and self.relative_actions:
             # for relative actions zero pad all but the last action dims and repeat last action dim (gripper action)
             seq_acts = torch.cat(
                 [
-                    self.pad_with_zeros(seq_acts[..., :-1], pad_size),
-                    self.pad_with_repetition(seq_acts[..., -1:], pad_size),
+                    self.pad_with_zeros(seq["actions"][..., :-1], pad_size),
+                    self.pad_with_repetition(seq["actions"][..., -1:], pad_size),
                 ],
                 dim=-1,
             )
+            seq.update({"actions": seq_acts})
         else:
             # set action to zero for joints action space
-            seq_acts = self.pad_with_zeros(seq_acts, pad_size)
-        info = {key: self.pad_with_repetition(value, pad_size) for key, value in info.items()}
-        return seq_state_obs, seq_rgb_obs, seq_depth_obs, seq_acts, seq_lang, info, id
+            seq.update({"actions": self.pad_with_zeros(seq["actions"], pad_size)})
+        seq.update({"state_info": {k: self.pad_with_repetition(v, pad_size) for k, v in seq["state_info"].items()}})
+        return seq
 
     @staticmethod
     def pad_with_repetition(input_tensor: torch.Tensor, pad_size: int) -> torch.Tensor:

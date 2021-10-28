@@ -1,21 +1,23 @@
-import os
 from collections import Counter
-import logging
 from functools import reduce
+import logging
 from operator import add
+import os
 from pathlib import Path
 import typing
-from typing import Any
+from typing import Any, Optional
+
 import hydra
 import numpy
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import seed_everything, Callback, Trainer, LightningModule
-import torch
+from pytorch_lightning import Callback, LightningModule, seed_everything, Trainer
 from pytorch_lightning.plugins import DDPPlugin
 from pytorch_lightning.utilities import rank_zero_only
+import torch
 import torch.distributed as dist
 from torch.nn import Linear
+
 import calvin
 from calvin.training import is_multi_gpu_training, log_rank_0
 
@@ -92,7 +94,7 @@ class Annotator(Callback):
             embeddings[task]["emb"] = language_embedding.cpu().numpy()
             embeddings[task]["ann"] = ann
         np.save(self.val_lang_folder / "embeddings", embeddings)
-        logger.info(f"Done saving val language embeddings for Rollouts !")
+        logger.info("Done saving val language embeddings for Rollouts !")
 
     def init_vars(self, trainer, pl_module):
         self.device = pl_module.device
@@ -100,9 +102,20 @@ class Annotator(Callback):
         self.train_dataset = trainer.train_dataloader.dataset.datasets["vis"]
         self.scene_idx_info = np.load(self.train_dataset.abs_datasets_dir / "scene_info.npy", allow_pickle=True).item()
 
-        self.envs = {scene: hydra.utils.instantiate(self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=scene, cameras=()) for scene, _ in self.scene_idx_info.items()}
+        self.envs = {
+            scene: hydra.utils.instantiate(
+                self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=scene, cameras=()
+            )
+            for scene, _ in self.scene_idx_info.items()
+        }
         if self.cfg.validation_scene not in self.envs:
-            self.envs[self.cfg.validation_scene] = hydra.utils.instantiate(self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=self.cfg.validation_scene, cameras=())
+            self.envs[self.cfg.validation_scene] = hydra.utils.instantiate(
+                self.cfg.callbacks.rollout.env_cfg,
+                self.val_dataset,
+                pl_module.device,
+                scene=self.cfg.validation_scene,
+                cameras=(),
+            )
 
         self.create_folders()
         self.lang_model = hydra.utils.instantiate(self.cfg.model)
@@ -115,32 +128,35 @@ class Annotator(Callback):
         if self.envs is None:
             self.init_vars(trainer, pl_module)
 
-    def on_train_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+    def on_train_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
         if self.envs is None:
             self.init_vars(trainer, pl_module)
 
     def on_validation_batch_end(
-            self,
-            trainer: Trainer,
-            pl_module: LightningModule,
-            outputs: Any,
-            batch: Any,
-            batch_idx: int,
-            dataloader_idx: int,
+        self,
+        trainer: Trainer,
+        pl_module: LightningModule,
+        outputs: Any,
+        batch: Any,
+        batch_idx: int,
+        dataloader_idx: int,
     ) -> None:
         batch = batch["vis"] if isinstance(batch, dict) else batch
-        self.collected_data_val, self.demo_task_counter_val, current_task_counter = self.annotate(batch,
-                                                                                    self.val_dataset,
-                                                                                    self.collected_data_val,
-                                                                                    self.demo_task_counter_val,
-                                                                                    self.num_samples_val,
-                                                                                    )
+        self.collected_data_val, self.demo_task_counter_val, current_task_counter = self.annotate(
+            batch,
+            self.val_dataset,
+            self.collected_data_val,
+            self.demo_task_counter_val,
+            self.num_samples_val,
+        )
         if dist.is_available() and dist.is_initialized():
             global_counters = [None for _ in range(torch.distributed.get_world_size())]
             torch.distributed.all_gather_object(global_counters, current_task_counter)
             current_task_counter = reduce(add, global_counters)
         self.demo_task_counter_val += current_task_counter
-        if self.check_done(self.demo_task_counter_val, self.num_samples_val, batch_idx, trainer.num_val_batches[0], "val"):
+        if self.check_done(
+            self.demo_task_counter_val, self.num_samples_val, batch_idx, trainer.num_val_batches[0], "val"
+        ):
             print()
             print()
             print()
@@ -161,17 +177,17 @@ class Annotator(Callback):
     ) -> None:
         batch = batch["vis"] if isinstance(batch, dict) else batch
 
-        self.collected_data_train, self.demo_task_counter_train, current_task_counter = self.annotate(batch,
-                                                                                        self.train_dataset,
-                                                                                        self.collected_data_train,
-                                                                                        self.demo_task_counter_train,
-                                                                                        self.num_samples_train)
+        self.collected_data_train, self.demo_task_counter_train, current_task_counter = self.annotate(
+            batch, self.train_dataset, self.collected_data_train, self.demo_task_counter_train, self.num_samples_train
+        )
         if dist.is_available() and dist.is_initialized():
             global_counters = [None for _ in range(torch.distributed.get_world_size())]
             torch.distributed.all_gather_object(global_counters, current_task_counter)
             current_task_counter = reduce(add, global_counters)
         self.demo_task_counter_train += current_task_counter
-        if self.check_done(self.demo_task_counter_train, self.num_samples_train, batch_idx, trainer.num_training_batches, "train"):
+        if self.check_done(
+            self.demo_task_counter_train, self.num_samples_train, batch_idx, trainer.num_training_batches, "train"
+        ):
             print()
             print()
             print()
@@ -179,14 +195,12 @@ class Annotator(Callback):
             print()
             print()
             print()
-            pl_module.finished_annotation_train = True
+            pl_module.finished_annotation_train = True  # type: ignore
 
-    def on_train_epoch_end(
-        self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", unused: typing.Optional = None
-    ) -> None:
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule, unused: Optional[int] = None) -> None:
         self.save_and_postprocess(self.collected_data_train, self.train_lang_folder, "train", len(self.train_dataset))
 
-    def on_validation_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+    def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule) -> None:
         self.save_and_postprocess(self.collected_data_val, self.val_lang_folder, "val", len(self.val_dataset))
 
     def save_and_postprocess(self, collected_data, lang_folder, mod, length):
@@ -267,7 +281,11 @@ class Annotator(Callback):
 
             # check if task was achieved in sequence
             task_info = self.tasks.get_task_info(middle_info, goal_info)
-            if len(task_info) != 1 or not task_info <= self.cfg.annotations.keys() or len(self.tasks.get_task_info_for_set(middle_info, close_to_end_info, task_info)):
+            if (
+                len(task_info) != 1
+                or not task_info <= self.cfg.annotations.keys()
+                or len(self.tasks.get_task_info_for_set(middle_info, close_to_end_info, task_info))
+            ):
                 continue
             task = list(task_info)[0]
             if global_task_counter[task] + current_task_counter[task] >= num_samples:
@@ -279,7 +297,9 @@ class Annotator(Callback):
             env.reset(reset_info, i, 32)
             middle_info2 = env.get_info()
 
-            if len(self.tasks.get_task_info_for_set(start_info, goal_info, task_info)) and not len(self.tasks.get_task_info(start_info, middle_info2)):
+            if len(self.tasks.get_task_info_for_set(start_info, goal_info, task_info)) and not len(
+                self.tasks.get_task_info(start_info, middle_info2)
+            ):
                 start_idx = idx[i]
                 window_size = seq_length
             else:
@@ -309,10 +329,10 @@ class LangAnnotationModel(LightningModule):
 
     def on_train_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
         if self.finished_annotation_train:
-            return -1
+            return -1  # type: ignore
 
     def training_step(self, batch, batch_idx):
-        return self.dummy_net(torch.Tensor([0.]).to(self.device))
+        return self.dummy_net(torch.Tensor([0.0]).to(self.device))
 
     def validation_step(self, *args, **kwargs):
         pass
@@ -337,7 +357,7 @@ def main(cfg: DictConfig) -> None:
         "num_sanity_val_steps": 0,
         "max_epochs": 1,
         "progress_bar_refresh_rate": 0,
-        "weights_summary": None
+        "weights_summary": None,
     }
     # Configure multi-GPU training
     if is_multi_gpu_training(trainer_args["gpus"]):  # type: ignore
@@ -347,7 +367,7 @@ def main(cfg: DictConfig) -> None:
     trainer = Trainer(**trainer_args)
 
     trainer.fit(dummy_model, datamodule=datamodule)
-    trainer.validate(dummy_model, datamodule=datamodule)
+    trainer.validate(dummy_model, datamodule=datamodule)  # type: ignore
 
 
 if __name__ == "__main__":

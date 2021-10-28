@@ -107,25 +107,12 @@ class PlayLMP(pl.LightningModule):
         optimizer = hydra.utils.instantiate(self.optimizer_config, params=self.parameters())
         return optimizer
 
-    def visual_embedding(self, imgs: List[torch.Tensor], depth_imgs: List[torch.Tensor]) -> torch.Tensor:  # type: ignore
-        # @fixme: do this less hacky
-        if len(imgs) == 1:
-            imgs_static, imgs_gripper, imgs_tactile = imgs[0], None, None
-        elif len(imgs) == 3:
-            imgs_static, imgs_gripper, imgs_tactile = imgs
-        if len(imgs) == 2 and imgs[1].shape[-1] == 84:
-            imgs_static, imgs_gripper, imgs_tactile = imgs[0], imgs[1], None
-        if len(imgs) == 2 and imgs[1].shape[-1] == 64:
-            imgs_static, imgs_gripper, imgs_tactile = imgs[0], None, imgs[1]
-        if len(depth_imgs) == 0:
-            depth_static, depth_gripper = None, None
-        else:
-            if len(depth_imgs) == 2:
-                depth_static, depth_gripper = depth_imgs
-            elif depth_imgs[0].shape[-1] < 100:
-                depth_static, depth_gripper = torch.empty(1), depth_imgs[0]
-            else:
-                depth_static, depth_gripper = depth_imgs[0], torch.empty(1)
+    def visual_embedding(self, imgs: Dict[str, torch.Tensor], depth_imgs: Dict[str, torch.Tensor]) -> torch.Tensor:  # type: ignore
+        imgs_static = imgs["rgb_static"]
+        imgs_gripper = imgs["rgb_gripper"] if "rgb_gripper" in imgs else None
+        imgs_tactile = imgs["rgb_tactile"] if "rgb_tactile" in imgs else None
+        depth_static = imgs["depth_static"] if "depth_static" in depth_imgs else None
+        depth_gripper = imgs["depth_gripper"] if "depth_gripper" in depth_imgs else None
 
         b, s, c, h, w = imgs_static.shape
         imgs_static = imgs_static.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 200, 200)
@@ -249,15 +236,7 @@ class PlayLMP(pl.LightningModule):
         self,
         batch: Dict[
             str,
-            Tuple[
-                torch.Tensor,
-                List[torch.Tensor],
-                List[torch.Tensor],
-                torch.Tensor,
-                torch.Tensor,
-                torch.Tensor,
-                torch.Tensor,
-            ],
+            Dict,
         ],
         batch_idx: int,
     ) -> torch.Tensor:
@@ -284,15 +263,16 @@ class PlayLMP(pl.LightningModule):
         )
 
         for self.modality_scope, dataset_batch in batch.items():
-            batch_obs, batch_rgbs, batch_depths, batch_acts, batch_encoded_lang, _, idx = dataset_batch
-            visual_emb = self.visual_embedding(batch_rgbs, batch_depths)
-            perceptual_emb = self.perceptual_embedding(visual_emb, batch_obs)
+            visual_emb = self.visual_embedding(dataset_batch["rgb_obs"], dataset_batch["depth_obs"])
+            perceptual_emb = self.perceptual_embedding(visual_emb, dataset_batch["robot_obs"])
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
                 if "vis" in self.modality_scope
-                else self.language_goal(batch_encoded_lang)
+                else self.language_goal(dataset_batch["lang"])
             )
-            kl, act_loss, mod_loss, pp_dist, pr_dist = self.lmp_train(perceptual_emb, latent_goal, batch_acts)
+            kl, act_loss, mod_loss, pp_dist, pr_dist = self.lmp_train(
+                perceptual_emb, latent_goal, dataset_batch["actions"]
+            )
             kl_loss += kl
             action_loss += act_loss
             total_loss += mod_loss
@@ -326,15 +306,7 @@ class PlayLMP(pl.LightningModule):
         self,
         batch: Dict[
             str,
-            Tuple[
-                torch.Tensor,
-                List[torch.Tensor],
-                List[torch.Tensor],
-                torch.Tensor,
-                torch.Tensor,
-                torch.Tensor,
-                torch.Tensor,
-            ],
+            Dict,
         ],
         batch_idx: int,
     ) -> Dict[str, torch.Tensor]:
@@ -356,13 +328,12 @@ class PlayLMP(pl.LightningModule):
         """
         output = {}
         for self.modality_scope, dataset_batch in batch.items():
-            batch_obs, batch_rgbs, batch_depths, batch_acts, batch_encoded_lang, _, idx = dataset_batch
-            visual_emb = self.visual_embedding(batch_rgbs, batch_depths)
-            perceptual_emb = self.perceptual_embedding(visual_emb, batch_obs)
+            visual_emb = self.visual_embedding(dataset_batch["rgb_obs"], dataset_batch["depth_obs"])
+            perceptual_emb = self.perceptual_embedding(visual_emb, dataset_batch["robot_obs"])
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
                 if "vis" in self.modality_scope
-                else self.language_goal(batch_encoded_lang)
+                else self.language_goal(dataset_batch["lang"])
             )
             (
                 sampled_plan_pp,
@@ -374,7 +345,7 @@ class PlayLMP(pl.LightningModule):
                 mae_pr,
                 gripper_sr_pp,
                 gripper_sr_pr,
-            ) = self.lmp_val(perceptual_emb, latent_goal, batch_acts)
+            ) = self.lmp_val(perceptual_emb, latent_goal, dataset_batch["actions"])
             output[f"val_action_loss_pp_{self.modality_scope}"] = action_loss_pp
             output[f"sampled_plan_pp_{self.modality_scope}"] = sampled_plan_pp
             output[f"val_action_loss_pr_{self.modality_scope}"] = action_loss_pr
@@ -384,7 +355,7 @@ class PlayLMP(pl.LightningModule):
             output[f"mae_pr_{self.modality_scope}"] = mae_pr
             output[f"gripper_sr_pp{self.modality_scope}"] = gripper_sr_pp
             output[f"gripper_sr_pr{self.modality_scope}"] = gripper_sr_pr
-            output[f"idx_{self.modality_scope}"] = idx
+            output[f"idx_{self.modality_scope}"] = dataset_batch["idx"]
 
         return output
 
