@@ -430,17 +430,16 @@ class PlayLMP(pl.LightningModule):
 
     def predict_with_plan(
         self,
-        curr_imgs: List[torch.Tensor],
-        curr_depths: torch.Tensor,
+        curr_imgs: Dict[str, torch.Tensor],
+        curr_depths: Dict[str, torch.Tensor],
         curr_state: torch.Tensor,
         latent_goal: torch.Tensor,
         sampled_plan: torch.Tensor,
     ) -> torch.Tensor:
 
-        imgs = [curr_img.unsqueeze(0) for curr_img in curr_imgs]
-        depth_imgs = [curr_depth.unsqueeze(0) for curr_depth in curr_depths]
+        imgs = {k: v.unsqueeze(0) for k, v in curr_imgs.items()}
+        depth_imgs = {k: v.unsqueeze(0) for k, v in curr_depths.items()}
         curr_state = curr_state.unsqueeze(0)
-
         with torch.no_grad():
             visual_emb = self.visual_embedding(imgs, depth_imgs)
             perceptual_emb = self.perceptual_embedding(visual_emb, curr_state)
@@ -450,21 +449,17 @@ class PlayLMP(pl.LightningModule):
 
     def get_pp_plan_vision(
         self,
-        curr_imgs: List[torch.Tensor],
-        curr_depths: List[torch.Tensor],
-        goal_imgs: List[torch.Tensor],
-        goal_depths: torch.Tensor,
+        curr_imgs: Dict[str, torch.Tensor],
+        curr_depths: Dict[str, torch.Tensor],
+        goal_imgs: Dict[str, torch.Tensor],
+        goal_depths: Dict[str, torch.Tensor],
         curr_state: torch.Tensor,
         goal_state: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         assert len(curr_imgs) == len(goal_imgs)
         assert len(curr_depths) == len(goal_depths)
-        imgs = [
-            torch.cat([curr_img, goal_img]).unsqueeze(0) for curr_img, goal_img in zip(curr_imgs, goal_imgs)
-        ]  # (1, 2, C, H, W)
-        depth_imgs = [
-            torch.cat([curr_depth, goal_depth]).unsqueeze(0) for curr_depth, goal_depth in zip(curr_depths, goal_depths)
-        ]  # (1, 2, C, H, W)
+        imgs = {k: torch.cat([v, goal_imgs[k]]).unsqueeze(0) for k, v in curr_imgs.items()}  # (1, 2, C, H, W)
+        depth_imgs = {k: torch.cat([v, goal_depths[k]]).unsqueeze(0) for k, v in curr_depths.items()}
         state = torch.cat((curr_state, goal_state)).unsqueeze(0)
         with torch.no_grad():
             visual_emb = self.visual_embedding(imgs, depth_imgs)
@@ -478,13 +473,13 @@ class PlayLMP(pl.LightningModule):
 
     def get_pp_plan_lang(
         self,
-        curr_imgs: List[torch.Tensor],
-        curr_depths: List[torch.Tensor],
+        curr_imgs: Dict[str, torch.Tensor],
+        curr_depths: Dict[str, torch.Tensor],
         curr_state: torch.Tensor,
         goal_lang: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        imgs = [curr_img.unsqueeze(0) for curr_img in curr_imgs]
-        depth_imgs = [curr_depth.unsqueeze(0) for curr_depth in curr_depths]
+        imgs = {k: v.unsqueeze(0) for k, v in curr_imgs.items()}
+        depth_imgs = {k: v.unsqueeze(0) for k, v in curr_depths.items()}
         curr_state = curr_state.unsqueeze(0)
         with torch.no_grad():
             visual_emb = self.visual_embedding(imgs, depth_imgs)

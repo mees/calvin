@@ -110,8 +110,8 @@ class NpzDataset(BaseDataset):
         seq_acts = process_actions(episode, self.observation_space, self.transforms)
         info = get_state_info_dict(episode)
         seq_lang = {"lang": torch.from_numpy(episode["language"]) if self.with_lang else torch.empty(0)}
-        seq_dict = {**seq_state_obs, **seq_rgb_obs, **seq_depth_obs, **seq_acts, **info, **seq_lang}
-        seq_dict["idx"] = idx
+        seq_dict = {**seq_state_obs, **seq_rgb_obs, **seq_depth_obs, **seq_acts, **info, **seq_lang}  # type:ignore
+        seq_dict["idx"] = idx  # type:ignore
 
         return seq_dict
 

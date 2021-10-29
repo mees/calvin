@@ -52,25 +52,25 @@ class RolloutVideo:
         ):
             log.warning("Video logging with tensorboard and ddp can lead to OOM errors.")
 
-    def new_video(self, initial_frame: List[torch.Tensor], tasks: Set[str], modality: str) -> None:
+    def new_video(self, initial_frame: torch.Tensor, tasks: Set[str], modality: str) -> None:
         """
         Begin a new video with the first frame of a rollout.
         Args:
-             initial_frame: list of RGB images (1 for each camera)
+             initial_frame: static camera RGB image
              tasks: set of tasks that were achieved
              modality: condition rollout modality ('vis' or 'lang')
         """
-        self.videos.append(_unnormalize(initial_frame[0].detach().cpu()))
+        self.videos.append(_unnormalize(initial_frame.detach().cpu()))
         tasks = add_modality(tasks, modality)
         self.task_names.append(tasks)
 
-    def update(self, rgb_obs: List[torch.Tensor]) -> None:
+    def update(self, rgb_obs: torch.Tensor) -> None:
         """
         Add new frame to video.
         Args:
-            rgb_obs: list of RGB images (1 for each camera)
+            rgb_obs: static camera RGB images
         """
-        img = rgb_obs[0].detach().cpu()
+        img = rgb_obs.detach().cpu()
         self.videos[-1] = torch.cat([self.videos[-1], _unnormalize(img)])
 
     def add_goal_thumbnail(self, goal_img):

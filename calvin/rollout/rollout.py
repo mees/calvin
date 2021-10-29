@@ -261,14 +261,9 @@ class Rollout(Callback):
 
     def env_rollouts(
         self,
-        batch: Tuple[
-            torch.Tensor,
-            Tuple[torch.Tensor, ...],
-            Tuple[torch.Tensor, ...],
-            torch.Tensor,
-            torch.Tensor,
-            Optional[Dict],
-            torch.Tensor,
+        batch: Dict[
+            str,
+            Dict,
         ],
         pl_module: LightningModule,
     ) -> Dict[str, torch.Tensor]:
@@ -286,7 +281,12 @@ class Rollout(Callback):
         Returns:
             rollout_task_counter: tensor counting the number of successful tasks rollouts in this batch
         """
-        state_obs, rgb_obs, depth_obs, actions, _, reset_info, idx = batch
+        state_obs = batch["robot_obs"]
+        rgb_obs = batch["rgb_obs"]
+        depth_obs = batch["depth_obs"]
+        actions = batch["actions"]
+        reset_info = batch["state_info"]
+        idx = batch["idx"]
         # create tensor of zeros to count number of successful tasks in
         counter = {}
 
@@ -306,7 +306,7 @@ class Rollout(Callback):
                         obs_neutral = self.env.reset()
                     current_img_obs = obs_neutral["rgb_obs"] if self.start_robot_neutral else obs["rgb_obs"]
                     current_depth_obs = obs_neutral["depth_obs"] if self.start_robot_neutral else obs["depth_obs"]
-                    current_state_obs = obs["state_obs"]
+                    current_state_obs = obs["robot_obs"]
 
                     if mod == "lang":
                         _task = np.random.choice(list(groundtruth_task))
@@ -318,8 +318,8 @@ class Rollout(Callback):
 
                     else:
                         # goal image is last step of the episode
-                        goal_imgs = [rgb_ob[i, -1].unsqueeze(0).to(self.device) for rgb_ob in rgb_obs]
-                        goal_depths = [depth_ob[i, -1].unsqueeze(0).to(self.device) for depth_ob in depth_obs]
+                        goal_imgs = {k: v[i, -1].unsqueeze(0).to(self.device) for k, v in rgb_obs.items()}
+                        goal_depths = {k: v[i, -1].unsqueeze(0).to(self.device) for k, v in depth_obs.items()}
                         goal_state = state_obs[i, -1].unsqueeze(0).to(self.device)
 
                     # only save video of first task execution per rollout
@@ -327,7 +327,7 @@ class Rollout(Callback):
                         np.asarray([int(global_idx) == self.task_to_id_dict[task][0] for task in groundtruth_task])
                     )
                     if record_video:
-                        self.rollout_video.new_video(current_img_obs, groundtruth_task, mod)
+                        self.rollout_video.new_video(current_img_obs["rgb_static"], groundtruth_task, mod)
 
                     for step in range(self.ep_len):
                         #  sample plan every `replan_freq` steps (default 30 steps i.e. every second)
@@ -361,13 +361,14 @@ class Rollout(Callback):
                             break
                         # update current observation
                         current_img_obs = obs["rgb_obs"]
-                        current_state_obs = obs["state_obs"]
+                        current_depth_obs = obs["depth_obs"]
+                        current_state_obs = obs["robot_obs"]
                         if record_video:
                             # update video
-                            self.rollout_video.update(current_img_obs)
+                            self.rollout_video.update(current_img_obs["rgb_static"])
                     if record_video:
                         if self.add_goal_thumbnail:
-                            self.rollout_video.add_goal_thumbnail(rgb_obs[0][i, -1])
+                            self.rollout_video.add_goal_thumbnail(rgb_obs["rgb_static"][i, -1])
                         self.rollout_video.write_to_tmp()
 
             counter[mod] = rollout_task_counter  # type: ignore
@@ -376,14 +377,9 @@ class Rollout(Callback):
 
     def get_task_info_of_batch(
         self,
-        batch: Tuple[
-            torch.Tensor,
-            Tuple[torch.Tensor, ...],
-            Tuple[torch.Tensor, ...],
-            torch.Tensor,
-            torch.Tensor,
-            Optional[Dict],
-            torch.Tensor,
+        batch: Dict[
+            str,
+            Any,
         ],
     ) -> Tuple[List, List]:
         """
@@ -404,7 +400,9 @@ class Rollout(Callback):
         """
         task_ids = []
         batch_seq_ids = []
-        state_obs, rgb_obs, depth_obs, actions, _, reset_info, idx = batch
+        reset_info = batch["state_info"]
+        state_obs = batch["robot_obs"]
+        idx = batch["idx"]
         batch_size = state_obs.shape[0]
         for i in get_portion_of_batch_ids(self.check_percentage_of_batch, batch_size):
             # reset env to state of last step in the episode (goal state)
@@ -430,7 +428,7 @@ class Rollout(Callback):
         return checkpoint
 
     def on_load_checkpoint(  # type: ignore
-        self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", callback_state: Dict[str, Any]
+        self, trainer: Trainer, pl_module: LightningModule, callback_state: Dict[str, Any]
     ) -> None:
         self.task_to_id_dict = callback_state.get("task_to_id_dict", None)
         self.id_to_task_dict = callback_state.get("id_to_task_dict", None)
