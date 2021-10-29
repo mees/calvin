@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -60,7 +60,6 @@ class NpzDataset(BaseDataset):
         assert n_digits > 0
         return naming_pattern, n_digits
 
-
     def get_episode_name(self, idx: int) -> Path:
         """
         Convert frame idx to file name
@@ -85,17 +84,7 @@ class NpzDataset(BaseDataset):
             episode["language"] = self.lang_ann[self.lang_lookup[idx]][0]  # TODO check  [0]
         return episode
 
-    def get_sequences(
-        self, idx: int, window_size: int
-    ) -> Tuple[
-        torch.Tensor,
-        Tuple[torch.Tensor, ...],
-        Tuple[torch.Tensor, ...],
-        torch.Tensor,
-        torch.Tensor,
-        Dict[str, torch.Tensor],
-        int,
-    ]:
+    def get_sequences(self, idx: int, window_size: int) -> Dict:
         """
         parameters
         ----------
@@ -119,15 +108,12 @@ class NpzDataset(BaseDataset):
         seq_rgb_obs = process_rgb(episode, self.observation_space, self.transforms)
         seq_depth_obs = process_depth(episode, self.observation_space, self.transforms)
         seq_acts = process_actions(episode, self.observation_space, self.transforms)
-
         info = get_state_info_dict(episode)
+        seq_lang = {"lang": torch.from_numpy(episode["language"]) if self.with_lang else torch.empty(0)}
+        seq_dict = {**seq_state_obs, **seq_rgb_obs, **seq_depth_obs, **seq_acts, **info, **seq_lang}  # type:ignore
+        seq_dict["idx"] = idx  # type:ignore
 
-        if self.with_lang:
-            seq_lang = torch.from_numpy(episode["language"])
-        else:
-            seq_lang = torch.empty(0)
-
-        return seq_state_obs, seq_rgb_obs, seq_depth_obs, seq_acts, seq_lang, info, idx
+        return seq_dict
 
     def load_file_indices_lang(self, abs_datasets_dir: Path) -> Tuple[List, List, List, np.ndarray]:
 

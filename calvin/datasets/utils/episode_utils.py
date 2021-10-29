@@ -17,7 +17,7 @@ def process_state(
     proprio_state: DictConfig,
     seq_idx: int = 0,
     window_size: int = 0,
-) -> torch.Tensor:
+) -> Dict[str, torch.Tensor]:
     state_obs_keys = observation_space["state_obs"]
     state_obs_list_normalized = []
     state_obs_list_unnormalized = []
@@ -55,7 +55,7 @@ def process_state(
         state_obs_sliced.append(seq_state_obs_)
     seq_state_obs = torch.cat(state_obs_sliced, dim=1)
 
-    return seq_state_obs
+    return {"robot_obs": seq_state_obs}
 
 
 def process_rgb(
@@ -64,10 +64,10 @@ def process_rgb(
     transforms: Dict,
     seq_idx: int = 0,
     window_size: int = 0,
-) -> Tuple[torch.Tensor, ...]:
+) -> Dict[str, Dict[str, torch.Tensor]]:
     rgb_obs_keys = observation_space["rgb_obs"]
 
-    seq_rgb_obs_list = []
+    seq_rgb_obs_dict = {}
     for _, rgb_obs_key in enumerate(rgb_obs_keys):
         rgb_obs = episode[rgb_obs_key]
         # expand dims for single environment obs
@@ -82,10 +82,9 @@ def process_rgb(
         # we might have different transformations for the different cameras
         if rgb_obs_key in transforms:
             seq_rgb_obs_ = transforms[rgb_obs_key](seq_rgb_obs_)
-        seq_rgb_obs_list.append(seq_rgb_obs_)
+        seq_rgb_obs_dict[rgb_obs_key] = seq_rgb_obs_
     # shape: N_rgb_obs x (BxCxHxW)
-    seq_rgb_obs = tuple(seq_rgb_obs_list)
-    return seq_rgb_obs
+    return {"rgb_obs": seq_rgb_obs_dict}
 
 
 def process_depth(
@@ -94,7 +93,7 @@ def process_depth(
     transforms: Dict,
     seq_idx: int = 0,
     window_size: int = 0,
-) -> Tuple[torch.Tensor, ...]:
+) -> Dict[str, Dict[str, torch.Tensor]]:
     # expand dims for single environment obs
     def exp_dim(depth_img):
         if len(depth_img.shape) != 3:
@@ -102,7 +101,7 @@ def process_depth(
         return depth_img
 
     depth_obs_keys = observation_space["depth_obs"]
-    seq_depth_obs_list = []
+    seq_depth_obs_dict = {}
     for _, depth_obs_key in enumerate(depth_obs_keys):
         depth_ob = exp_dim(episode[depth_obs_key])
         assert len(depth_ob.shape) == 3
@@ -113,10 +112,9 @@ def process_depth(
         # we might have different transformations for the different cameras
         if depth_obs_key in transforms:
             depth_ob_ = transforms[depth_obs_key](depth_ob_)
-        seq_depth_obs_list.append(depth_ob_)
+        seq_depth_obs_dict[depth_obs_key] = depth_ob_
     # shape: N_depth_obs x(BxHxW)
-    seq_depth_obs = tuple(seq_depth_obs_list)
-    return seq_depth_obs
+    return {"depth_obs": seq_depth_obs_dict}
 
 
 def process_actions(
@@ -125,7 +123,7 @@ def process_actions(
     transforms: Dict,
     seq_idx: int = 0,
     window_size: int = 0,
-) -> torch.Tensor:
+) -> Dict[str, torch.Tensor]:
     # shape: (N_actions)
     action_keys = observation_space["actions"]
     if len(action_keys) != 1:
@@ -138,15 +136,20 @@ def process_actions(
         seq_acts = torch.from_numpy(action).float()
     else:  # episode loader
         seq_acts = torch.from_numpy(episode[action_key][seq_idx : seq_idx + window_size]).float()
-    return seq_acts
+    return {"actions": seq_acts}
 
 
-def get_state_info_dict(episode: Dict[str, np.ndarray]) -> Dict[str, torch.Tensor]:
+def get_state_info_dict(episode: Dict[str, np.ndarray]) -> Dict[str, Dict[str, torch.Tensor]]:
     """
     :param episode: episode loaded by dataset loader
     :return: info dict of full robot and scene state (for env resets)
     """
-    return {"robot_obs": torch.from_numpy(episode["robot_obs"]), "scene_obs": torch.from_numpy(episode["scene_obs"])}
+    return {
+        "state_info": {
+            "robot_obs": torch.from_numpy(episode["robot_obs"]),
+            "scene_obs": torch.from_numpy(episode["scene_obs"]),
+        }
+    }
 
 
 def load_dataset_statistics(train_dataset_dir, val_dataset_dir, transforms):

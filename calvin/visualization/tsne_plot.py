@@ -47,7 +47,7 @@ class TSNEPlot(Callback):
         self.sampled_plans.append(outputs["sampled_plan_pp_vis"])  # type: ignore
         self.all_idx.append(outputs["idx_vis"])  # type: ignore
 
-    def on_validation_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+    def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule) -> None:
         if pl_module.global_step > 0:
             if self.task_labels is None:
                 self._create_task_labels(trainer)
