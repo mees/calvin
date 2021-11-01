@@ -12,20 +12,17 @@ import torch.nn.functional as F
 class PlanRecognitionNetwork(nn.Module):
     def __init__(
         self,
-        visual_features: int,
+        in_features: int,
         plan_features: int,
-        n_state_obs: int,
         action_space: int,
         birnn_dropout_p: float,
         min_std: float,
     ):
         super(PlanRecognitionNetwork, self).__init__()
-        self.visual_features = visual_features
         self.plan_features = plan_features
-        self.n_state_obs = n_state_obs
         self.action_space = action_space
         self.min_std = min_std
-        self.in_features = self.visual_features + self.n_state_obs
+        self.in_features = in_features
         self.birnn_model = nn.RNN(
             input_size=self.in_features,
             hidden_size=2048,

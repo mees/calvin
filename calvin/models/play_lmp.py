@@ -22,41 +22,28 @@ logger = logging.getLogger(__name__)
 class PlayLMP(pl.LightningModule):
     def __init__(
         self,
+        perceptual_encoder: DictConfig,
         plan_proposal: DictConfig,
         plan_recognition: DictConfig,
-        vision_static: DictConfig,
-        depth_static: Optional[DictConfig],
         visual_goal: DictConfig,
         language_goal: DictConfig,
-        tactile: DictConfig,
         decoder: DictConfig,
-        proprio_state: DictConfig,
-        vision_gripper: Optional[DictConfig],
-        depth_gripper: Optional[DictConfig],
         kl_beta: float,
         optimizer: DictConfig,
     ):
         super(PlayLMP, self).__init__()
+        self.perceptual_encoder = hydra.utils.instantiate(perceptual_encoder)
         self.setup_input_sizes(
-            vision_static,
-            depth_static,
-            vision_gripper,
-            depth_gripper,
+            self.perceptual_encoder,
             plan_proposal,
             plan_recognition,
             visual_goal,
             decoder,
-            proprio_state,
-            tactile,
         )
-
         self.plan_proposal = hydra.utils.instantiate(plan_proposal)
         self.plan_recognition = hydra.utils.instantiate(plan_recognition)
-        self.vision_static = hydra.utils.instantiate(vision_static)
-        self.vision_gripper = hydra.utils.instantiate(vision_gripper) if vision_gripper else None
         self.visual_goal = hydra.utils.instantiate(visual_goal)
         self.language_goal = hydra.utils.instantiate(language_goal) if language_goal else None
-        self.tactile_enc = hydra.utils.instantiate(tactile) if tactile else None
         self.action_decoder: ActionDecoder = hydra.utils.instantiate(decoder)
         self.kl_beta = kl_beta
         self.modality_scope = "vis"
@@ -70,84 +57,20 @@ class PlayLMP(pl.LightningModule):
 
     @staticmethod
     def setup_input_sizes(
-        vision_static,
-        depth_static,
-        vision_gripper,
-        depth_gripper,
+        perceptual_encoder,
         plan_proposal,
         plan_recognition,
         visual_goal,
         decoder,
-        proprio_state,
-        tactile,
     ):
-        # remove a dimension if we convert robot orientation quaternion to euler angles
-        n_state_obs = int(np.sum(np.diff([list(x) for x in [list(y) for y in proprio_state.keep_indices]])))
-
-        plan_proposal.n_state_obs = n_state_obs
-        plan_recognition.n_state_obs = n_state_obs
-        visual_goal.n_state_obs = n_state_obs
-        decoder.n_state_obs = n_state_obs
-
-        visual_features = vision_static.visual_features
-        if vision_gripper:
-            visual_features += vision_gripper.visual_features
-        if depth_gripper and vision_gripper.num_c < 4:
-            vision_gripper.num_c += depth_gripper.num_c
-        if depth_static and vision_static.num_c < 4:
-            vision_static.num_c += depth_static.num_c
-        if tactile:
-            visual_features += tactile.visual_features
-        plan_proposal.visual_features = visual_features
-        plan_recognition.visual_features = visual_features
-        visual_goal.visual_features = visual_features
-        decoder.visual_features = visual_features
+        plan_proposal.perceptual_features = perceptual_encoder.latent_size
+        plan_recognition.in_features = perceptual_encoder.latent_size
+        visual_goal.in_features = perceptual_encoder.latent_size
+        decoder.perceptual_features = perceptual_encoder.latent_size
 
     def configure_optimizers(self):
         optimizer = hydra.utils.instantiate(self.optimizer_config, params=self.parameters())
         return optimizer
-
-    def visual_embedding(self, imgs: Dict[str, torch.Tensor], depth_imgs: Dict[str, torch.Tensor]) -> torch.Tensor:  # type: ignore
-        imgs_static = imgs["rgb_static"]
-        imgs_gripper = imgs["rgb_gripper"] if "rgb_gripper" in imgs else None
-        imgs_tactile = imgs["rgb_tactile"] if "rgb_tactile" in imgs else None
-        depth_static = imgs["depth_static"] if "depth_static" in depth_imgs else None
-        depth_gripper = imgs["depth_gripper"] if "depth_gripper" in depth_imgs else None
-
-        b, s, c, h, w = imgs_static.shape
-        imgs_static = imgs_static.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 200, 200)
-        if depth_static is not None:
-            depth_static = torch.unsqueeze(depth_static, 2)
-            depth_static = depth_static.reshape(-1, 1, h, w)  # (batch_size * sequence_length, 1, 200, 200)
-            imgs_static = torch.cat([imgs_static, depth_static], dim=1)  # (batch_size * sequence_length, 3, 200, 200)
-        # ------------ Vision Network ------------ #
-        encoded_imgs = self.vision_static(imgs_static)  # (batch*seq_len, 64)
-        encoded_imgs = encoded_imgs.reshape(b, s, -1)  # (batch, seq, 64)
-
-        if imgs_gripper is not None:
-            b, s, c, h, w = imgs_gripper.shape
-            imgs_gripper = imgs_gripper.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 84, 84)
-            if depth_gripper is not None:
-                depth_gripper = torch.unsqueeze(depth_gripper, 2)
-                depth_gripper = depth_gripper.reshape(-1, 1, h, w)  # (batch_size * sequence_length, 1, 84, 84)
-                imgs_gripper = torch.cat(
-                    [imgs_gripper, depth_gripper], dim=1
-                )  # (batch_size * sequence_length, 4, 84, 84)
-            encoded_imgs_gripper = self.vision_gripper(imgs_gripper)  # (batch*seq_len, 64)
-            encoded_imgs_gripper = encoded_imgs_gripper.reshape(b, s, -1)  # (batch, seq, 64)
-            encoded_imgs = torch.cat([encoded_imgs, encoded_imgs_gripper], dim=-1)
-
-        if imgs_tactile is not None:
-            b, s, c, h, w = imgs_tactile.shape
-            imgs_tactile = imgs_tactile.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 84, 84)
-            encoded_tactile = self.tactile_enc(imgs_tactile)
-            encoded_tactile = encoded_tactile.reshape(b, s, -1)
-            encoded_imgs = torch.cat([encoded_imgs, encoded_tactile], dim=-1)
-        return encoded_imgs
-
-    def perceptual_embedding(self, visual_emb: torch.Tensor, obs: torch.Tensor) -> torch.Tensor:  # type: ignore
-        perceptual_emb = torch.cat([visual_emb, obs], dim=-1)
-        return perceptual_emb
 
     def lmp_train(
         self, perceptual_emb: torch.Tensor, latent_goal: torch.Tensor, train_acts: torch.Tensor
@@ -263,8 +186,9 @@ class PlayLMP(pl.LightningModule):
         )
 
         for self.modality_scope, dataset_batch in batch.items():
-            visual_emb = self.visual_embedding(dataset_batch["rgb_obs"], dataset_batch["depth_obs"])
-            perceptual_emb = self.perceptual_embedding(visual_emb, dataset_batch["robot_obs"])
+            perceptual_emb = self.perceptual_encoder(
+                dataset_batch["rgb_obs"], dataset_batch["depth_obs"], dataset_batch["robot_obs"]
+            )
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
                 if "vis" in self.modality_scope
@@ -328,8 +252,9 @@ class PlayLMP(pl.LightningModule):
         """
         output = {}
         for self.modality_scope, dataset_batch in batch.items():
-            visual_emb = self.visual_embedding(dataset_batch["rgb_obs"], dataset_batch["depth_obs"])
-            perceptual_emb = self.perceptual_embedding(visual_emb, dataset_batch["robot_obs"])
+            perceptual_emb = self.perceptual_encoder(
+                dataset_batch["rgb_obs"], dataset_batch["depth_obs"], dataset_batch["robot_obs"]
+            )
             latent_goal = (
                 self.visual_goal(perceptual_emb[:, -1])
                 if "vis" in self.modality_scope
@@ -441,8 +366,7 @@ class PlayLMP(pl.LightningModule):
         depth_imgs = {k: v.unsqueeze(0) for k, v in curr_depths.items()}
         curr_state = curr_state.unsqueeze(0)
         with torch.no_grad():
-            visual_emb = self.visual_embedding(imgs, depth_imgs)
-            perceptual_emb = self.perceptual_embedding(visual_emb, curr_state)
+            perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, curr_state)
             action = self.action_decoder.act(sampled_plan, perceptual_emb, latent_goal)
 
         return action
@@ -462,8 +386,7 @@ class PlayLMP(pl.LightningModule):
         depth_imgs = {k: torch.cat([v, goal_depths[k]]).unsqueeze(0) for k, v in curr_depths.items()}
         state = torch.cat((curr_state, goal_state)).unsqueeze(0)
         with torch.no_grad():
-            visual_emb = self.visual_embedding(imgs, depth_imgs)
-            perceptual_emb = self.perceptual_embedding(visual_emb, state)
+            perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, state)
             latent_goal = self.visual_goal(perceptual_emb[:, -1])
             # ------------Plan Proposal------------ #
             pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
@@ -482,8 +405,7 @@ class PlayLMP(pl.LightningModule):
         depth_imgs = {k: v.unsqueeze(0) for k, v in curr_depths.items()}
         curr_state = curr_state.unsqueeze(0)
         with torch.no_grad():
-            visual_emb = self.visual_embedding(imgs, depth_imgs)
-            perceptual_emb = self.perceptual_embedding(visual_emb, curr_state)
+            perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, curr_state)
             latent_goal = self.language_goal(goal_lang)
             # ------------Plan Proposal------------ #
             pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)

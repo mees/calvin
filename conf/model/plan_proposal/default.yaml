@@ -1,7 +1,6 @@
-_target_: calvin.models.encoders.plan_proposal_net.PlanProposalNetwork
-visual_features: ???
+_target_: calvin.models.plan_encoders.plan_proposal_net.PlanProposalNetwork
+perceptual_features: ???
 latent_goal_features: 32
 plan_features: 256
 activation_function: ReLU #ELU
-n_state_obs: ???
 min_std: 0.0001

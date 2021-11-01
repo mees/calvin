@@ -45,16 +45,7 @@ class PlayDataModule(pl.LightningDataModule):
         self.val_dir = root_data_path / "validation"
         self.shuffle_val = shuffle_val
         self.modalities: List[str] = []
-
-        transforms = load_dataset_statistics(self.training_dir, self.val_dir, transforms)
-
-        self.train_transforms = {
-            cam: [hydra.utils.instantiate(transform) for transform in transforms.train[cam]] for cam in transforms.train
-        }
-
-        self.val_transforms = {
-            cam: [hydra.utils.instantiate(transform) for transform in transforms.val[cam]] for cam in transforms.val
-        }
+        self.transforms = transforms
 
     def prepare_data(self, *args, **kwargs):
         # check if files already exist
@@ -67,6 +58,15 @@ class PlayDataModule(pl.LightningDataModule):
             torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.val_dir)
 
     def setup(self, stage=None):
+        transforms = load_dataset_statistics(self.training_dir, self.val_dir, self.transforms)
+
+        self.train_transforms = {
+            cam: [hydra.utils.instantiate(transform) for transform in transforms.train[cam]] for cam in transforms.train
+        }
+
+        self.val_transforms = {
+            cam: [hydra.utils.instantiate(transform) for transform in transforms.val[cam]] for cam in transforms.val
+        }
         self.train_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.train_transforms.items()}
         self.val_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.val_transforms.items()}
         self.train_datasets, self.train_sampler, self.val_datasets, self.val_sampler = {}, {}, {}, {}

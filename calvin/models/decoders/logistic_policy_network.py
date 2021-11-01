@@ -25,10 +25,9 @@ def log_sum_exp(x):
 class LogisticPolicyNetwork(ActionDecoder):
     def __init__(
         self,
-        visual_features: int,
+        perceptual_features: int,
         latent_goal_features: int,
         plan_features: int,
-        n_state_obs: int,
         n_mixtures: int,
         hidden_size: int,
         out_features: int,
@@ -44,7 +43,7 @@ class LogisticPolicyNetwork(ActionDecoder):
         self.n_dist = n_mixtures
         self.log_scale_min = log_scale_min
         self.num_classes = num_classes
-        in_features = (visual_features + n_state_obs) + latent_goal_features + plan_features
+        in_features = perceptual_features + latent_goal_features + plan_features
         self.out_features = out_features
         self.rnn = nn.RNN(
             input_size=in_features,

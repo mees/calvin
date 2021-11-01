@@ -8,4 +8,4 @@ proprio_state: ${datamodule.proprioception_dims}
 obs_space: ${datamodule.observation_space}
 skip_frames: 1
 pad: true
-lang_folder: ???
+lang_folder: "lang_annotations"

@@ -1,11 +1,7 @@
 defaults:
+  - perceptual_encoder: default
   - plan_proposal: default
   - plan_recognition: default
-  - vision_static: default
-  - depth_static: none
-  - vision_gripper: none
-  - depth_gripper: none
-  - tactile: none
   - visual_goal: default
   - language_goal: default
   - decoder: logistic
@@ -14,5 +10,4 @@ defaults:
 _target_: calvin.models.play_lmp.PlayLMP
 _recursive_: false
 
-proprio_state: ${datamodule.proprioception_dims}
 kl_beta: ${loss.kl_beta}

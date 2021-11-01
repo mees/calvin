@@ -9,7 +9,6 @@ dataset_dir: ${datamodule.root_data_dir}
 policy_rnn_dropout_p: 0.0
 load_action_bounds: true
 num_classes: 256
-n_state_obs: ???
-visual_features: 64
+perceptual_features: ??
 latent_goal_features: 32
 plan_features: 256

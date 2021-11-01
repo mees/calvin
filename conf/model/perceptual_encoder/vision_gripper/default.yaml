@@ -1,4 +1,4 @@
-_target_: calvin.models.encoders.vision_network_gripper.VisionNetwork
+_target_: calvin.models.perceptual_encoders.vision_network_gripper.VisionNetwork
 activation_function: ReLU #ELU
 dropout_vis_fc: 0.0
 l2_normalize_output: false

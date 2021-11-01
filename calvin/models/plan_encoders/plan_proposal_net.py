@@ -11,20 +11,18 @@ import torch.nn.functional as F
 class PlanProposalNetwork(nn.Module):
     def __init__(
         self,
-        visual_features: int,
+        perceptual_features: int,
         latent_goal_features: int,
         plan_features: int,
-        n_state_obs: int,
         activation_function: str,
         min_std: float,
     ):
         super(PlanProposalNetwork, self).__init__()
-        self.visual_features = visual_features
+        self.perceptual_features = perceptual_features
         self.latent_goal_features = latent_goal_features
         self.plan_features = plan_features
-        self.n_state_obs = n_state_obs
         self.min_std = min_std
-        self.in_features = (self.visual_features + self.n_state_obs) + self.latent_goal_features
+        self.in_features = self.perceptual_features + self.latent_goal_features
         self.act_fn = getattr(nn, activation_function)()
         self.fc_model = nn.Sequential(
             nn.Linear(in_features=self.in_features, out_features=2048),  # shape: [N, 136]
