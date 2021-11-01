@@ -2,4 +2,4 @@ n_state_obs: 54
 keep_indices: [[0, 54]]
 robot_orientation_idx: [3, 6]
 normalize: True
-normalize_robot_orientation: False
+normalize_robot_orientation: True
