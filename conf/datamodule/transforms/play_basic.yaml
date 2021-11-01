@@ -60,8 +60,14 @@ train:
       std: [ 0.01 ]
   robot_obs:
     - _target_: calvin.utils.transforms.NormalizeVector
+    - _target_: calvin.utils.transforms.AddGaussianNoise
+      mean: [0.0]
+      std: [0.01]
   scene_obs:
     - _target_: calvin.utils.transforms.NormalizeVector
+    - _target_: calvin.utils.transforms.AddGaussianNoise
+      mean: [0.0]
+      std: [0.01]
 
 val:
   rgb_static:
