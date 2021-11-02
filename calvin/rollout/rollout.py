@@ -284,7 +284,6 @@ class Rollout(Callback):
         state_obs = batch["robot_obs"]
         rgb_obs = batch["rgb_obs"]
         depth_obs = batch["depth_obs"]
-        actions = batch["actions"]
         reset_info = batch["state_info"]
         idx = batch["idx"]
         # create tensor of zeros to count number of successful tasks in
