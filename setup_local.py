@@ -12,7 +12,7 @@ def _read(f):
     return open(op.join(op.dirname(__file__), f)).read() if op.exists(f) else ""
 
 
-_meta = _read("calvin/__init__.py")
+_meta = _read("calvin_models/__init__.py")
 
 
 def find_meta(_meta, string):

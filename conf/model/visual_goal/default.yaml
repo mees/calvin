@@ -1,6 +1,0 @@
-_target_: calvin.models.encoders.goal_encoders.VisualGoalEncoder
-in_features: ???
-hidden_size: 2048
-latent_goal_features: 32
-l2_normalize_goal_embeddings: False
-activation_function: ReLU #ELU

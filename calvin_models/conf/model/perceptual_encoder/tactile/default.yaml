@@ -1,0 +1,2 @@
+_target_: calvin_agent.models.perceptual_encoders.tactile_encoder.TactileEncoder
+visual_features: 64

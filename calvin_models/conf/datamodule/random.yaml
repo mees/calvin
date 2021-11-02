@@ -1,0 +1,5 @@
+_target_: calvin_agent.datasets.random.RandomDataModule
+batch_size: 16
+action_space: 7
+action_max: [1, 1, 1, 1, 1, 1, 1]
+action_min: [-1, -1, -1, -1, -1, -1, -1]

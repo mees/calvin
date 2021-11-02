@@ -1,0 +1,6 @@
+_target_: calvin_agent.models.plan_encoders.plan_recognition_net.PlanRecognitionNetwork
+in_features: ???
+plan_features: 256
+action_space: ${datamodule.action_space}
+birnn_dropout_p: 0.0
+min_std: 0.0001

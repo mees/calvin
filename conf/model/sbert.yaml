@@ -1,2 +1,0 @@
-_target_: calvin.models.encoders.language_network.SBert
-nlp_model: mini

@@ -1,0 +1,4 @@
+_target_: calvin_agent.utils.kl_callbacks.KLLinearSchedule
+start_epoch: 10
+end_epoch: 50
+max_kl_beta: ${loss.kl_beta}

@@ -1,0 +1,60 @@
+_target_: calvin_env.envs.tasks.Tasks
+tasks:
+  # rotation
+  rotate_red_block_right: [rotate_object, 'block_red', -60]
+  rotate_red_block_left: [rotate_object, 'block_red', 60]
+  rotate_blue_block_right: [ rotate_object, 'block_blue', -60 ]
+  rotate_blue_block_left: [ rotate_object, 'block_blue', 60 ]
+  rotate_pink_block_right: [ rotate_object, 'block_pink', -60 ]
+  rotate_pink_block_left: [ rotate_object, 'block_pink', 60 ]
+
+  # pushing
+  push_red_block_right: [ push_object, 'block_red', 0.1, 0]
+  push_red_block_left: [ push_object, 'block_red', -0.1, 0]
+  push_blue_block_right: [ push_object, 'block_blue', 0.1, 0]
+  push_blue_block_left: [ push_object, 'block_blue', -0.1, 0]
+  push_pink_block_right: [ push_object, 'block_pink', 0.1, 0]
+  push_pink_block_left: [ push_object, 'block_pink', -0.1, 0]
+
+  # open/close
+  move_slider_left: [move_door_rel, 'base__slide', 0.15]  # 0 - 0.56
+  move_slider_right: [move_door_rel, 'base__slide', -0.15]
+  open_drawer: [move_door_rel, 'base__drawer', 0.12]  # 0 - 0.24
+  close_drawer: [move_door_rel, 'base__drawer', -0.12]
+
+  # lifting
+  lift_red_block_table: [lift_object, 'block_red', 0.05, 'table', 'base_link']
+  lift_red_block_slider: [lift_object, 'block_red', 0.03, 'table', 'plank_link']
+  lift_red_block_drawer: [lift_object, 'block_red', 0.05, 'table', 'drawer_link']
+  lift_blue_block_table: [ lift_object, 'block_blue', 0.05, 'table', 'base_link' ]
+  lift_blue_block_slider: [ lift_object, 'block_blue', 0.03, 'table', 'plank_link' ]
+  lift_blue_block_drawer: [ lift_object, 'block_blue', 0.05, 'table', 'drawer_link' ]
+  lift_pink_block_table: [ lift_object, 'block_pink', 0.05, 'table', 'base_link' ]
+  lift_pink_block_slider: [ lift_object, 'block_pink', 0.03, 'table', 'plank_link' ]
+  lift_pink_block_drawer: [ lift_object, 'block_pink', 0.05, 'table', 'drawer_link' ]
+
+  # placing
+  place_in_slider: [place_object, 'table', 'plank_link']
+  place_in_drawer: [place_object, 'table', 'drawer_link']
+
+  # stacking
+  stack_block: [stack_objects]
+  unstack_block: [unstack_objects]
+
+  # lights
+  turn_on_lightbulb: [toggle_light, 'lightbulb', 0, 1]
+  turn_off_lightbulb: [toggle_light, 'lightbulb', 1, 0]
+  turn_on_led: [ toggle_light, 'led', 0, 1 ]
+  turn_off_led: [ toggle_light, 'led', 1, 0 ]
+
+  # pushing into drawer
+  push_into_drawer: [push_object_into, ['block_red', 'block_blue', 'block_pink'], 'table', 'base_link', 'table', 'drawer_link']
+
+# signatures of available base tasks:
+# rotate_object(obj_name, degrees, x_y_threshold=30, z_treshold=180):
+# push_object(obj_name, x_direction, y_direction):
+# lift_object(obj_name, z_direction, surface_body=None, surface_link=None):
+# place_object(dest_body, dest_link=None):
+# push_object_into(obj_name, src_body, dest_body):
+# move_door_abs(start_info, end_info, obj_name, joint_name, start_threshold, end_threshold):
+# move_door_rel(obj_name, joint_name, threshold):

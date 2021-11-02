@@ -1,8 +1,0 @@
-_target_: calvin.models.perceptual_encoders.vision_network.VisionNetwork
-input_width: 200
-input_height: 200
-activation_function: ReLU #ELU
-dropout_vis_fc: 0.0
-l2_normalize_output: false
-visual_features: 64
-num_c: 3

@@ -1,0 +1,10 @@
+_target_: calvin_agent.models.perceptual_encoders.concat_encoders.ConcatEncoders
+_recursive_: false
+
+defaults:
+ - vision_static: default
+ - vision_gripper: none
+ - depth_static: default
+ - depth_gripper: none
+ - proprio: identity
+ - tactile: none

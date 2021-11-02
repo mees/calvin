@@ -1,0 +1,6 @@
+_target_: calvin_agent.visualization.tsne_plot.TSNEPlot
+perplexity: 40
+n_jobs: 8
+plot_percentage: 0.2
+opacity: 0.3
+marker_size: 5

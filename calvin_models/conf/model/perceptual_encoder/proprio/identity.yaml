@@ -1,0 +1,2 @@
+_target_: calvin_agent.models.perceptual_encoders.proprio_encoder.IdentityEncoder
+proprioception_dims: ${datamodule.proprioception_dims}

@@ -1,0 +1,6 @@
+_target_: calvin_agent.models.plan_encoders.plan_proposal_net.PlanProposalNetwork
+perceptual_features: ???
+latent_goal_features: 32
+plan_features: 256
+activation_function: ReLU #ELU
+min_std: 0.0001

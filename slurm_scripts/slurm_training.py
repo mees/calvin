@@ -16,7 +16,7 @@ if default_log_dir == "/tmp":
 parser = argparse.ArgumentParser(description="Parse slurm parameters and hydra config overrides")
 
 parser.add_argument("--script", type=str, default="./sbatch_lfp.sh")
-parser.add_argument("--train_file", type=str, default="../calvin/training.py")
+parser.add_argument("--train_file", type=str, default="../calvin_models/calvin_agent/training.py")
 parser.add_argument("-l", "--log_dir", type=str, default=default_log_dir)
 parser.add_argument("-j", "--job_name", type=str, default="play_training")
 parser.add_argument("-g", "--gpus", type=int, default=1)
@@ -51,7 +51,7 @@ def create_git_copy(repo_src_dir, repo_target_dir):
 
 if not args.no_clone:
     repo_src_dir = Path(__file__).absolute().parents[1]
-    repo_target_dir = log_dir / "calvin"
+    repo_target_dir = log_dir / "calvin_models/calvin_agent"
     create_git_copy(repo_src_dir, repo_target_dir)
 
     args.script = repo_target_dir / os.path.relpath(args.script, repo_src_dir)

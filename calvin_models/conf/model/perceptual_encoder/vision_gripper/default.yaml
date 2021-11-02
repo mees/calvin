@@ -1,0 +1,7 @@
+_target_: calvin_agent.models.perceptual_encoders.vision_network_gripper.VisionNetwork
+activation_function: ReLU #ELU
+dropout_vis_fc: 0.0
+l2_normalize_output: false
+visual_features: 64
+conv_encoder: nature_cnn
+num_c: 3

@@ -1,0 +1,13 @@
+defaults:
+  - datasets: vision_lang
+  - transforms: play_basic
+  - proprioception_dims: robot_no_joints #robot_full
+  - observation_space: lang_rgb_static
+_target_: calvin_agent.datasets.play_data_module.PlayDataModule
+_recursive_: false
+root_data_dir: "play_data"
+action_space: 7
+num_workers: 4
+action_max: [1., 1., 1., 1., 1., 1., 1.,]
+action_min: [-1., -1., -1., -1., -1., -1., -1]
+shuffle_val: false

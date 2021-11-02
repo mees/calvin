@@ -1,0 +1,14 @@
+_target_: calvin_agent.models.decoders.logistic_policy_network.LogisticPolicyNetwork
+n_mixtures: 10
+hidden_size: 2048
+out_features: ${datamodule.action_space}
+log_scale_min: -7.0
+act_max_bound: ${datamodule.action_max}
+act_min_bound: ${datamodule.action_min}
+dataset_dir: ${datamodule.root_data_dir}
+policy_rnn_dropout_p: 0.0
+load_action_bounds: true
+num_classes: 256
+perceptual_features: ??
+latent_goal_features: 32
+plan_features: 256
