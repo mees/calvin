@@ -17,12 +17,7 @@ class ConcatEncoders(nn.Module):
         tactile: Optional[DictConfig] = None,
     ):
         super().__init__()
-        self.vision_static_encoder = hydra.utils.instantiate(vision_static)
-        self.vision_gripper_encoder = hydra.utils.instantiate(vision_gripper) if vision_gripper else None
-        self.proprio_encoder = hydra.utils.instantiate(proprio)
-        self.tactile_encoder = hydra.utils.instantiate(tactile)
         self._latent_size = vision_static.visual_features
-
         if vision_gripper:
             self._latent_size += vision_gripper.visual_features
         if depth_gripper and vision_gripper.num_c < 4:
@@ -31,6 +26,11 @@ class ConcatEncoders(nn.Module):
             vision_static.num_c += depth_static.num_c
         if tactile:
             self._latent_size += tactile.visual_features
+
+        self.vision_static_encoder = hydra.utils.instantiate(vision_static)
+        self.vision_gripper_encoder = hydra.utils.instantiate(vision_gripper) if vision_gripper else None
+        self.proprio_encoder = hydra.utils.instantiate(proprio)
+        self.tactile_encoder = hydra.utils.instantiate(tactile)
         self._latent_size += self.proprio_encoder.out_features
 
     @property
@@ -43,8 +43,8 @@ class ConcatEncoders(nn.Module):
         imgs_static = imgs["rgb_static"]
         imgs_gripper = imgs["rgb_gripper"] if "rgb_gripper" in imgs else None
         imgs_tactile = imgs["rgb_tactile"] if "rgb_tactile" in imgs else None
-        depth_static = imgs["depth_static"] if "depth_static" in depth_imgs else None
-        depth_gripper = imgs["depth_gripper"] if "depth_gripper" in depth_imgs else None
+        depth_static = depth_imgs["depth_static"] if "depth_static" in depth_imgs else None
+        depth_gripper = depth_imgs["depth_gripper"] if "depth_gripper" in depth_imgs else None
 
         b, s, c, h, w = imgs_static.shape
         imgs_static = imgs_static.reshape(-1, c, h, w)  # (batch_size * sequence_length, 3, 200, 200)
