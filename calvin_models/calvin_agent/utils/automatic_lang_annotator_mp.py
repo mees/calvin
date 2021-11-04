@@ -103,7 +103,7 @@ class Annotator(Callback):
 
         self.envs = {
             scene: hydra.utils.instantiate(
-                self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=scene, cameras=()
+                self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=scene
             )
             for scene, _ in self.scene_idx_info.items()
         }
@@ -262,7 +262,9 @@ class Annotator(Callback):
         raise ValueError
 
     def annotate(self, episode, dataset, collected_data, global_task_counter, num_samples):
-        state_obs, rgb_obs, depth_obs, actions, _, reset_info, idx = episode
+        state_obs = episode["robot_obs"]
+        reset_info = episode["state_info"]
+        idx = episode["idx"]
         batch_size, seq_length = state_obs.shape[0], state_obs.shape[1]
         current_task_counter = Counter()
         for i in range(batch_size):
