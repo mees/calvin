@@ -6,7 +6,8 @@ defaults:
   - training: default_training
   - trainer: play_trainer
   - logger: wandb
-  - annotations: new_playtable
+  - annotations@train_instructions: new_playtable
+  - annotations@val_instructions: new_playtable_validation_unique
 
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
@@ -19,7 +20,6 @@ postprocessing: true
 lang_folder: "lang_annotations"
 with_text: false
 reannotate: true
-rollout_sentences: validation_expert
 prior_steps_window: 16
 validation_scene: calvin_scene_A
 
