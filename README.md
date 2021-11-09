@@ -25,7 +25,7 @@ $ source calvin_env/bin/activate
 $ sh install.sh
 ```
 
-Download dataset:
+Download dataset (choose which split you want to download with the argument A, BCD or ABCD):
 ```bash
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh A | BCD | ABCD
