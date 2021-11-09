@@ -13,12 +13,12 @@ $ sh download_data.sh A
 **2.** [Split BCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_BCD_A.zip) (?GB)
 ```bash
 $ cd $CALVIN_ROOT/dataset
-$ sh download_data.sh B
+$ sh download_data.sh BCD
 ```
 **3.** [Split ABCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_A.zip) (?GB)
 ```bash
 $ cd $CALVIN_ROOT/dataset
-$ sh download_data.sh full
+$ sh download_data.sh ABCD
 ```
 ## Data Structure
 Each interaction timestep is stored in a dictionary inside a numpy file and contains all corresponding sensory observations, different action spaces, state information and language annoations.
@@ -39,7 +39,12 @@ The robot proprioceptive information, which also includes joint positions can be
 ```
 ['robot_obs']
 ```
-The key to access the MiniLM precomputed language embeddings:
+The language annotations are in a subdirectory of the train and validation folders called `lang_annotations`.
+The file `auto_lang_ann.npy` contains the language annotations and its embeddings besides of additional metadata such as the task id, the sequence indexes.
 ```
-['language']
+['language']['ann']: list of raw language
+['language']['task']: list of task_id
+['language']['emb']: precomputed miniLM language embedding
+['info']['indx']: list of start and end indices corresponding to the precomputed language embeddings
 ```
+The `embeddings.npy` file is only present on the validation folder, this file contains the embeddings used only during the Rollouts (test inference) to condition the policy.

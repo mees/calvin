@@ -27,8 +27,8 @@ $ sh install.sh
 
 Download dataset:
 ```bash
-$ cd $CALVIN_ROOT/data
-$ sh download_data.sh
+$ cd $CALVIN_ROOT/dataset
+$ sh download_data.sh A | BCD | ABCD
 ```
 
 Train baseline models:

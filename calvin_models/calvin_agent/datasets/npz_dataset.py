@@ -142,8 +142,8 @@ class NpzDataset(BaseDataset):
             print("Exception, trying to load lang data from: ", abs_datasets_dir / "auto_lang_ann.npy")
             lang_data = np.load(abs_datasets_dir / "auto_lang_ann.npy", allow_pickle=True).reshape(-1)[0]
 
-        ep_start_end_ids = lang_data["info"]["indx"]  # each of them are 64
-        lang_ann = lang_data["language"]["emb"]  # length total number of annotations
+        ep_start_end_ids = lang_data["info"]["indx"]
+        lang_ann = lang_data["language"]["emb"]
         lang_lookup = []
         max_batched_length_per_demo = []
         for i, (start_idx, end_idx) in enumerate(ep_start_end_ids):

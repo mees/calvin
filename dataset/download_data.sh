@@ -8,7 +8,7 @@ then
     wget http://calvin.cs.uni-freiburg.de/dataset/task_A_A.zip
     unzip task_A_A.zip && rm task_A_A.zip
     echo "saved folder: task_A_A.1.0"
-elif [ "$1" = "B" ]
+elif [ "$1" = "BCD" ]
 then
 
     echo "Downloading task_BCD_A ..."
@@ -16,15 +16,15 @@ then
     unzip task_BCD_A.zip && rm task_BCD_A.zip
     echo "saved folder: task_BCD_A"
 
-elif [ "$1" = "full" ]
+elif [ "$1" = "ABCD" ]
 then
 
     echo "Downloading task_ABCD_A ..."
     wget http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_A.zip
-    unzip task_ABCD_A.zip&& rm task_ABCD_A.zip
+    unzip task_ABCD_A.zip && rm task_ABCD_A.zip
     echo "saved folder: task_ABCD_A"
 
 else
-    echo "Failed: Usage download_data.sh A | B | full"
+    echo "Failed: Usage download_data.sh A | BCD | ABCD"
     exit 1
 fi
