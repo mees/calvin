@@ -20,3 +20,26 @@ $ sh download_data.sh B
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh full
 ```
+## Data Structure
+Each interaction timestep is stored in a dictionary inside a numpy file and contains all corresponding sensory observations, different action spaces, state information and language annoations.
+The keys to access the different camera observations are:
+```
+['rgb_static'], ['rgb_gripper'], ['rgb_tactile'], ['depth_static'], ['depth_gripper'], ['depth_tactile']
+```
+The keys to access the 7-DOF absolute and relative actions are:
+```
+['actions'], ['rel_actions']
+```
+The keys to access the scene state information containing the position and orientation of all objects in the scenes
+(we do not use them to better capture challenges present in real-world settings):
+```
+['scene_obs']
+```
+The robot proprioceptive information, which also includes joint positions can be accessed with:
+```
+['robot_obs']
+```
+The key to access the MiniLM precomputed language embeddings:
+```
+['language']
+```
