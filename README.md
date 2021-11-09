@@ -22,8 +22,7 @@ Install requirements:
 $ cd $CALVIN_ROOT
 $ virtualenv -p $(which python3) --system-site-packages calvin_env # or use conda
 $ source calvin_env/bin/activate
-$ pip install --upgrade pip
-$ pip install -r requirements.txt
+$ sh install.sh
 ```
 
 Download dataset:
