@@ -71,6 +71,7 @@ The supported options are "mini", "mpnet" and "multi".
 cd $CALVIN_ROOT/calvin_models/calvin_agent
 python utils/relabel_with_new_lang_model.py +path=$CALVIN_ROOT/dataset/task_A_A/ +name_folder=new_lang_model_folder model.nlp_model=mpnet
 ```
+If you additionally want to sample different language annotations for each sequence (from the same task annotations) run the same command with the parameter `reannotate=true`.
 
 ## Citation
 
