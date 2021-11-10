@@ -62,7 +62,7 @@ The  aim  of  the  CALVIN  benchmark  is  to  evaluate  the learning  of  long-h
  We provide  an  evaluation  protocol  with  evaluation  modes  of varying  difficulty  by  choosing  different  combinations  of sensor  suites  and  amounts  of  training  environments.
 
 
-## Relabeling Raw Language Annotations
+## :speech_balloon: Relabeling Raw Language Annotations
 You want to try learning language conditioned policies in CALVIN with a new awesome language model?
 
 We provide an example script to relabel the annotations with different language model provided in [SBert](https://www.sbert.net/docs/pretrained_models.html), such as the larger MPNet (paraphrase-mpnet-base-v2) or its corresponding multilingual model (paraphrase-multilingual-mpnet-base-v2).
