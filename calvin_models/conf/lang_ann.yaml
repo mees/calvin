@@ -7,7 +7,7 @@ defaults:
   - trainer: play_trainer
   - logger: wandb
   - annotations@train_instructions: new_playtable
-  - annotations@val_instructions: new_playtable_validation_unique
+  - annotations@val_instructions: new_playtable_validation
 
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog

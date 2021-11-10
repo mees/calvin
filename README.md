@@ -60,6 +60,18 @@ In  order  to  give  researchers  and  practitioners  the freedom to experiment 
 ## :muscle: Evaluation: The Calvin Challenge
 The  aim  of  the  CALVIN  benchmark  is  to  evaluate  the learning  of  long-horizon  language-conditioned  continuous control  policies.  In  this  setting,  a  single  agent  must  solve complex  manipulation  tasks  by  understanding  a  series  of unconstrained  language  expressions  in  a  row,  e.g.,  “open the  drawer. . . pick  up  the  blue  block. . . now  push  the  block into the drawer. . . now open the sliding door”
  We provide  an  evaluation  protocol  with  evaluation  modes  of varying  difficulty  by  choosing  different  combinations  of sensor  suites  and  amounts  of  training  environments.
+
+
+## Relabeling Raw Language Annotations
+You want to try learning language conditioned policies in CALVIN with a new awesome language model?
+
+We provide an example script to relabel the annotations with different language model provided in [SBert](https://www.sbert.net/docs/pretrained_models.html), such as the larger MPNet (paraphrase-mpnet-base-v2) or its corresponding multilingual model (paraphrase-multilingual-mpnet-base-v2).
+The supported options are "mini", "mpnet" and "multi".
+```
+cd $CALVIN_ROOT/calvin_models/calvin_agent
+python utils/relabel_with_new_lang_model.py +path=$CALVIN_ROOT/dataset/task_A_A/ +name_folder=new_lang_model_folder model.nlp_model=mpnet
+```
+
 ## Citation
 
 If you find the dataset or code useful, please cite:
