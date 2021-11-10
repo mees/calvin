@@ -65,13 +65,13 @@ The  aim  of  the  CALVIN  benchmark  is  to  evaluate  the learning  of  long-h
 ## :speech_balloon: Relabeling Raw Language Annotations
 You want to try learning language conditioned policies in CALVIN with a new awesome language model?
 
-We provide an example script to relabel the annotations with different language model provided in [SBert](https://www.sbert.net/docs/pretrained_models.html), such as the larger MPNet (paraphrase-mpnet-base-v2) or its corresponding multilingual model (paraphrase-multilingual-mpnet-base-v2).
-The supported options are "mini", "mpnet" and "multi".
+We provide an [example script](https://github.com/mees/calvin/blob/main/calvin_models/calvin_agent/utils/relabel_with_new_lang_model.py) to relabel the annotations with different language model provided in [SBert](https://www.sbert.net/docs/pretrained_models.html), such as the larger MPNet (paraphrase-mpnet-base-v2) or its corresponding multilingual model (paraphrase-multilingual-mpnet-base-v2).
+The supported options are "mini", "mpnet" and "multi". If you want to try different SBert models, just change the model name [here](https://github.com/mees/calvin/blob/main/calvin_models/calvin_agent/models/encoders/language_network.py#L18).
 ```
 cd $CALVIN_ROOT/calvin_models/calvin_agent
 python utils/relabel_with_new_lang_model.py +path=$CALVIN_ROOT/dataset/task_A_A/ +name_folder=new_lang_model_folder model.nlp_model=mpnet
 ```
-If you additionally want to sample different language annotations for each sequence (from the same task annotations) run the same command with the parameter `reannotate=true`.
+If you additionally want to sample different language annotations for each sequence (from the same task annotations) in the training split run the same command with the parameter `reannotate=true`.
 
 ## Citation
 
