@@ -48,3 +48,12 @@ The file `auto_lang_ann.npy` contains the language annotations and its embedding
 ['info']['indx']: list of start and end indices corresponding to the precomputed language embeddings
 ```
 The `embeddings.npy` file is only present on the validation folder, this file contains the embeddings used only during the Rollouts (test inference) to condition the policy.
+
+## Visualize Language Annotations
+We provide a script to generate a video that visualizes the language annotations of the recorded play data.
+By default we visualize the first 100 sequences, but feel free to more sequences (just change this [line](https://github.com/mees/calvin/blob/main/calvin_models/calvin_agent/utils/visualize_annotations.py#L57)).
+A example video is.
+```
+cd $CALVIN_ROOT/calvin_models/calvin_agent
+python utils/visualize_annotations.py datamodule.root_data_dir=$CALVIN_ROOT/dataset/task_A_A/
+```
