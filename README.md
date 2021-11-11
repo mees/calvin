@@ -30,11 +30,41 @@ Download dataset (choose which split you want to download with the argument A, B
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh A | BCD | ABCD
 ```
-
+##	:weight_lifting_man: Train Baseline Agent
 Train baseline models:
 ```bash
-$ cd $CALVIN_ROOT
-$ python train.py
+$ cd $CALVIN_ROOT/calvin_models/calvin_agent
+$ python training.py
+```
+You want to scale your training to a multi-gpu setup? Just specify the [number of GPUs](https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html#select-gpu-devices) and DDP will automatically be used
+ for training thanks to [Pytorch Lightning](https://www.pytorchlightning.ai/).
+To train on all available GPUs:
+```bash
+$ python training.py trainer.gpus=-1
+```
+If you have access to a Slurm cluster, we also provide trainings scripts [here](https://github.com/mees/calvin/blob/main/slurm_scripts/slurm_training.py).
+
+You can use Hydras flexible overriding system for changing hyperparameters.
+For example, to train a model with  rgb images from both static camera and the gripper camera:
+```bash
+$ python training.py datamodule/observation_space=lang_rgb_static_gripper model/perceptual_encoder=gripper_cam
+```
+To train a model with RGB-D from both cameras:
+```bash
+$ python training.py datamodule/observation_space=lang_rgbd_both model/perceptual_encoder=RGBD_both
+```
+To train a model with rgb images from the static camera and visual tactile observations:
+```bash
+$ python training.py datamodule/observation_space=lang_rgb_static_tactile model/perceptual_encoder=static_RGB_tactile
+```
+
+To see all available hyperparameters:
+```console
+$ python training.py --help
+```
+To resume a training, just override the hydra working directory :
+```console
+$ python training.py hydra.run.dir=runs/my_dir
 ```
 
 ## :framed_picture: Sensory Observations
