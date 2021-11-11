@@ -44,7 +44,7 @@ $ python training.py trainer.gpus=-1
 ```
 If you have access to a Slurm cluster, we also provide trainings scripts [here](https://github.com/mees/calvin/blob/main/slurm_scripts/slurm_training.py).
 
-You can use Hydras flexible overriding system for changing hyperparameters.
+You can use [Hydra's](https://hydra.cc/) flexible overriding system for changing hyperparameters.
 For example, to train a model with  rgb images from both static camera and the gripper camera:
 ```bash
 $ python training.py datamodule/observation_space=lang_rgb_static_gripper model/perceptual_encoder=gripper_cam
