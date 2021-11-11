@@ -11,3 +11,4 @@ _target_: calvin_agent.models.play_lmp.PlayLMP
 _recursive_: false
 
 kl_beta: ${loss.kl_beta}
+replan_freq: 30

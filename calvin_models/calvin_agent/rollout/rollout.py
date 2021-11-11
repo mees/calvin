@@ -4,16 +4,15 @@ import logging
 from operator import add
 from typing import Any, Dict, List, Tuple
 
+from calvin_agent.datasets.base_dataset import get_validation_window_size
+from calvin_agent.rollout.rollout_video import RolloutVideo
+from calvin_agent.utils.utils import get_portion_of_batch_ids
 import hydra
 import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning import Callback, LightningModule, Trainer
 import torch
 import torch.distributed as dist
-
-from calvin_models.calvin_agent.datasets.base_dataset import get_validation_window_size
-from calvin_models.calvin_agent.rollout.rollout_video import RolloutVideo
-from calvin_models.calvin_agent.utils.utils import get_portion_of_batch_ids
 
 log_print = logging.getLogger(__name__)
 
@@ -65,7 +64,6 @@ class Rollout(Callback):
         video,
         num_rollouts_per_task,
         check_percentage_of_batch,
-        replan_freq,
         ep_len,
         tasks,
         empty_cache,
@@ -86,7 +84,6 @@ class Rollout(Callback):
         self.video = video
         self.num_rollouts_per_task = num_rollouts_per_task
         self.check_percentage_of_batch = check_percentage_of_batch
-        self.replan_freq = replan_freq
         self.ep_len = ep_len
         self.empty_cache = empty_cache
         self.log_video_to_file = log_video_to_file
@@ -99,6 +96,8 @@ class Rollout(Callback):
         self.device = None  # type: Any
         self.outputs = []
         self.start_robot_neutral = start_robot_neutral
+        if start_robot_neutral:
+            raise NotImplementedError
         self.modalities = []  # ["vis", "lang"] if self.lang else ["vis"]
         self.embeddings = None
         self.add_goal_thumbnail = add_goal_thumbnail
@@ -138,7 +137,7 @@ class Rollout(Callback):
         batch_idx: int,
         dataloader_idx: int,
     ) -> None:
-        batch = batch["vis"] if isinstance(batch, dict) else batch
+        batch = batch["vis"]
         if pl_module.current_epoch >= self.skip_epochs and (pl_module.current_epoch + 1) % self.rollout_freq == 0:
             # in first validation epoch collect groundtruth task information of current validation batch
             if self.task_to_id_dict is None:
@@ -171,9 +170,9 @@ class Rollout(Callback):
                             pl_module.all_gather(rollout_task_counter), dim=0
                         )  # shape: (num_tasks,)
                     score = (
-                        torch.sum(rollout_task_counter) / torch.sum(self.groundtruth_task_counter)
+                        float(torch.sum(rollout_task_counter) / torch.sum(self.groundtruth_task_counter))
                         if torch.sum(self.groundtruth_task_counter) > 0
-                        else 0
+                        else 0.0
                     )
                     pl_module.log(
                         f"tasks/average_sr_{mod}",
@@ -258,10 +257,7 @@ class Rollout(Callback):
 
     def env_rollouts(
         self,
-        batch: Dict[
-            str,
-            Dict,
-        ],
+        batch: dict,
         pl_module: LightningModule,
     ) -> Dict[str, torch.Tensor]:
         """
@@ -297,52 +293,32 @@ class Rollout(Callback):
                     # reset env to state of first step in the episode
                     obs = self.env.reset(reset_info, i, 0)
                     start_info = self.env.get_info()
-                    # If true reset robot from neutral position
-                    if self.start_robot_neutral:
-                        obs_neutral = self.env.reset()
-                    current_img_obs = obs_neutral["rgb_obs"] if self.start_robot_neutral else obs["rgb_obs"]
-                    current_depth_obs = obs_neutral["depth_obs"] if self.start_robot_neutral else obs["depth_obs"]
-                    current_state_obs = obs["robot_obs"]
 
                     if mod == "lang":
                         _task = np.random.choice(list(groundtruth_task))
                         task_embeddings = self.embeddings[_task]["emb"]
-                        task_sentence = self.embeddings[_task]["ann"]
-                        goal_lang = torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])]).to(
-                            self.device
-                        )
-
+                        goal = {
+                            "lang": torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])]).to(
+                                self.device
+                            )
+                        }
                     else:
                         # goal image is last step of the episode
-                        goal_imgs = {k: v[i, -1].unsqueeze(0).to(self.device) for k, v in rgb_obs.items()}
-                        goal_depths = {k: v[i, -1].unsqueeze(0).to(self.device) for k, v in depth_obs.items()}
-                        goal_state = state_obs[i, -1].unsqueeze(0).to(self.device)
+                        goal = {
+                            "rgb_obs": {k: v[i, -1].unsqueeze(0).unsqueeze(0) for k, v in rgb_obs.items()},  # type: ignore
+                            "depth_obs": {k: v[i, -1].unsqueeze(0).unsqueeze(0) for k, v in depth_obs.items()},  # type: ignore
+                            "robot_obs": state_obs[i, -1].unsqueeze(0).unsqueeze(0),
+                        }
 
                     # only save video of first task execution per rollout
                     record_video = self.video and np.any(
                         np.asarray([int(global_idx) == self.task_to_id_dict[task][0] for task in groundtruth_task])
                     )
                     if record_video:
-                        self.rollout_video.new_video(current_img_obs["rgb_static"], groundtruth_task, mod)
-
+                        self.rollout_video.new_video(obs["rgb_obs"]["rgb_static"], groundtruth_task, mod)
+                    pl_module.reset()  # type: ignore
                     for step in range(self.ep_len):
-                        #  sample plan every `replan_freq` steps (default 30 steps i.e. every second)
-                        if step % self.replan_freq == 0:
-                            if mod == "lang":
-                                plan, latent_goal = pl_module.get_pp_plan_lang(
-                                    current_img_obs, current_depth_obs, current_state_obs, goal_lang
-                                )  # type: ignore
-                            else:
-                                plan, latent_goal = pl_module.get_pp_plan_vision(
-                                    current_img_obs,
-                                    current_depth_obs,
-                                    goal_imgs,
-                                    goal_depths,
-                                    current_state_obs,
-                                    goal_state,
-                                )  # type: ignore
-                        # use plan to predict actions with current observations
-                        action = pl_module.predict_with_plan(current_img_obs, current_depth_obs, current_state_obs, latent_goal, plan)  # type: ignore
+                        action = pl_module.step(obs, goal)  # type: ignore
                         obs, _, _, current_info = self.env.step(action)
                         # check if current step solves a task
                         current_task_info = self.tasks.get_task_info_for_set(start_info, current_info, groundtruth_task)
@@ -355,13 +331,9 @@ class Rollout(Callback):
                                 rollout_task_counter[task_id] += 1
                             # skip current sequence if task was achieved
                             break
-                        # update current observation
-                        current_img_obs = obs["rgb_obs"]
-                        current_depth_obs = obs["depth_obs"]
-                        current_state_obs = obs["robot_obs"]
                         if record_video:
                             # update video
-                            self.rollout_video.update(current_img_obs["rgb_static"])
+                            self.rollout_video.update(obs["rgb_obs"]["rgb_static"])
                     if record_video:
                         if self.add_goal_thumbnail:
                             self.rollout_video.add_goal_thumbnail(rgb_obs["rgb_static"][i, -1])

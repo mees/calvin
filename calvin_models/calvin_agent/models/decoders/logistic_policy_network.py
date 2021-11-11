@@ -2,14 +2,13 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+import calvin_agent
+from calvin_agent.models.decoders.action_decoder import ActionDecoder
 import numpy as np
 from omegaconf import ListConfig, OmegaConf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-from calvin_models import calvin_agent
-from calvin_models.calvin_agent.models.decoders.action_decoder import ActionDecoder
 
 logger = logging.getLogger(__name__)
 

@@ -1,15 +1,15 @@
 import logging
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
+from calvin_agent.models.decoders.action_decoder import ActionDecoder
 import hydra
 from omegaconf import DictConfig
 import pytorch_lightning as pl
 from pytorch_lightning.utilities import rank_zero_only
 import torch
+from torch import Tensor
 import torch.distributions as D
 from torch.nn.functional import mse_loss
-
-from calvin_models.calvin_agent.models.decoders.action_decoder import ActionDecoder
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,7 @@ class PlayLMP(pl.LightningModule):
         decoder: DictConfig,
         kl_beta: float,
         optimizer: DictConfig,
+        replan_freq: int = 30,
     ):
         super(PlayLMP, self).__init__()
         self.perceptual_encoder = hydra.utils.instantiate(perceptual_encoder)
@@ -49,6 +50,12 @@ class PlayLMP(pl.LightningModule):
 
         self.optimizer_config["lr"] = self.optimizer_config["lr"]
         self.save_hyperparameters()
+
+        # for inference
+        self.rollout_step_counter = 0
+        self.replan_freq = replan_freq
+        self.latent_goal = None
+        self.plan = None
 
     @staticmethod
     def setup_input_sizes(
@@ -348,38 +355,41 @@ class PlayLMP(pl.LightningModule):
         self.log("val_grip/grip_sr_pr", val_grip_sr_pr / len(self.trainer.datamodule.modalities), sync_dist=True)
         self.log("val_grip/grip_sr_pp", val_grip_sr_pp / len(self.trainer.datamodule.modalities), sync_dist=True)
 
+    def reset(self):
+        self.plan = None
+        self.latent_goal = None
+        self.rollout_step_counter = 0
+
+    def step(self, obs, goal):
+        # replan every replan_freq steps (default 30 i.e every second)
+        if self.rollout_step_counter % self.replan_freq == 0:
+            if "lang" in goal:
+                self.plan, self.latent_goal = self.get_pp_plan_lang(obs, goal)
+            else:
+                self.plan, self.latent_goal = self.get_pp_plan_vision(obs, goal)
+        # use plan to predict actions with current observations
+        action = self.predict_with_plan(obs, self.latent_goal, self.plan)
+        self.rollout_step_counter += 1
+        return action
+
     def predict_with_plan(
         self,
-        curr_imgs: Dict[str, torch.Tensor],
-        curr_depths: Dict[str, torch.Tensor],
-        curr_state: torch.Tensor,
+        obs: Dict[str, Dict],
         latent_goal: torch.Tensor,
         sampled_plan: torch.Tensor,
     ) -> torch.Tensor:
-
-        imgs = {k: v.unsqueeze(0) for k, v in curr_imgs.items()}
-        depth_imgs = {k: v.unsqueeze(0) for k, v in curr_depths.items()}
-        curr_state = curr_state.unsqueeze(0)
         with torch.no_grad():
-            perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, curr_state)
+            perceptual_emb = self.perceptual_encoder(obs["rgb_obs"], obs["depth_obs"], obs["robot_obs"])
             action = self.action_decoder.act(sampled_plan, perceptual_emb, latent_goal)
 
         return action
 
-    def get_pp_plan_vision(
-        self,
-        curr_imgs: Dict[str, torch.Tensor],
-        curr_depths: Dict[str, torch.Tensor],
-        goal_imgs: Dict[str, torch.Tensor],
-        goal_depths: Dict[str, torch.Tensor],
-        curr_state: torch.Tensor,
-        goal_state: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        assert len(curr_imgs) == len(goal_imgs)
-        assert len(curr_depths) == len(goal_depths)
-        imgs = {k: torch.cat([v, goal_imgs[k]]).unsqueeze(0) for k, v in curr_imgs.items()}  # (1, 2, C, H, W)
-        depth_imgs = {k: torch.cat([v, goal_depths[k]]).unsqueeze(0) for k, v in curr_depths.items()}
-        state = torch.cat((curr_state, goal_state)).unsqueeze(0)
+    def get_pp_plan_vision(self, obs: dict, goal: dict) -> Tuple[Tensor, Tensor]:
+        assert len(obs["rgb_obs"]) == len(goal["rgb_obs"])
+        assert len(obs["depth_obs"]) == len(goal["depth_obs"])
+        imgs = {k: torch.cat([v, goal["rgb_obs"][k]], dim=1) for k, v in obs["rgb_obs"].items()}  # (1, 2, C, H, W)
+        depth_imgs = {k: torch.cat([v, goal["depth_obs"][k]], dim=1) for k, v in obs["depth_obs"].items()}
+        state = torch.cat([obs["robot_obs"], goal["robot_obs"]], dim=1)
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, state)
             latent_goal = self.visual_goal(perceptual_emb[:, -1])
@@ -389,19 +399,10 @@ class PlayLMP(pl.LightningModule):
         # self.action_decoder.clear_hidden_state()
         return sampled_plan, latent_goal
 
-    def get_pp_plan_lang(
-        self,
-        curr_imgs: Dict[str, torch.Tensor],
-        curr_depths: Dict[str, torch.Tensor],
-        curr_state: torch.Tensor,
-        goal_lang: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        imgs = {k: v.unsqueeze(0) for k, v in curr_imgs.items()}
-        depth_imgs = {k: v.unsqueeze(0) for k, v in curr_depths.items()}
-        curr_state = curr_state.unsqueeze(0)
+    def get_pp_plan_lang(self, obs: dict, goal: dict) -> Tuple[Tensor, Tensor]:
         with torch.no_grad():
-            perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, curr_state)
-            latent_goal = self.language_goal(goal_lang)
+            perceptual_emb = self.perceptual_encoder(obs["rgb_obs"], obs["depth_obs"], obs["robot_obs"])
+            latent_goal = self.language_goal(goal["lang"])
             # ------------Plan Proposal------------ #
             pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
             sampled_plan = pp_dist.sample()  # sample from proposal net

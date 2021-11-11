@@ -3,14 +3,13 @@ import logging
 from pathlib import Path
 import typing
 
+from calvin_agent.evaluation.utils import format_sftp_path, get_checkpoint, imshow_tensor, print_task_log
+from calvin_agent.models.play_lmp import PlayLMP
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 import torch
-
-from calvin_models.calvin_agent.evaluation.utils import format_sftp_path, get_checkpoint, imshow_tensor, print_task_log
-from calvin_models.calvin_agent.models.play_lmp import PlayLMP
 
 logger = logging.getLogger(__name__)
 

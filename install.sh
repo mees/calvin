@@ -4,5 +4,5 @@ cd calvin_env/tacto
 pip install -e .
 cd ..
 pip install -e .
-cd ..
+cd ../calvin_models
 pip install -e .

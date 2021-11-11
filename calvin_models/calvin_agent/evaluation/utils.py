@@ -1,25 +1,107 @@
 import logging
 from pathlib import Path
 
+from calvin_agent.models.play_lmp import PlayLMP
+from calvin_agent.utils.utils import get_last_checkpoint
 import cv2
+import hydra
 import numpy as np
+from omegaconf import OmegaConf
 from omegaconf.errors import MissingMandatoryValue
-
-from calvin_models.calvin_agent.utils.utils import get_last_checkpoint
+from pytorch_lightning import seed_everything
+import torch
 
 logger = logging.getLogger(__name__)
 
 
+def get_default_model_and_env(train_folder, dataset_path, checkpoint=None):
+    train_cfg_path = Path(train_folder) / ".hydra/config.yaml"
+    cfg = OmegaConf.load(train_cfg_path)
+    hydra.initialize(".")
+    seed_everything(cfg.seed, workers=True)  # type: ignore
+    # since we don't use the trainer during inference, manually set up data_module
+    cfg.datamodule.root_data_dir = dataset_path
+    data_module = hydra.utils.instantiate(cfg.datamodule, num_workers=0)
+    data_module.prepare_data()
+    data_module.setup()
+    dataloader = data_module.val_dataloader()
+    dataset = dataloader.dataset.datasets["lang"]
+    device = torch.device("cuda:0")
+    env = hydra.utils.instantiate(cfg.callbacks.rollout.env_cfg, dataset, device, show_gui=False)
+
+    if checkpoint is None:
+        checkpoint = get_last_checkpoint(Path(train_folder))
+
+    logger.info("Loading model from checkpoint.")
+    model = PlayLMP.load_from_checkpoint(checkpoint)
+    model.freeze()
+    if cfg.model.decoder.get("load_action_bounds", False):
+        model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None, True)
+    model = model.cuda(device)
+    logger.info("Successfully loaded model.")
+
+    return model, env
+
+
+class DefaultLangEmbeddings:
+    def __init__(self, dataset_path):
+        self.lang_embeddings = np.load(
+            Path(dataset_path) / "validation/lang_annotations/embeddings.npy", allow_pickle=True
+        ).item()
+        self.device = torch.device("cuda:0")
+
+    def get_lang_goal(self, task):
+        return {"lang": torch.from_numpy(self.lang_embeddings[task]["emb"]).to(self.device).squeeze(0)}
+
+
 def get_eval_env_state():
-    robot_obs = np.array([-0.07633776, -0.01318682, 0.54709562, 3.02227836, -0.41871135, 1.69439876, # noqa
-                          0.07999909, -0.79498086, 1.00384044, 1.93246088, -2.42119664, -1.07050417, # noqa
-                          2.19612673, 0.83544771, 1.])  # fmt: skip
-    scene_obs = np.array([ 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, # noqa
-                           0.00000000e+00, 0.00000000e+00, 9.99843551e-02, -1.20015679e-01, # noqa
-                           4.59984516e-01, 7.87400988e-04, -7.82234531e-04, 3.66303263e-07, # noqa
-                          -1.00032898e-01, -8.00142771e-02, 4.59975160e-01, -1.64390920e-03, # noqa
-                          -7.15795502e-04, 1.57000020e+00, 2.29965221e-01, 7.99551135e-02, # noqa
-                           4.59998809e-01, 4.59888857e-04, -5.50255798e-03, 1.56999367e+00])  # fmt: skip
+    robot_obs = np.array(
+        [
+            0.02586889,
+            -0.2313129,
+            0.5712808,
+            3.09045411,
+            -0.02908596,
+            1.50013585,
+            0.07999963,
+            -1.21779124,
+            1.03987629,
+            2.11978254,
+            -2.34205014,
+            -0.87015899,
+            1.64119093,
+            0.55344928,
+            1.0,
+        ]
+    )
+    scene_obs = np.array(
+        [
+            -5.39181361e-08,
+            0.00000000e00,
+            0.00000000e00,
+            2.89120579e-20,
+            0.00000000e00,
+            0.00000000e00,
+            -3.02401299e-08,
+            -1.20000018e-01,
+            4.59990006e-01,
+            -1.53907893e-06,
+            -9.26957745e-07,
+            1.57000003e00,
+            1.99994053e-01,
+            -1.20005201e-01,
+            4.59989301e-01,
+            2.60083197e-04,
+            -2.97388397e-04,
+            -3.88975496e-08,
+            9.99703015e-02,
+            8.07779584e-02,
+            4.60145309e-01,
+            -2.46010770e-03,
+            -1.02184019e-03,
+            1.57194293e00,
+        ]
+    )
     return robot_obs, scene_obs
 
 

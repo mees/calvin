@@ -2,11 +2,10 @@ import argparse
 from pathlib import Path
 from typing import Dict
 
+import calvin_agent
+from calvin_agent.datasets.base_dataset import load_npz, load_pkl
 import numpy as np
 import tqdm
-
-from calvin_models import calvin_agent
-from calvin_models.calvin_agent.datasets.base_dataset import load_npz, load_pkl
 
 TRAINING_DIR: str = "training"
 

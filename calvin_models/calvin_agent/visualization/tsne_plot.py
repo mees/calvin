@@ -1,6 +1,7 @@
 import io
 from typing import Any, Optional
 
+from calvin_agent.rollout.rollout import Rollout
 from MulticoreTSNE import MulticoreTSNE as TSNE
 import numpy as np
 from PIL import Image
@@ -12,8 +13,6 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 import torch
 import torch.distributed as dist
-
-from calvin_models.calvin_agent.rollout.rollout import Rollout
 
 
 def plotly_fig2array(fig):

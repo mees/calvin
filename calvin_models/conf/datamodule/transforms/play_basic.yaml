@@ -2,30 +2,30 @@ train:
   rgb_static:
     - _target_: torchvision.transforms.Resize
       size: 200
-    - _target_: calvin_models.calvin_agent.utils.transforms.ScaleImageTensor
+    - _target_: calvin_agent.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.5,]
       std: [0.5,]
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [0.0]
       std: [0.01]
   rgb_gripper:
     - _target_: torchvision.transforms.Resize
       size: 84
-    - _target_: calvin_models.calvin_agent.utils.transforms.ScaleImageTensor
+    - _target_: calvin_agent.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.5,]
       std: [0.5,]
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [0.0]
       std: [0.01]
   depth_static:
     - _target_: torchvision.transforms.Resize
       size: 200
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddDepthNoise
+    - _target_: calvin_agent.utils.transforms.AddDepthNoise
       shape: [1000.0]
       rate: [1000.0]
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [0.0]
       std: [0.01]
   depth_gripper:
@@ -34,7 +34,7 @@ train:
 #    - _target_: calvin_agent.utils.transforms.AddDepthNoise
 #      shape: [ 1000.0 ]
 #      rate: [ 1000.0 ]
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [ 0.0 ]
       std: [ 0.01 ]
   rgb_tactile:
@@ -42,11 +42,11 @@ train:
       size: 70
     - _target_: torchvision.transforms.RandomCrop
       size: 64
-    - _target_: calvin_models.calvin_agent.utils.transforms.ScaleImageTensor
+    - _target_: calvin_agent.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.5]
       std: [0.5]
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [ 0.0 ]
       std: [ 0.01 ]
   depth_tactile:
@@ -55,17 +55,17 @@ train:
     - _target_: torchvision.transforms.Normalize
       mean: [0.1,]
       std: [0.2,]
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [ 0.0 ]
       std: [ 0.01 ]
   robot_obs:
-    - _target_: calvin_models.calvin_agent.utils.transforms.NormalizeVector
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.NormalizeVector
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [0.0]
       std: [0.01]
   scene_obs:
-    - _target_: calvin_models.calvin_agent.utils.transforms.NormalizeVector
-    - _target_: calvin_models.calvin_agent.utils.transforms.AddGaussianNoise
+    - _target_: calvin_agent.utils.transforms.NormalizeVector
+    - _target_: calvin_agent.utils.transforms.AddGaussianNoise
       mean: [0.0]
       std: [0.01]
 
@@ -73,14 +73,14 @@ val:
   rgb_static:
     - _target_: torchvision.transforms.Resize
       size: 200
-    - _target_: calvin_models.calvin_agent.utils.transforms.ScaleImageTensor
+    - _target_: calvin_agent.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.5,]
       std: [0.5,]
   rgb_gripper:
     - _target_: torchvision.transforms.Resize
       size: 84
-    - _target_: calvin_models.calvin_agent.utils.transforms.ScaleImageTensor
+    - _target_: calvin_agent.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.5,]
       std: [0.5,]
@@ -95,7 +95,7 @@ val:
       size: 70
     - _target_: torchvision.transforms.RandomCrop
       size: 64
-    - _target_: calvin_models.calvin_agent.utils.transforms.ScaleImageTensor
+    - _target_: calvin_agent.utils.transforms.ScaleImageTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.5]
       std: [0.5]
@@ -106,6 +106,6 @@ val:
       mean: [0.1,]
       std: [0.2,]
   robot_obs:
-    - _target_: calvin_models.calvin_agent.utils.transforms.NormalizeVector
+    - _target_: calvin_agent.utils.transforms.NormalizeVector
   scene_obs:
-    - _target_: calvin_models.calvin_agent.utils.transforms.NormalizeVector
+    - _target_: calvin_agent.utils.transforms.NormalizeVector

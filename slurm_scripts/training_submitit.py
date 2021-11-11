@@ -2,12 +2,11 @@ import logging
 from pathlib import Path
 import sys
 
+from calvin_agent.utils.utils import get_git_commit_hash, get_last_checkpoint
 import hydra
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything, Trainer
 import submitit
-
-from calvin_models.calvin_agent.utils.utils import get_git_commit_hash, get_last_checkpoint
 
 logger = logging.getLogger(__name__)
 

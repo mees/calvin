@@ -7,6 +7,8 @@ from pathlib import Path
 import typing
 from typing import Any, Optional
 
+import calvin_agent
+from calvin_agent.training import is_multi_gpu_training, log_rank_0
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
@@ -16,9 +18,6 @@ from pytorch_lightning.utilities import rank_zero_only
 import torch
 import torch.distributed as dist
 from torch.nn import Linear
-
-from calvin_models import calvin_agent
-from calvin_models.calvin_agent.training import is_multi_gpu_training, log_rank_0
 
 """This script will collect data snt store it with a fixed window size"""
 
@@ -165,7 +164,7 @@ class Annotator(Callback):
             print()
             self.finished_annotation_val = True
 
-    def on_train_batch_end(
+    def on_train_batch_end(  # type: ignore
         self,
         trainer: Trainer,
         pl_module: LightningModule,
@@ -328,7 +327,7 @@ class LangAnnotationModel(LightningModule):
         self.finished_annotation_train = False
         self.dummy_net = Linear(1, 1)
 
-    def on_train_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
+    def on_train_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:  # type: ignore
         if self.finished_annotation_train:
             return -1  # type: ignore
 

@@ -3,10 +3,9 @@ from pathlib import Path
 import shutil
 from typing import Dict, List, Tuple
 
+import calvin_agent
 import numpy as np
 from tqdm import tqdm
-
-from calvin_models import calvin_agent
 
 TRAINING_DIR: str = "training"
 VAL_DIR: str = "validation"

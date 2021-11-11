@@ -4,17 +4,16 @@ from pathlib import Path
 import re
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
-import torch
-
-from calvin_models.calvin_agent.datasets.base_dataset import BaseDataset
-from calvin_models.calvin_agent.datasets.utils.episode_utils import (
+from calvin_agent.datasets.base_dataset import BaseDataset
+from calvin_agent.datasets.utils.episode_utils import (
     get_state_info_dict,
     process_actions,
     process_depth,
     process_rgb,
     process_state,
 )
+import numpy as np
+import torch
 
 logger = logging.getLogger(__name__)
 

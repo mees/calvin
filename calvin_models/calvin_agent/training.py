@@ -6,15 +6,14 @@ from typing import List, Union
 
 from pytorch_lightning.plugins import DDPPlugin
 
-sys.path.insert(0, Path(__file__).parents[1].as_posix())
+sys.path.insert(0, Path(__file__).absolute().parents[1].as_posix())
+import calvin_agent.models.play_lmp as models_m
+from calvin_agent.utils.utils import get_git_commit_hash, get_last_checkpoint, print_system_env_info
 import hydra
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import Callback, LightningModule, seed_everything, Trainer
 from pytorch_lightning.loggers import LightningLoggerBase
 from pytorch_lightning.utilities import rank_zero_only
-
-import calvin_models.calvin_agent.models.play_lmp as models_m
-from calvin_models.calvin_agent.utils.utils import get_git_commit_hash, get_last_checkpoint, print_system_env_info
 
 logger = logging.getLogger(__name__)
 

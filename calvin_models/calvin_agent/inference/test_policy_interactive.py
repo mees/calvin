@@ -3,14 +3,13 @@ import logging
 from pathlib import Path
 import typing
 
+from calvin_agent.evaluation.utils import imshow_tensor
+from calvin_agent.models.encoders.language_network import SBert
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
 from omegaconf.errors import MissingMandatoryValue
 from pytorch_lightning import seed_everything
-
-from calvin_models.calvin_agent.evaluation.utils import imshow_tensor
-from calvin_models.calvin_agent.models.encoders.language_network import SBert
 
 logger = logging.getLogger(__name__)
 

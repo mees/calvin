@@ -9,7 +9,6 @@ rollout_freq: 1
 video: true
 num_rollouts_per_task: 10
 check_percentage_of_batch: 1  # which percentage of sequences do we want to check for possible tasks
-replan_freq: 30
 ep_len: 120
 empty_cache: true
 log_video_to_file: false

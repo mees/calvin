@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 from typing import Dict, List
 
+import calvin_agent
+from calvin_agent.datasets.utils.episode_utils import load_dataset_statistics
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
@@ -12,9 +14,6 @@ import torch
 import torch.distributed as dist
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, RandomSampler, Sampler, SequentialSampler
 import torchvision
-
-from calvin_models import calvin_agent
-from calvin_models.calvin_agent.datasets.utils.episode_utils import load_dataset_statistics
 
 logger = logging.getLogger(__name__)
 DEFAULT_TRANSFORM = OmegaConf.create({"train": None, "val": None})

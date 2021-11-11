@@ -60,6 +60,7 @@ class RolloutVideo:
              tasks: set of tasks that were achieved
              modality: condition rollout modality ('vis' or 'lang')
         """
+        # (1, 1, channels, height, width)
         self.videos.append(_unnormalize(initial_frame.detach().cpu()))
         tasks = add_modality(tasks, modality)
         self.task_names.append(tasks)
@@ -71,7 +72,7 @@ class RolloutVideo:
             rgb_obs: static camera RGB images
         """
         img = rgb_obs.detach().cpu()
-        self.videos[-1] = torch.cat([self.videos[-1], _unnormalize(img)])
+        self.videos[-1] = torch.cat([self.videos[-1], _unnormalize(img)], dim=1)  # shape 1, t, c, h, w
 
     def add_goal_thumbnail(self, goal_img):
         size = self.videos[-1].shape[-2:]
@@ -87,7 +88,6 @@ class RolloutVideo:
         """
         if isinstance(self.logger, WandbLogger) and not self.log_to_file:
             for video, task_name in zip(self.videos, self.task_names):
-                video = video.unsqueeze(0)
                 video = np.clip(video.numpy() * 255, 0, 255).astype(np.uint8)
                 for task in task_name:
                     wandb_vid = wandb.Video(video, fps=10, format="gif")

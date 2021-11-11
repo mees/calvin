@@ -3,16 +3,15 @@ import logging
 from pathlib import Path
 import typing
 
+from calvin_agent.evaluation.utils import imshow_tensor
+from calvin_agent.models.play_lmp import PlayLMP
+from calvin_agent.utils.utils import get_last_checkpoint
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
 from omegaconf.errors import MissingMandatoryValue
 from pytorch_lightning import seed_everything
 import torch
-
-from calvin_models.calvin_agent.evaluation.utils import imshow_tensor
-from calvin_models.calvin_agent.models.play_lmp import PlayLMP
-from calvin_models.calvin_agent.utils.utils import get_last_checkpoint
 
 logger = logging.getLogger(__name__)
 
