@@ -88,16 +88,21 @@ In  order  to  give  researchers  and  practitioners  the freedom to experiment 
 3. **Joint action** -  Joint positions (7),  gripper action (1).
 
 ## :muscle: Evaluation: The Calvin Challenge
-The  aim  of  the  CALVIN  benchmark  is  to  evaluate  the learning  of  long-horizon  language-conditioned  continuous control  policies.  In  this  setting,  a  single  agent  must  solve complex  manipulation  tasks  by  understanding  a  series  of unconstrained  language  expressions  in  a  row,  e.g.,  “open the  drawer. . . pick  up  the  blue  block. . . now  push  the  block into the drawer. . . now open the sliding door”
- We provide  an  evaluation  protocol  with  evaluation  modes  of varying  difficulty  by  choosing  different  combinations  of sensor  suites  and  amounts  of  training  environments.
+### Long-horizon Multi-task Language Control (LH-MTLC)
+The  aim  of  the  CALVIN  benchmark  is  to  evaluate  the learning  of  long-horizon  language-conditioned  continuous control  policies.  In  this  setting,  a  single  agent  must  solve complex  manipulation  tasks  by  understanding  a  series  of unconstrained  language  expressions  in  a  row,  e.g.,  “open the  drawer. . . pick  up  the  blue  block. . . now  push  the  block into the drawer. . . now open the sliding door”.
+We provide  an  evaluation  protocol  with  evaluation  modes  of varying  difficulty  by  choosing  different  combinations  of sensor  suites  and  amounts  of  training  environments.
+To avoid a biased initial position, the robot is reset to a neutral position before every multi-step sequence.
 
 To evaluate a trained calvin baseline agent, run the following command:
 
 ```
 $ python evaluation/evaluate_policy.py --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER>
 ```
-By default, the evaluation loads the last checkpoint in the training log directory.
-You can instead specify the path to another checkpoint by adding `--checkpoint <PATH/TO/CHECKPOINT>` to the evaluation command.
+Optional arguments:
+
+- `--checkpoint <PATH/TO/CHECKPOINT>`: by default, the evaluation loads the last checkpoint in the training log directory.
+You can instead specify the path to another checkpoint by adding this to the evaluation command.
+- `--debug`: print debug information and visualize environment.
 
 If you want to evaluate your own model architecture on the CALVIN challenge, you can implement the `CustomModel` class in `evaluate_policy.py`
 as an interface to your agent. You need to implement the following methods:
@@ -114,6 +119,13 @@ $ python evaluation/evaluate_policy.py --dataset_path <PATH/TO/DATASET> --custom
 
 You are also free to use your own language model instead of using the precomputed language embeddings provided by CALVIN.
 For this, implement `CustomLangEmbeddings` in `evaluate_policy.py` and add `--custom_lang_embeddings` to the evaluation command.
+
+### Multi-task Language Control (MTLC)
+Alternatively, you can evaluate the policy on single tasks and without resetting the robot to a neutral position.
+Note that this evaluation is currently only available for our baseline agent.
+```
+$ python evaluation/evaluate_policy_singlestep --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER> [--checkpoint <PATH/TO/CHECKPOINT>] [--debug]
+```
 
 ## :speech_balloon: Relabeling Raw Language Annotations
 You want to try learning language conditioned policies in CALVIN with a new awesome language model?
