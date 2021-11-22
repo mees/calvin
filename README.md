@@ -91,6 +91,29 @@ In  order  to  give  researchers  and  practitioners  the freedom to experiment 
 The  aim  of  the  CALVIN  benchmark  is  to  evaluate  the learning  of  long-horizon  language-conditioned  continuous control  policies.  In  this  setting,  a  single  agent  must  solve complex  manipulation  tasks  by  understanding  a  series  of unconstrained  language  expressions  in  a  row,  e.g.,  “open the  drawer. . . pick  up  the  blue  block. . . now  push  the  block into the drawer. . . now open the sliding door”
  We provide  an  evaluation  protocol  with  evaluation  modes  of varying  difficulty  by  choosing  different  combinations  of sensor  suites  and  amounts  of  training  environments.
 
+To evaluate a trained calvin baseline agent, run the following command:
+
+```
+$ python evaluation/evaluate_policy.py --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER>
+```
+By default, the evaluation loads the last checkpoint in the training log directory.
+You can instead specify the path to another checkpoint by adding `--checkpoint <PATH/TO/CHECKPOINT>` to the evaluation command.
+
+If you want to evaluate your own model architecture on the CALVIN challenge, you can implement the `CustomModel` class in `evaluate_policy.py`
+as an interface to your agent. You need to implement the following methods:
+
+- \_\_init__():
+  gets called once at the beginning of the evaluation.
+- reset(): gets called at the beginning of each evaluation sequence.
+- step(obs, goal): gets called every step and returns the predicted action.
+
+Then evaluate the model by running:
+```
+$ python evaluation/evaluate_policy.py --dataset_path <PATH/TO/DATASET> --custom_model
+```
+
+You are also free to use your own language model instead of using the precomputed language embeddings provided by CALVIN.
+For this, implement `CustomLangEmbeddings` in `evaluate_policy.py` and add `--custom_lang_embeddings` to the evaluation command.
 
 ## :speech_balloon: Relabeling Raw Language Annotations
 You want to try learning language conditioned policies in CALVIN with a new awesome language model?

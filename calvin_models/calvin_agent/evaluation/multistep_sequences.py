@@ -70,7 +70,7 @@ def get_sequences():
         "turn_off_lightbulb": 6,
         "turn_on_led": 6,
         "turn_off_led": 6,
-        "push_in_drawer": 1,
+        "push_into_drawer": 1,
         "stack_block": 9,
         "collapse_stacked_blocks": 10,
     }
@@ -265,7 +265,7 @@ def get_sequences():
         "turn_off_lightbulb": [{"condition": {"lightbulb": 1, "grasped": 0}, "effect": {"lightbulb": 0}}],
         "turn_on_led": [{"condition": {"led": 0, "grasped": 0}, "effect": {"led": 1}}],
         "turn_off_led": [{"condition": {"led": 1, "grasped": 0}, "effect": {"led": 0}}],
-        "push_in_drawer": [
+        "push_into_drawer": [
             {
                 "condition": {"red_block": "table", "drawer": "open", "grasped": 0},
                 "effect": {"red_block": "drawer", "grasped": 0},

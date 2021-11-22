@@ -40,18 +40,20 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint=None):
     model = model.cuda(device)
     logger.info("Successfully loaded model.")
 
-    return model, env
+    return model, env, data_module
 
 
 class DefaultLangEmbeddings:
     def __init__(self, dataset_path):
-        self.lang_embeddings = np.load(
+        embeddings = np.load(
             Path(dataset_path) / "validation/lang_annotations/embeddings.npy", allow_pickle=True
         ).item()
+        # we want to get the embedding for full sentence, not just a task name
+        self.lang_embeddings = {v["ann"][0]: v["emb"] for k, v in embeddings.items()}
         self.device = torch.device("cuda:0")
 
     def get_lang_goal(self, task):
-        return {"lang": torch.from_numpy(self.lang_embeddings[task]["emb"]).to(self.device).squeeze(0)}
+        return {"lang": torch.from_numpy(self.lang_embeddings[task]).to(self.device).squeeze(0)}
 
 
 def get_eval_env_state():

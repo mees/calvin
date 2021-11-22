@@ -60,10 +60,10 @@ class CustomLangEmbeddings:
         logger.warning("Please implement these methods in order to use your own language embeddings")
         raise NotImplementedError
 
-    def get_lang_goal(self, task):
+    def get_lang_goal(self, task_annotation):
         """
         Args:
-             task:
+             task_annotation: langauge annotation
         Returns:
 
         """
@@ -71,10 +71,10 @@ class CustomLangEmbeddings:
 
 
 def evaluate_policy(model, env, lang_embeddings, args):
-    task_cfg = OmegaConf.load(
-        Path(__file__).absolute().parents[2] / "conf/callbacks/rollout/tasks/new_playtable_tasks.yaml"
-    )
+    conf_dir = Path(__file__).absolute().parents[2] / "conf"
+    task_cfg = OmegaConf.load(conf_dir / "callbacks/rollout/tasks/new_playtable_tasks.yaml")
     task_oracle = hydra.utils.instantiate(task_cfg)
+    val_annotations = OmegaConf.load(conf_dir / "annotations/new_playtable_validation.yaml")
 
     eval_sequences = get_sequences()
 
@@ -84,7 +84,7 @@ def evaluate_policy(model, env, lang_embeddings, args):
         eval_sequences = tqdm(eval_sequences, position=0, leave=True)
 
     for eval_sequence in eval_sequences:
-        result = evaluate_sequence(env, model, task_oracle, eval_sequence, lang_embeddings, args)
+        result = evaluate_sequence(env, model, task_oracle, eval_sequence, lang_embeddings, val_annotations, args)
         results[eval_sequence] = result
         if not args.debug:
             count = Counter(np.array(list(results.values())))
@@ -95,7 +95,7 @@ def evaluate_policy(model, env, lang_embeddings, args):
         print(f"{i} successful tasks: {count[i]} / {len(eval_sequences)} sequences")
 
 
-def evaluate_sequence(env, model, task_checker, eval_sequence, lang_embeddings, args):
+def evaluate_sequence(env, model, task_checker, eval_sequence, lang_embeddings, val_annotations, args):
     robot_obs, scene_obs = get_eval_env_state()
     env.reset(robot_obs=robot_obs, scene_obs=scene_obs)
 
@@ -107,7 +107,7 @@ def evaluate_sequence(env, model, task_checker, eval_sequence, lang_embeddings, 
         print(f"Evaluating sequence: {' -> '.join(eval_sequence)}")
         print("Subtask: ", end="")
     for subtask in eval_sequence:
-        success = rollout(env, model, task_checker, args, subtask, lang_embeddings)
+        success = rollout(env, model, task_checker, args, subtask, lang_embeddings, val_annotations)
         if success:
             success_counter += 1
         else:
@@ -115,12 +115,15 @@ def evaluate_sequence(env, model, task_checker, eval_sequence, lang_embeddings, 
     return success_counter
 
 
-def rollout(env, model, task_oracle, args, subtask, lang_embeddings):
+def rollout(env, model, task_oracle, args, subtask, lang_embeddings, val_annotations):
     if args.debug:
         print(f"{subtask} ", end="")
         time.sleep(0.5)
     obs = env.get_obs()
-    goal = lang_embeddings.get_lang_goal(subtask)
+    # get lang annotation for subtask
+    lang_annotation = val_annotations[subtask][0]
+    # get language goal embedding
+    goal = lang_embeddings.get_lang_goal(lang_annotation)
     model.reset()
     start_info = env.get_info()
 
@@ -175,7 +178,7 @@ if __name__ == "__main__":
         env = make_env(args.dataset_path)
     else:
         assert "train_folder" in args
-        model, env = get_default_model_and_env(args.train_folder, args.dataset_path, args.checkpoint)
+        model, env, _ = get_default_model_and_env(args.train_folder, args.dataset_path, args.checkpoint)
 
     if args.custom_lang_embeddings:
         lang_embeddings = CustomLangEmbeddings()

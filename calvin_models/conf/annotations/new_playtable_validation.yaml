@@ -21,7 +21,7 @@ open_drawer: ["pull the handle to open the drawer"]
 close_drawer: ["push the handle to close the drawer"]
 
 # lifting
-lift_red_block_table: ["grasp and lift to red block"]
+lift_red_block_table: ["grasp and lift the red block"]
 lift_blue_block_table: ["grasp and lift the blue block"]
 lift_pink_block_table: ["grasp and lift the pink block"]
 
