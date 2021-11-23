@@ -4,6 +4,7 @@ import shutil
 import time
 from typing import Dict, List, Union
 
+import cv2
 import git
 import hydra
 import numpy as np
@@ -125,3 +126,31 @@ def get_portion_of_batch_ids(percentage: float, batch_size: int) -> np.ndarray:
     stretch = batch_size / num
     indices *= stretch
     return np.unique(indices.astype(np.int64))
+
+
+def add_text(img, lang_text):
+    height, width, _ = img.shape
+    if lang_text != "":
+        coord = (1, int(height - 10))
+        font_scale = (0.7 / 500) * width
+        thickness = 1
+        cv2.putText(
+            img,
+            text=lang_text,
+            org=coord,
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=font_scale,
+            color=(0, 0, 0),
+            thickness=thickness * 3,
+            lineType=cv2.LINE_AA,
+        )
+        cv2.putText(
+            img,
+            text=lang_text,
+            org=coord,
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=font_scale,
+            color=(255, 255, 255),
+            thickness=thickness,
+            lineType=cv2.LINE_AA,
+        )

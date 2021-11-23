@@ -297,6 +297,7 @@ class Rollout(Callback):
                     if mod == "lang":
                         _task = np.random.choice(list(groundtruth_task))
                         task_embeddings = self.embeddings[_task]["emb"]
+                        language_instruction = self.embeddings[_task]["ann"][0]
                         goal = {
                             "lang": torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])]).to(
                                 self.device
@@ -336,7 +337,10 @@ class Rollout(Callback):
                             self.rollout_video.update(obs["rgb_obs"]["rgb_static"])
                     if record_video:
                         if self.add_goal_thumbnail:
-                            self.rollout_video.add_goal_thumbnail(rgb_obs["rgb_static"][i, -1])
+                            if mod == "lang":
+                                self.rollout_video.add_language_instruction(language_instruction)
+                            else:
+                                self.rollout_video.add_goal_thumbnail(rgb_obs["rgb_static"][i, -1])
                         self.rollout_video.write_to_tmp()
 
             counter[mod] = rollout_task_counter  # type: ignore
