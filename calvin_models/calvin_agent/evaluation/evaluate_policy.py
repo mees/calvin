@@ -9,7 +9,7 @@ from calvin_agent.evaluation.utils import (
     DefaultLangEmbeddings,
     get_default_model_and_env,
     get_eval_env_state,
-    imshow_tensor,
+    join_vis_lang,
 )
 import hydra
 import numpy as np
@@ -131,7 +131,8 @@ def rollout(env, model, task_oracle, args, subtask, lang_embeddings, val_annotat
         action = model.step(obs, goal)
         obs, _, _, current_info = env.step(action)
         if args.debug:
-            env.render()
+            img = env.render(mode="rgb_array")
+            join_vis_lang(img, lang_annotation)
             # time.sleep(0.1)
         # check if current step solves a task
         current_task_info = task_oracle.get_task_info_for_set(start_info, current_info, {subtask})

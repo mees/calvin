@@ -18,4 +18,5 @@ sentence-transformers
 gym
 moviepy
 tqdm
+termcolor
 wandb

@@ -1,16 +1,8 @@
 import argparse
 from collections import Counter
-import logging
 from pathlib import Path
-import time
 
-from calvin_agent.evaluation.multistep_sequences import get_sequences
-from calvin_agent.evaluation.utils import (
-    DefaultLangEmbeddings,
-    get_default_model_and_env,
-    get_eval_env_state,
-    imshow_tensor,
-)
+from calvin_agent.evaluation.utils import DefaultLangEmbeddings, get_default_model_and_env, join_vis_lang
 from calvin_agent.utils.utils import get_last_checkpoint
 import hydra
 import numpy as np
@@ -18,11 +10,6 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 from termcolor import colored
 import torch
-from tqdm.auto import tqdm
-
-from calvin_env.envs.play_table_env import get_env
-
-logger = logging.getLogger(__name__)
 
 
 def evaluate_policy(model, env, datamodule, lang_embeddings, args):
@@ -61,7 +48,8 @@ def rollout(env, model, episode, task_oracle, args, task, lang_embeddings, val_a
         action = model.step(obs, goal)
         obs, _, _, current_info = env.step(action)
         if args.debug:
-            env.render()
+            img = env.render(mode="rgb_array")
+            join_vis_lang(img, lang_annotation)
             # time.sleep(0.1)
         # check if current step solves a task
         current_task_info = task_oracle.get_task_info_for_set(start_info, current_info, {task})

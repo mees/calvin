@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 def get_default_model_and_env(train_folder, dataset_path, checkpoint=None):
     train_cfg_path = Path(train_folder) / ".hydra/config.yaml"
     cfg = OmegaConf.load(train_cfg_path)
+    cfg = OmegaConf.create(OmegaConf.to_yaml(cfg).replace("calvin_models.", ""))
     hydra.initialize(".")
     seed_everything(cfg.seed, workers=True)  # type: ignore
     # since we don't use the trainer during inference, manually set up data_module
@@ -32,15 +33,47 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint=None):
     if checkpoint is None:
         checkpoint = get_last_checkpoint(Path(train_folder))
 
-    logger.info("Loading model from checkpoint.")
+    print(f"Loading model from {checkpoint}")
     model = PlayLMP.load_from_checkpoint(checkpoint)
     model.freeze()
     if cfg.model.decoder.get("load_action_bounds", False):
         model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None, True)
     model = model.cuda(device)
-    logger.info("Successfully loaded model.")
+    print("Successfully loaded model.")
 
     return model, env, data_module
+
+
+def join_vis_lang(img, lang_text):
+    """Takes as input an image and a language instruction and visualizes them with cv2"""
+    img = img[:, :, ::-1].copy()
+    img = cv2.resize(img, (500, 500))
+    if lang_text != "":
+        coord = (1, 490)
+        font_scale = 0.7
+        thickness = 1
+        cv2.putText(
+            img,
+            text=lang_text,
+            org=coord,
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=font_scale,
+            color=(0, 0, 0),
+            thickness=thickness * 3,
+            lineType=cv2.LINE_AA,
+        )
+        cv2.putText(
+            img,
+            text=lang_text,
+            org=coord,
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=font_scale,
+            color=(255, 255, 255),
+            thickness=thickness,
+            lineType=cv2.LINE_AA,
+        )
+    cv2.imshow("simulation cam", img)
+    cv2.waitKey(1)
 
 
 class DefaultLangEmbeddings:
