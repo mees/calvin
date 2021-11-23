@@ -96,6 +96,7 @@ To avoid a biased initial position, the robot is reset to a neutral position bef
 To evaluate a trained calvin baseline agent, run the following command:
 
 ```
+$ cd $CALVIN_ROOT/calvin_models/calvin_agent
 $ python evaluation/evaluate_policy.py --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER>
 ```
 Optional arguments:
@@ -124,7 +125,7 @@ For this, implement `CustomLangEmbeddings` in `evaluate_policy.py` and add `--cu
 Alternatively, you can evaluate the policy on single tasks and without resetting the robot to a neutral position.
 Note that this evaluation is currently only available for our baseline agent.
 ```
-$ python evaluation/evaluate_policy_singlestep --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER> [--checkpoint <PATH/TO/CHECKPOINT>] [--debug]
+$ python evaluation/evaluate_policy_singlestep.py --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER> [--checkpoint <PATH/TO/CHECKPOINT>] [--debug]
 ```
 
 ## :speech_balloon: Relabeling Raw Language Annotations
