@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import List, Set
 
+from calvin_agent.utils.utils import add_text
 import numpy as np
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from pytorch_lightning.utilities import rank_zero_only
@@ -80,6 +81,13 @@ class RolloutVideo:
         i_w = int(size[1] / 3)
         img = resize(_unnormalize(goal_img.detach().cpu()), [i_h, i_w])
         self.videos[-1][..., -i_h:, :i_w] = img
+
+    def add_language_instruction(self, instruction):
+        img_text = np.zeros(self.videos[-1].shape[2:][::-1], dtype=np.uint8) + 127
+        add_text(img_text, instruction)
+        img_text = ((img_text.transpose(2, 0, 1).astype(np.float) / 255.0) * 2) - 1
+        self.videos[-1][...] += torch.from_numpy(img_text)
+        self.videos[-1] = torch.clip(self.videos[-1], -1, 1)
 
     def write_to_tmp(self):
         """

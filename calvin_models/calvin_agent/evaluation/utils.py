@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 from calvin_agent.models.play_lmp import PlayLMP
-from calvin_agent.utils.utils import get_last_checkpoint
+from calvin_agent.utils.utils import add_text, get_last_checkpoint
 import cv2
 import hydra
 import numpy as np
@@ -48,30 +48,7 @@ def join_vis_lang(img, lang_text):
     """Takes as input an image and a language instruction and visualizes them with cv2"""
     img = img[:, :, ::-1].copy()
     img = cv2.resize(img, (500, 500))
-    if lang_text != "":
-        coord = (1, 490)
-        font_scale = 0.7
-        thickness = 1
-        cv2.putText(
-            img,
-            text=lang_text,
-            org=coord,
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=font_scale,
-            color=(0, 0, 0),
-            thickness=thickness * 3,
-            lineType=cv2.LINE_AA,
-        )
-        cv2.putText(
-            img,
-            text=lang_text,
-            org=coord,
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=font_scale,
-            color=(255, 255, 255),
-            thickness=thickness,
-            lineType=cv2.LINE_AA,
-        )
+    add_text(img, lang_text)
     cv2.imshow("simulation cam", img)
     cv2.waitKey(1)
 
