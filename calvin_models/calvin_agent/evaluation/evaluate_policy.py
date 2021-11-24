@@ -171,7 +171,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Do not change
-    args.ep_len = 240
+    args.ep_len = 300
 
     # evaluate a custom model
     if args.custom_model:
