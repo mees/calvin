@@ -5,17 +5,17 @@ The CALVIN dataset comes with 6 hours of teleoperated play data in each of the 4
 
 We provide a download script to download the three different splits:
 
-**1.** [Split A->A](http://calvin.cs.uni-freiburg.de/dataset/task_A_A.zip) (166GB):
+**1.** [Split A->A](http://calvin.cs.uni-freiburg.de/dataset/task_A_A.zip) (166 GB):
 ```bash
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh A
 ```
-**2.** [Split BCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_BCD_A.zip) (?GB)
+**2.** [Split BCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_BCD_A.zip) (517 GB)
 ```bash
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh BCD
 ```
-**3.** [Split ABCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_A.zip) (?GB)
+**3.** [Split ABCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_A.zip) (656 GB)
 ```bash
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh ABCD
