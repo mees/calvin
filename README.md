@@ -139,6 +139,11 @@ python utils/relabel_with_new_lang_model.py +path=$CALVIN_ROOT/dataset/task_A_A/
 ```
 If you additionally want to sample different language annotations for each sequence (from the same task annotations) in the training split run the same command with the parameter `reannotate=true`.
 
+## :chart_with_upwards_trend: SOTA Models
+Open-source models that outperform the MCIL baselines from CALVIN:
+
+Contact [Oier](https://www.oiermees.com/) to add your model here.
+
 ## Citation
 
 If you find the dataset or code useful, please cite:
