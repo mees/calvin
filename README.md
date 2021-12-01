@@ -144,6 +144,10 @@ Open-source models that outperform the MCIL baselines from CALVIN:
 
 Contact [Oier](https://www.oiermees.com/) to add your model here.
 
+## Reinforcement Learning with CALVIN
+Are you interested in trying  reinforcement learning agents for the different manipulation tasks in the CALVIN environment?
+We provide a [google colab](https://github.com/mees/calvin/blob/main/RL_with_CALVIN.ipynb) to showcase how to leverage the CALVIN task indicators to learn RL agents with a sparse reward.
+
 ## Citation
 
 If you find the dataset or code useful, please cite:
