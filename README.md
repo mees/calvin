@@ -131,7 +131,7 @@ $ python evaluation/evaluate_policy_singlestep.py --dataset_path <PATH/TO/DATASE
 ### Pre-trained Model
 Download the [MCIL](http://calvin.cs.uni-freiburg.de/calvin_models/D_D_static_rgb_baseline.zip) model checkpoint trained on the static camera rgb images on environment D.
 ```
-$ http://calvin.cs.uni-freiburg.de/calvin_models/D_D_static_rgb_baseline.zip
+$ wget http://calvin.cs.uni-freiburg.de/calvin_models/D_D_static_rgb_baseline.zip
 $ unzip D_D_static_rgb_baseline.zip
 ```
 ## :speech_balloon: Relabeling Raw Language Annotations
