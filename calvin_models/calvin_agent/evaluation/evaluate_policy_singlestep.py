@@ -10,7 +10,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 from termcolor import colored
 import torch
-
+torch.backends.cudnn.deterministic = True
 
 def evaluate_policy(model, env, datamodule, lang_embeddings, args):
     conf_dir = Path(__file__).absolute().parents[2] / "conf"
