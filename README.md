@@ -128,6 +128,12 @@ Note that this evaluation is currently only available for our baseline agent.
 $ python evaluation/evaluate_policy_singlestep.py --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER> [--checkpoint <PATH/TO/CHECKPOINT>] [--debug]
 ```
 
+### Pre-trained Model
+Download the [MCIL](http://calvin.cs.uni-freiburg.de/calvin_models/D_D_static_rgb_baseline.zip) model checkpoint trained on the static camera rgb images on environment D.
+```
+$ http://calvin.cs.uni-freiburg.de/calvin_models/D_D_static_rgb_baseline.zip
+$ unzip D_D_static_rgb_baseline.zip
+```
 ## :speech_balloon: Relabeling Raw Language Annotations
 You want to try learning language conditioned policies in CALVIN with a new awesome language model?
 
