@@ -72,7 +72,7 @@ def get_sequences():
         "turn_off_led": 6,
         "push_into_drawer": 1,
         "stack_block": 9,
-        "collapse_stacked_blocks": 10,
+        "unstack_block": 10,
     }
 
     tasks = {
@@ -235,7 +235,7 @@ def get_sequences():
                 "effect": {"pink_block": "stacked_top", "blue_block": "stacked_bottom", "grasped": 0},
             },
         ],
-        "collapse_stacked_blocks": [
+        "unstack_block": [
             {
                 "condition": {"red_block": "stacked_top", "blue_block": "stacked_bottom", "grasped": 0},
                 "effect": {"red_block": "table", "blue_block": "table"},
@@ -296,7 +296,6 @@ def get_sequences():
 
     results = []
     result_set = []
-    np.random.seed(0)
     for seq in np.random.permutation(valid_seqs[-1]):
         _seq = list(zip(*seq))[0]
         categories = [task_categories[name] for name in _seq]
