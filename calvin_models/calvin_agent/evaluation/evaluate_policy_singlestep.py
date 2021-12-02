@@ -63,6 +63,7 @@ def rollout(env, model, episode, task_oracle, args, task, lang_embeddings, val_a
 
 
 if __name__ == "__main__":
+    seed_everything(42, workers=True)
     parser = argparse.ArgumentParser(description="Evaluate a trained model on multistep sequences with language goals.")
     parser.add_argument("--dataset_path", type=str, help="Path to the dataset root directory.")
 

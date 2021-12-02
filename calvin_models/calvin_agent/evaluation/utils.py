@@ -19,7 +19,6 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint=None):
     cfg = OmegaConf.load(train_cfg_path)
     cfg = OmegaConf.create(OmegaConf.to_yaml(cfg).replace("calvin_models.", ""))
     hydra.initialize(".")
-    seed_everything(cfg.seed, workers=True)  # type: ignore
     # since we don't use the trainer during inference, manually set up data_module
     cfg.datamodule.root_data_dir = dataset_path
     data_module = hydra.utils.instantiate(cfg.datamodule, num_workers=0)

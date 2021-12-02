@@ -17,6 +17,8 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 from termcolor import colored
 import torch
+
+torch.backends.cudnn.deterministic = True
 from tqdm.auto import tqdm
 
 from calvin_env.envs.play_table_env import get_env
@@ -91,7 +93,7 @@ def evaluate_policy(model, env, lang_embeddings, args):
             eval_sequences.set_description(" ".join([f"{k}/5 : {v} |" for k, v in count.items()]) + "|")
     print(f"Average successful sequence length: {np.mean(list(results.values()))}")
     count = Counter(np.array(list(results.values())))
-    for i in range(5):
+    for i in range(6):
         print(f"{i} successful tasks: {count[i]} / {len(eval_sequences)} sequences")
 
 
@@ -146,6 +148,7 @@ def rollout(env, model, task_oracle, args, subtask, lang_embeddings, val_annotat
 
 
 if __name__ == "__main__":
+    seed_everything(42, workers=True)
     parser = argparse.ArgumentParser(description="Evaluate a trained model on multistep sequences with language goals.")
     parser.add_argument("--dataset_path", type=str, help="Path to the dataset root directory.")
 
@@ -171,7 +174,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Do not change
-    args.ep_len = 300
+    args.ep_len = 350
 
     # evaluate a custom model
     if args.custom_model:
