@@ -141,7 +141,7 @@ We provide an [example script](https://github.com/mees/calvin/blob/main/calvin_m
 The supported options are "mini", "mpnet" and "multi". If you want to try different SBert models, just change the model name [here](https://github.com/mees/calvin/blob/main/calvin_models/calvin_agent/models/encoders/language_network.py#L18).
 ```
 cd $CALVIN_ROOT/calvin_models/calvin_agent
-python utils/relabel_with_new_lang_model.py +path=$CALVIN_ROOT/dataset/task_A_A/ +name_folder=new_lang_model_folder model.nlp_model=mpnet
+python utils/relabel_with_new_lang_model.py +path=$CALVIN_ROOT/dataset/task_D_D/ +name_folder=new_lang_model_folder model.nlp_model=mpnet
 ```
 If you additionally want to sample different language annotations for each sequence (from the same task annotations) in the training split run the same command with the parameter `reannotate=true`.
 
