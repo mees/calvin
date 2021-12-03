@@ -5,17 +5,17 @@ The CALVIN dataset comes with 6 hours of teleoperated play data in each of the 4
 
 We provide a download script to download the three different splits:
 
-**1.** [Split A->A](http://calvin.cs.uni-freiburg.de/dataset/task_A_A.zip) (166 GB):
+**1.** [Split D->D](http://calvin.cs.uni-freiburg.de/dataset/task_D_D.zip) (166 GB):
 ```bash
 $ cd $CALVIN_ROOT/dataset
-$ sh download_data.sh A
+$ sh download_data.sh D
 ```
-**2.** [Split BCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_BCD_A.zip) (517 GB)
+**2.** [Split ABC->D](http://calvin.cs.uni-freiburg.de/dataset/task_ABC_D.zip) (517 GB)
 ```bash
 $ cd $CALVIN_ROOT/dataset
-$ sh download_data.sh BCD
+$ sh download_data.sh ABC
 ```
-**3.** [Split ABCD->A](http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_A.zip) (656 GB)
+**3.** [Split ABCD->D](http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_D.zip) (656 GB)
 ```bash
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh ABCD
@@ -55,5 +55,5 @@ By default we visualize the first 100 sequences, but feel free to more sequences
 A example video is.
 ```
 cd $CALVIN_ROOT/calvin_models/calvin_agent
-python utils/visualize_annotations.py datamodule.root_data_dir=$CALVIN_ROOT/dataset/task_A_A/
+python utils/visualize_annotations.py datamodule.root_data_dir=$CALVIN_ROOT/dataset/task_D_D/
 ```

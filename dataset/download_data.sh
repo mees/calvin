@@ -1,30 +1,30 @@
 #!/bin/bash
 
 # Download, Unzip, and Remove zip
-if [ "$1" = "A" ]
+if [ "$1" = "D" ]
 then
 
-    echo "Downloading task_A_A ..."
-    wget http://calvin.cs.uni-freiburg.de/dataset/task_A_A.zip
-    unzip task_A_A.zip && rm task_A_A.zip
-    echo "saved folder: task_A_A.1.0"
-elif [ "$1" = "BCD" ]
+    echo "Downloading task_D_D ..."
+    wget http://calvin.cs.uni-freiburg.de/dataset/task_D_D.zip
+    unzip task_D_D.zip && rm task_D_D.zip
+    echo "saved folder: task_D_D"
+elif [ "$1" = "ABC" ]
 then
 
-    echo "Downloading task_BCD_A ..."
-    wget http://calvin.cs.uni-freiburg.de/dataset/task_BCD_A.zip
-    unzip task_BCD_A.zip && rm task_BCD_A.zip
-    echo "saved folder: task_BCD_A"
+    echo "Downloading task_ABC_D ..."
+    wget http://calvin.cs.uni-freiburg.de/dataset/task_ABC_D.zip
+    unzip task_ABC_D.zip && rm task_ABC_D.zip
+    echo "saved folder: task_ABC_D"
 
 elif [ "$1" = "ABCD" ]
 then
 
-    echo "Downloading task_ABCD_A ..."
-    wget http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_A.zip
-    unzip task_ABCD_A.zip && rm task_ABCD_A.zip
-    echo "saved folder: task_ABCD_A"
+    echo "Downloading task_ABCD_D ..."
+    wget http://calvin.cs.uni-freiburg.de/dataset/task_ABCD_D.zip
+    unzip task_ABCD_D.zip && rm task_ABCD_D.zip
+    echo "saved folder: task_ABCD_D"
 
 else
-    echo "Failed: Usage download_data.sh A | BCD | ABCD"
+    echo "Failed: Usage download_data.sh D | ABC | ABCD"
     exit 1
 fi
