@@ -28,7 +28,7 @@ $ sh install.sh
 Download dataset (choose which split you want to download with the argument A, BCD or ABCD):
 ```bash
 $ cd $CALVIN_ROOT/dataset
-$ sh download_data.sh A | BCD | ABCD
+$ sh download_data.sh D | ABC | ABCD
 ```
 ##	:weight_lifting_man: Train Baseline Agent
 Train baseline models:
