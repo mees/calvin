@@ -17,8 +17,6 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 from termcolor import colored
 import torch
-
-torch.backends.cudnn.deterministic = True
 from tqdm.auto import tqdm
 
 from calvin_env.envs.play_table_env import get_env
@@ -93,8 +91,15 @@ def evaluate_policy(model, env, lang_embeddings, args):
             eval_sequences.set_description(" ".join([f"{k}/5 : {v} |" for k, v in count.items()]) + "|")
     print(f"Average successful sequence length: {np.mean(list(results.values()))}")
     count = Counter(np.array(list(results.values())))
+    print("Number of successful subtasks")
     for i in range(6):
         print(f"{i} successful tasks: {count[i]} / {len(eval_sequences)} sequences")
+    print("Number of instructions in a row:")
+    print("1: ", (count[1] + count[2] + count[3] + count[4] + count[5]) * 100.0 / len(eval_sequences))
+    print("2: ", (count[2] + count[3] + count[4] + count[5]) * 100.0 / len(eval_sequences))
+    print("3: ", (count[3] + count[4] + count[5]) * 100.0 / len(eval_sequences))
+    print("4: ", (count[4] + count[5]) * 100.0 / len(eval_sequences))
+    print("5: ", (count[5]) * 100.0 / len(eval_sequences))
 
 
 def evaluate_sequence(env, model, task_checker, eval_sequence, lang_embeddings, val_annotations, args):
@@ -148,7 +153,7 @@ def rollout(env, model, task_oracle, args, subtask, lang_embeddings, val_annotat
 
 
 if __name__ == "__main__":
-    seed_everything(42, workers=True)
+    seed_everything(0, workers=True)
     parser = argparse.ArgumentParser(description="Evaluate a trained model on multistep sequences with language goals.")
     parser.add_argument("--dataset_path", type=str, help="Path to the dataset root directory.")
 
@@ -174,7 +179,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Do not change
-    args.ep_len = 350
+    args.ep_len = 360
 
     # evaluate a custom model
     if args.custom_model:

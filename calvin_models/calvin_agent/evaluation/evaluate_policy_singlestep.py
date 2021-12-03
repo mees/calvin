@@ -10,7 +10,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 from termcolor import colored
 import torch
-torch.backends.cudnn.deterministic = True
+
 
 def evaluate_policy(model, env, datamodule, lang_embeddings, args):
     conf_dir = Path(__file__).absolute().parents[2] / "conf"
@@ -63,7 +63,7 @@ def rollout(env, model, episode, task_oracle, args, task, lang_embeddings, val_a
 
 
 if __name__ == "__main__":
-    seed_everything(42, workers=True)
+    seed_everything(0, workers=True)
     parser = argparse.ArgumentParser(description="Evaluate a trained model on multistep sequences with language goals.")
     parser.add_argument("--dataset_path", type=str, help="Path to the dataset root directory.")
 
