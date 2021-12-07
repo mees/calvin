@@ -21,7 +21,7 @@ lang_folder: "lang_annotations"
 with_text: false
 reannotate: false
 prior_steps_window: 16
-validation_scene: calvin_scene_A
+validation_scene: calvin_scene_D
 
 hydra:
   run:
