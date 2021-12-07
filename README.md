@@ -1,7 +1,7 @@
 # CALVIN
 
 
-[<b>CALVIN - A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks</b>](https://arxiv.org/abs/foo)
+[<b>CALVIN - A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks</b>](https://arxiv.org/pdf/2112.03227.pdf)
 [Oier Mees](https://www.oiermees.com/), [Lukas Hermann](http://www2.informatik.uni-freiburg.de/~hermannl/), Erick Rosete, [Wolfram Burgard](http://www2.informatik.uni-freiburg.de/~burgard)
 
  We present **CALVIN** (**C**omposing **A**ctions from **L**anguage and **Vi**sio**n**), an open-source simulated benchmark to learn long-horizon language-conditioned tasks.
@@ -160,10 +160,10 @@ If you find the dataset or code useful, please cite:
 
 ```
 @article{calvin21,
-author = {Oier Mees and Lukas Hermann and Erick Rosete and Wolfram Burgard},
+author = {Oier Mees and Lukas Hermann and Erick Rosete-Beas and Wolfram Burgard},
 title = {CALVIN - A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
-journal={arXiv preprint arXiv:foo},
-year = 2020,
+journal={arXiv preprint arXiv:2112.03227},
+year = 2021,
 }
 ```
 
