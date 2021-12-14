@@ -4,5 +4,4 @@ name: play_lmp
 group: play_lmp
 log_model: false
 project: "multi_play"
-entity: "multimodal_control"
 id: ???
