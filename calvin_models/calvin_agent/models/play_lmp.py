@@ -221,7 +221,6 @@ class PlayLMP(pl.LightningModule):
         self.log(
             f"train/kl_loss_scaled_{self.modality_scope}", kl_loss_scaled, on_step=False, on_epoch=True, sync_dist=True
         )
-        self.log("train/kl_beta", self.kl_beta, on_step=False, on_epoch=True, sync_dist=True)
         return kl_loss_scaled
 
     def set_kl_beta(self, kl_beta):

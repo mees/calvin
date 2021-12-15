@@ -152,7 +152,7 @@ class Rollout(Callback):
         outputs = [self.outputs]
 
         if pl_module.current_epoch == 0:
-            pl_module.log("tasks/average_sr", 0, on_step=False, sync_dist=True)
+            pl_module.log("tasks/average_sr", torch.tensor(0.0), on_step=False, sync_dist=True)
         elif pl_module.current_epoch >= self.skip_epochs and (pl_module.current_epoch + 1) % self.rollout_freq == 0:
             # after first validation epoch, create task lookup dictionaries
             if self.task_to_id_dict is None:
@@ -170,9 +170,9 @@ class Rollout(Callback):
                             pl_module.all_gather(rollout_task_counter), dim=0
                         )  # shape: (num_tasks,)
                     score = (
-                        float(torch.sum(rollout_task_counter) / torch.sum(self.groundtruth_task_counter))
+                        torch.sum(rollout_task_counter) / torch.sum(self.groundtruth_task_counter)
                         if torch.sum(self.groundtruth_task_counter) > 0
-                        else 0.0
+                        else torch.tensor(0.0)
                     )
                     pl_module.log(
                         f"tasks/average_sr_{mod}",
@@ -202,7 +202,7 @@ class Rollout(Callback):
                     print()
                 pl_module.log(
                     "tasks/average_sr",
-                    acc_score / len(self.modalities),
+                    torch.tensor(acc_score / len(self.modalities)),
                     on_step=False,
                     sync_dist=True,
                 )

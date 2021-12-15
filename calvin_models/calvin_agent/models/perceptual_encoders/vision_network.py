@@ -73,7 +73,9 @@ class SpatialSoftmax(nn.Module):
         super(SpatialSoftmax, self).__init__()
         self.num_rows = num_rows
         self.num_cols = num_cols
-        grid_x, grid_y = torch.meshgrid(torch.linspace(-1.0, 1.0, num_cols), torch.linspace(-1.0, 1.0, num_rows))
+        grid_x, grid_y = torch.meshgrid(
+            torch.linspace(-1.0, 1.0, num_cols), torch.linspace(-1.0, 1.0, num_rows), indexing="ij"
+        )
         x_map = grid_x.reshape(-1)
         y_map = grid_y.reshape(-1)
         self.register_buffer("x_map", x_map)

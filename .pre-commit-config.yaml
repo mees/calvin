@@ -23,7 +23,7 @@ repos:
     hooks:
       - id: mypy
         args: [--ignore-missing-imports, --warn-no-return, --warn-redundant-casts, --disallow-incomplete-defs]
-        additional_dependencies: [pytorch-lightning, torch, numpy]
+        additional_dependencies: [pytorch-lightning==1.4.9, torch==1.10.0, numpy]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
