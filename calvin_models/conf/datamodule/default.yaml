@@ -5,7 +5,7 @@ defaults:
   - observation_space: lang_rgb_static
 _target_: calvin_agent.datasets.play_data_module.PlayDataModule
 _recursive_: false
-root_data_dir: "play_data"
+root_data_dir: "dataset/task_D_D"
 action_space: 7
 num_workers: 4
 action_max: [1., 1., 1., 1., 1., 1., 1.,]

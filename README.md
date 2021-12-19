@@ -20,8 +20,8 @@ $ export CALVIN_ROOT=$(pwd)/calvin
 Install requirements:
 ```bash
 $ cd $CALVIN_ROOT
-$ virtualenv -p $(which python3) --system-site-packages calvin_env # or use conda
-$ source calvin_env/bin/activate
+$ conda create -n calvin_env python=3.8  # or use virtualenv
+$ conda activate calvin_env
 $ sh install.sh
 ```
 
@@ -34,7 +34,7 @@ $ sh download_data.sh D | ABC | ABCD
 Train baseline models:
 ```bash
 $ cd $CALVIN_ROOT/calvin_models/calvin_agent
-$ python training.py
+$ python training.py datamodule.root_data_dir=/path/to/dataset/
 ```
 You want to scale your training to a multi-gpu setup? Just specify the [number of GPUs](https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html#select-gpu-devices) and DDP will automatically be used
  for training thanks to [Pytorch Lightning](https://www.pytorchlightning.ai/).
