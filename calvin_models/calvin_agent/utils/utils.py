@@ -37,16 +37,21 @@ def get_git_commit_hash(repo_path: Path) -> str:
     return repo.head.object.hexsha
 
 
-def get_last_checkpoint(experiment_folder: Path) -> Union[Path, None]:
+def get_all_checkpoints(experiment_folder: Path) -> List:
     if experiment_folder.is_dir():
         checkpoint_folder = experiment_folder / "saved_models"
         if checkpoint_folder.is_dir():
             checkpoints = sorted(Path(checkpoint_folder).iterdir(), key=lambda chk: chk.stat().st_mtime)
             if len(checkpoints):
-                # return newest checkpoint according to creation time
-                assert checkpoints[-1].suffix == ".ckpt"
-                return checkpoints[-1]
+                return [chk for chk in checkpoints if chk.suffix == ".ckpt"]
+    return []
 
+
+def get_last_checkpoint(experiment_folder: Path) -> Union[Path, None]:
+    # return newest checkpoint according to creation time
+    checkpoints = get_all_checkpoints(experiment_folder)
+    if len(checkpoints):
+        return checkpoints[-1]
     return None
 
 

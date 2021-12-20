@@ -3,7 +3,7 @@ from collections import Counter
 from pathlib import Path
 
 from calvin_agent.evaluation.utils import DefaultLangEmbeddings, get_default_model_and_env, join_vis_lang
-from calvin_agent.utils.utils import get_last_checkpoint
+from calvin_agent.utils.utils import get_all_checkpoints, get_last_checkpoint
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
@@ -12,13 +12,13 @@ from termcolor import colored
 import torch
 
 
-def evaluate_policy(model, env, datamodule, lang_embeddings, args):
+def evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint):
     conf_dir = Path(__file__).absolute().parents[2] / "conf"
     task_cfg = OmegaConf.load(conf_dir / "callbacks/rollout/tasks/new_playtable_tasks.yaml")
     task_oracle = hydra.utils.instantiate(task_cfg)
     val_annotations = OmegaConf.load(conf_dir / "annotations/new_playtable_validation.yaml")
 
-    task_to_id_dict = torch.load(args.checkpoint)["task_to_id_dict"]
+    task_to_id_dict = torch.load(checkpoint)["task_to_id_dict"]
     dataset = datamodule.val_dataloader().dataset.datasets["vis"]
 
     results = Counter()
@@ -77,6 +77,11 @@ if __name__ == "__main__":
         default=None,
         help="Manually specify checkpoint path (default is latest). Only used for calvin_agent.",
     )
+    parser.add_argument(
+        "--last_k_checkpoints",
+        type=int,
+        help="Specify the number of checkpoints you want to evaluate (starting from last). Only used for calvin_agent.",
+    )
 
     parser.add_argument("--debug", action="store_true", help="Print debug info and visualize environment.")
 
@@ -84,10 +89,20 @@ if __name__ == "__main__":
 
     # Do not change
     args.ep_len = 240
-    model, env, datamodule = get_default_model_and_env(args.train_folder, args.dataset_path, args.checkpoint)
-
-    if args.checkpoint is None:
-        args.checkpoint = get_last_checkpoint(Path(args.train_folder))
-
     lang_embeddings = DefaultLangEmbeddings(args.dataset_path)  # type: ignore
-    evaluate_policy(model, env, datamodule, lang_embeddings, args)
+
+    checkpoints = []
+    if args.checkpoint is None and args.last_k_checkpoints is None:
+        print("Evaluating model with last checkpoint.")
+        checkpoints = [get_last_checkpoint(Path(args.train_folder))]
+    elif args.checkpoint is not None:
+        print(f"Evaluating model with checkpoint {args.checkpoint}.")
+        checkpoints = [args.checkpoint]
+    elif args.checkpoint is None and args.last_k_checkpoints is not None:
+        print(f"Evaluating model with last {args.last_k_checkpoints} checkpoints.")
+        checkpoints = get_all_checkpoints(Path(args.train_folder))[-args.last_k_checkpoints :]
+
+    env = None
+    for checkpoint in checkpoints:
+        model, env, datamodule = get_default_model_and_env(args.train_folder, args.dataset_path, checkpoint, env=env)
+        evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint)

@@ -1,4 +1,5 @@
 import io
+import logging
 from typing import Any, Optional
 
 from calvin_agent.rollout.rollout import Rollout
@@ -13,6 +14,8 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 import torch
 import torch.distributed as dist
+
+log = logging.getLogger(__name__)
 
 
 def plotly_fig2array(fig):
@@ -129,6 +132,10 @@ class TSNEPlot(Callback):
                 self.task_to_id = callback.tasks.task_to_id
                 self.id_to_task = callback.tasks.id_to_task
                 self.task_labels = np.zeros(len(trainer.datamodule.val_datasets["vis"])) - 1
+                if not len(callback.full_task_to_id_dict):
+                    self.task_labels = None
+                    log.warning("No tasks found for tsne plot.")
+                    return
                 for task, ids in callback.full_task_to_id_dict.items():
                     self.task_labels[ids] = self.task_to_id[task]
                 return

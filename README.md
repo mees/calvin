@@ -24,6 +24,7 @@ $ conda create -n calvin_venv python=3.8  # or use virtualenv
 $ conda activate calvin_venv
 $ sh install.sh
 ```
+If you encounter problems installing pyhash, you might have to downgrade setuptools to a version below 58.
 
 Download dataset (choose which split you want to download with the argument D, ABC or ABCD):
 ```bash

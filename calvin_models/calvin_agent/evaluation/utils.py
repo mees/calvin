@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 from calvin_agent.models.play_lmp import PlayLMP
-from calvin_agent.utils.utils import add_text, get_last_checkpoint
+from calvin_agent.utils.utils import add_text, get_all_checkpoints, get_last_checkpoint
 import cv2
 import hydra
 import numpy as np
@@ -14,11 +14,12 @@ import torch
 logger = logging.getLogger(__name__)
 
 
-def get_default_model_and_env(train_folder, dataset_path, checkpoint=None):
+def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None):
     train_cfg_path = Path(train_folder) / ".hydra/config.yaml"
     cfg = OmegaConf.load(train_cfg_path)
     cfg = OmegaConf.create(OmegaConf.to_yaml(cfg).replace("calvin_models.", ""))
-    hydra.initialize(".")
+    if not hydra.core.global_hydra.GlobalHydra.instance().is_initialized():
+        hydra.initialize(".")
     # since we don't use the trainer during inference, manually set up data_module
     cfg.datamodule.root_data_dir = dataset_path
     data_module = hydra.utils.instantiate(cfg.datamodule, num_workers=0)
@@ -27,10 +28,8 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint=None):
     dataloader = data_module.val_dataloader()
     dataset = dataloader.dataset.datasets["lang"]
     device = torch.device("cuda:0")
-    env = hydra.utils.instantiate(cfg.callbacks.rollout.env_cfg, dataset, device, show_gui=False)
-
-    if checkpoint is None:
-        checkpoint = get_last_checkpoint(Path(train_folder))
+    if env is None:
+        env = hydra.utils.instantiate(cfg.callbacks.rollout.env_cfg, dataset, device, show_gui=False)
 
     print(f"Loading model from {checkpoint}")
     model = PlayLMP.load_from_checkpoint(checkpoint)
@@ -149,14 +148,6 @@ def print_task_log(demo_task_counter, live_task_counter, mod):
     logger.info(
         f"Success Rates averaged throughout classes = {np.mean([live_task_counter[task] / demo_task_counter[task] for task in demo_task_counter]) * 100:.0f}%"
     )
-
-
-def get_checkpoint(cfg):
-    try:
-        checkpoint = cfg.load_checkpoint
-    except MissingMandatoryValue:
-        checkpoint = get_last_checkpoint(Path(cfg.train_folder))
-    return checkpoint
 
 
 def format_sftp_path(cfg):

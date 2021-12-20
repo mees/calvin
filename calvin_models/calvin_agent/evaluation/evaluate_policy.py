@@ -11,6 +11,7 @@ from calvin_agent.evaluation.utils import (
     get_eval_env_state,
     join_vis_lang,
 )
+from calvin_agent.utils.utils import get_all_checkpoints, get_last_checkpoint
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
@@ -167,6 +168,11 @@ if __name__ == "__main__":
         default=None,
         help="Manually specify checkpoint path (default is latest). Only used for calvin_agent.",
     )
+    parser.add_argument(
+        "--last_k_checkpoints",
+        type=int,
+        help="Specify the number of checkpoints you want to evaluate (starting from last). Only used for calvin_agent.",
+    )
 
     # arguments for loading custom model or custom language embeddings
     parser.add_argument(
@@ -181,16 +187,31 @@ if __name__ == "__main__":
     # Do not change
     args.ep_len = 360
 
-    # evaluate a custom model
-    if args.custom_model:
-        model = CustomModel()
-        env = make_env(args.dataset_path)
-    else:
-        assert "train_folder" in args
-        model, env, _ = get_default_model_and_env(args.train_folder, args.dataset_path, args.checkpoint)
-
     if args.custom_lang_embeddings:
         lang_embeddings = CustomLangEmbeddings()
     else:
         lang_embeddings = DefaultLangEmbeddings(args.dataset_path)  # type: ignore
-    evaluate_policy(model, env, lang_embeddings, args)
+
+    # evaluate a custom model
+    if args.custom_model:
+        model = CustomModel()
+        env = make_env(args.dataset_path)
+        evaluate_policy(model, env, lang_embeddings, args)
+    else:
+        assert "train_folder" in args
+
+        checkpoints = []
+        if args.checkpoint is None and args.last_k_checkpoints is None:
+            print("Evaluating model with last checkpoint.")
+            checkpoints = [get_last_checkpoint(Path(args.train_folder))]
+        elif args.checkpoint is not None:
+            print(f"Evaluating model with checkpoint {args.checkpoint}.")
+            checkpoints = [args.checkpoint]
+        elif args.checkpoint is None and args.last_k_checkpoints is not None:
+            print(f"Evaluating model with last {args.last_k_checkpoints} checkpoints.")
+            checkpoints = get_all_checkpoints(Path(args.train_folder))[-args.last_k_checkpoints :]
+
+        env = None
+        for checkpoint in checkpoints:
+            model, env, _ = get_default_model_and_env(args.train_folder, args.dataset_path, checkpoint, env=env)
+            evaluate_policy(model, env, lang_embeddings, args)
