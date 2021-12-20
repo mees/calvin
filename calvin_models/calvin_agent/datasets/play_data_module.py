@@ -17,18 +17,17 @@ import torchvision
 
 logger = logging.getLogger(__name__)
 DEFAULT_TRANSFORM = OmegaConf.create({"train": None, "val": None})
-ONE_EP_DATASET_URL = "http://www.informatik.uni-freiburg.de/~meeso/50steps.tar.xz"
 
 
 class PlayDataModule(pl.LightningDataModule):
     def __init__(
-        self,
-        datasets: DictConfig,
-        root_data_dir: str = "data",
-        num_workers: int = 8,
-        transforms: DictConfig = DEFAULT_TRANSFORM,
-        shuffle_val: bool = False,
-        **kwargs: Dict,
+            self,
+            datasets: DictConfig,
+            root_data_dir: str = "data",
+            num_workers: int = 8,
+            transforms: DictConfig = DEFAULT_TRANSFORM,
+            shuffle_val: bool = False,
+            **kwargs: Dict,
     ):
         super().__init__()
         self.datasets_cfg = datasets
@@ -52,9 +51,9 @@ class PlayDataModule(pl.LightningDataModule):
 
         # download and unpack images
         if not dataset_exist:
-            logger.info(f"downloading dataset to {self.training_dir} and {self.val_dir}")
-            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.training_dir)
-            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.val_dir)
+            logger.error(f"please download the dataset before starting a training! Specify the dataset path with "
+                         f"datamodule.root_data_dir=/path/to/dataset/ ")
+            exit(-1)
 
     def setup(self, stage=None):
         transforms = load_dataset_statistics(self.training_dir, self.val_dir, self.transforms)
@@ -114,6 +113,7 @@ def get_sampler(dataset: Dataset, shuffle: bool) -> Sampler:
     if dist.is_available() and dist.is_initialized():
         return DistributedSampler(dataset=dataset, shuffle=shuffle, seed=int(os.environ["PL_GLOBAL_SEED"]))
     elif shuffle:
-        return RandomSampler(dataset, generator=torch.Generator().manual_seed(int(os.environ["PL_GLOBAL_SEED"])))  # type: ignore
+        return RandomSampler(dataset,
+                             generator=torch.Generator().manual_seed(int(os.environ["PL_GLOBAL_SEED"])))  # type: ignore
     else:
         return SequentialSampler(dataset)
