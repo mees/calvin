@@ -42,7 +42,7 @@ To train on all available GPUs:
 ```bash
 $ python training.py trainer.gpus=-1
 ```
-If you have access to a Slurm cluster, we also provide trainings scripts [here](https://github.com/mees/calvin/blob/main/slurm_scripts/slurm_training.py).
+If you have access to a Slurm cluster, follow this [guide](https://github.com/mees/calvin/blob/main/slurm_scripts/README.md).
 
 You can use [Hydra's](https://hydra.cc/) flexible overriding system for changing hyperparameters.
 For example, to train a model with  rgb images from both static camera and the gripper camera:
