@@ -20,8 +20,8 @@ $ export CALVIN_ROOT=$(pwd)/calvin
 Install requirements:
 ```bash
 $ cd $CALVIN_ROOT
-$ conda create -n calvin_env python=3.8  # or use virtualenv
-$ conda activate calvin_env
+$ conda create -n calvin_venv python=3.8  # or use virtualenv
+$ conda activate calvin_venv
 $ sh install.sh
 ```
 

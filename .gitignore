@@ -130,3 +130,11 @@ dmypy.json
 
 # vscode
 .vscode
+
+*/runs/*
+
+dataset/task_D_D/*
+dataset/task_ABCD_D/*
+dataset/task_ABC_D/*
+
+.idea/*

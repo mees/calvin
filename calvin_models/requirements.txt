@@ -9,7 +9,7 @@ omegaconf
 plotly
 pyhash
 pytorch-lightning==1.4.9
-torch==1.10.0
+# torch==1.10.0
 torchvision
 MulticoreTSNE
 gitpython

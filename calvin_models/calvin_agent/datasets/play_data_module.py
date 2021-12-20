@@ -52,7 +52,8 @@ class PlayDataModule(pl.LightningDataModule):
         # download and unpack images
         if not dataset_exist:
             logger.error(f"please download the dataset before starting a training! Specify the dataset path with "
-                         f"datamodule.root_data_dir=/path/to/dataset/ ")
+                         f"datamodule.root_data_dir=/path/to/dataset/ "
+                         f"(make sure to use an absolute path)")
             exit(-1)
 
     def setup(self, stage=None):
