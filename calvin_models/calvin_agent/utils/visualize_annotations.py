@@ -58,7 +58,7 @@ def generate_all_seq_gifs(data, dataset):
         seq_length = idx[1] - idx[0]
         dataset.max_window_size, dataset.min_window_size = seq_length, seq_length
         start = dataset.episode_lookup.index(idx[0])
-        seq_img = dataset[start][1][0].numpy()
+        seq_img = dataset[start]["rgb_obs"]["rgb_static"].numpy()
         # if 'lift' in data['language']['task'][i]:
         imgs = generate_single_seq_gif(seq_img, seq_length, imgs, idx, i, data)
     return imgs

@@ -55,5 +55,5 @@ By default we visualize the first 100 sequences, but feel free to more sequences
 A example video is.
 ```
 cd $CALVIN_ROOT/calvin_models/calvin_agent
-python utils/visualize_annotations.py datamodule.root_data_dir=$CALVIN_ROOT/dataset/task_D_D/
+python utils/visualize_annotations.py datamodule.root_data_dir=$CALVIN_ROOT/dataset/task_D_D/ datamodule/observation_space=lang_rgb_static
 ```
