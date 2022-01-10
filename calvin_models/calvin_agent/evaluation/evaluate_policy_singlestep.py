@@ -1,8 +1,9 @@
 import argparse
 from collections import Counter
+
 from pathlib import Path
 
-from calvin_agent.evaluation.utils import DefaultLangEmbeddings, get_default_model_and_env, join_vis_lang
+from calvin_agent.evaluation.utils import LangEmbeddings, get_default_model_and_env, join_vis_lang
 from calvin_agent.utils.utils import get_all_checkpoints, get_last_checkpoint
 import hydra
 import numpy as np
@@ -89,7 +90,7 @@ if __name__ == "__main__":
 
     # Do not change
     args.ep_len = 240
-    lang_embeddings = DefaultLangEmbeddings(args.dataset_path)  # type: ignore
+    lang_embeddings = LangEmbeddings(args.dataset_path)  # type: ignore
 
     checkpoints = []
     if args.checkpoint is None and args.last_k_checkpoints is None:

@@ -45,6 +45,7 @@ def create_git_copy(repo_src_dir, repo_target_dir):
     repo.clone(repo_target_dir)
     orig_cwd = os.getcwd()
     os.chdir(repo_target_dir)
+    os.environ["PYTHONPATH"] = os.getcwd() + ":" + os.environ.get("PYTHONPATH", "")
     sandbox.run_setup("setup_local.py", ["develop", "--install-dir", "."])
     os.chdir(orig_cwd)
 
@@ -65,11 +66,11 @@ job_opts = {
     "partition": args.partition,
     "mem": args.mem,
     "ntasks-per-node": args.gpus,
-    "cpus_per_task": args.cpus,
+    "cpus-per-task": args.cpus,
     "gres": f"gpu:{args.gpus}",
     "output": os.path.join(log_dir, "%x.%N.%j.out"),
     "error": os.path.join(log_dir, "%x.%N.%j.err"),
-    "job_name": args.job_name,
+    "job-name": args.job_name,
     "mail-type": "END,FAIL",
     "time": f"{args.days}-00:00",
 }
@@ -80,13 +81,9 @@ def submit_job(job_info):
     slurm_cmd = ["sbatch"]
     for key, value in job_info.items():
         # Check for special case keys
-        if key == "cpus_per_task":
-            key = "cpus-per-task"
-        if key == "job_name":
-            key = "job-name"
-        elif key == "script":
+        if key == "script":
             continue
-        slurm_cmd.append("--%s=%s" % (key, value))
+        slurm_cmd.append(f"--{key}={value}")
     slurm_cmd.append(job_info["script"])
     print("Generated slurm batch command: '%s'" % slurm_cmd)
 
@@ -108,6 +105,44 @@ def create_resume_script(slurm_cmd):
     with open(file_path, "w") as file:
         file.write("#!/bin/bash\n")
         file.write(" ".join(slurm_cmd))
+    st = os.stat(file_path)
+    os.chmod(file_path, st.st_mode | stat.S_IEXEC)
+
+
+def create_eval_script():
+    # Construct sbatch command
+    eval_log_dir = log_dir / "evaluation"
+    os.makedirs(eval_log_dir, exist_ok=True)
+    eval_sbatch_script = Path("./sbatch_eval.sh").absolute()
+    eval_file = args.train_file.parent / "evaluation/evaluate_policy.py"
+
+    dataset_path = next(filter(lambda x: x.split("=")[0] == "datamodule.root_data_dir", unknownargs)).split("=")[1]
+
+    eval_cmd = ["sbatch"]
+    eval_job_opts = {
+        "partition": args.partition,
+        "mem": args.mem,
+        "ntasks-per-node": 1,
+        "cpus-per-task": 8,
+        "gres": "gpu:1",
+        "output": os.path.join(eval_log_dir, "%x.%N.%j.out"),
+        "error": os.path.join(eval_log_dir, "%x.%N.%j.err"),
+        "job-name": f"{args.job_name}_eval",
+        "mail-type": "END,FAIL",
+        "time": "1-00:00",
+    }
+    for key, value in eval_job_opts.items():
+        eval_cmd.append(f"--{key}={value}")
+    eval_args = f"{eval_sbatch_script.as_posix()} {args.venv} {eval_file.as_posix()}"
+    eval_args += f" --dataset_path {dataset_path}"
+    eval_args += f" --train_folder {log_dir}"
+    eval_args += " ${@:1}"
+    eval_cmd.append(eval_args)
+
+    file_path = os.path.join(log_dir, "evaluate.sh")
+    with open(file_path, "w") as file:
+        file.write("#!/bin/bash\n")
+        file.write(" ".join(eval_cmd))
     st = os.stat(file_path)
     os.chmod(file_path, st.st_mode | stat.S_IEXEC)
 

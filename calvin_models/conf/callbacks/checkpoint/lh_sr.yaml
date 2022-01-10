@@ -1,0 +1,8 @@
+_target_: pytorch_lightning.callbacks.ModelCheckpoint
+save_top_k: 3
+verbose: True
+monitor: eval_lh/avg_seq_len
+mode: max
+dirpath: saved_models
+filename: '{epoch}' #put back in when PL fixes this _{val/accuracy:.4f}'
+every_n_epochs: ${callbacks.rollout_lh.rollout_freq}

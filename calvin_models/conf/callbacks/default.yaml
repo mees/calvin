@@ -1,5 +1,6 @@
 defaults:
   - rollout: default
-  - checkpoint: task_sr
+  - rollout_lh: default
+  - checkpoint: lh_sr
   - tsne_plot: default
   - kl_schedule: constant

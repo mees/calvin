@@ -13,7 +13,6 @@ ep_len: 120
 empty_cache: true
 log_video_to_file: false
 save_dir: ./videos
-start_robot_neutral: false
 add_goal_thumbnail: true
 min_window_size: ${datamodule.datasets.vision_dataset.min_window_size}
 max_window_size: ${datamodule.datasets.vision_dataset.max_window_size}

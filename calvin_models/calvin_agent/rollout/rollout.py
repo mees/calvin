@@ -51,6 +51,10 @@ def select_longest(all_task_ids, num, min_window_size, max_window_size):
     return sorted_ids[:num]
 
 
+def get_video_tag(task, mod):
+    return f"_{mod}/{list(task)[0]}"
+
+
 class Rollout(Callback):
     """
     A class for performing rollouts during validation step.
@@ -69,7 +73,6 @@ class Rollout(Callback):
         empty_cache,
         log_video_to_file,
         save_dir,
-        start_robot_neutral,
         add_goal_thumbnail,
         min_window_size,
         max_window_size,
@@ -95,9 +98,6 @@ class Rollout(Callback):
         self.rollout_video = None  # type: Any
         self.device = None  # type: Any
         self.outputs = []
-        self.start_robot_neutral = start_robot_neutral
-        if start_robot_neutral:
-            raise NotImplementedError
         self.modalities = []  # ["vis", "lang"] if self.lang else ["vis"]
         self.embeddings = None
         self.add_goal_thumbnail = add_goal_thumbnail
@@ -112,7 +112,14 @@ class Rollout(Callback):
             self.modalities = trainer.datamodule.modalities  # type: ignore
             self.device = pl_module.device
             dataset = trainer.val_dataloaders[0].dataset.datasets["vis"]  # type: ignore
-            self.env = hydra.utils.instantiate(self.env_cfg, dataset, pl_module.device)
+            from calvin_agent.rollout.rollout_long_horizon import RolloutLongHorizon
+
+            for callback in trainer.callbacks:
+                if isinstance(callback, RolloutLongHorizon) and callback.env is not None:
+                    self.env = callback.env
+                    break
+            else:
+                self.env = hydra.utils.instantiate(self.env_cfg, dataset, pl_module.device)
             if self.video:
                 self.rollout_video = RolloutVideo(
                     logger=pl_module.logger,
@@ -299,9 +306,9 @@ class Rollout(Callback):
                         task_embeddings = self.embeddings[_task]["emb"]
                         language_instruction = self.embeddings[_task]["ann"][0]
                         goal = {
-                            "lang": torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])]).to(
-                                self.device
-                            )
+                            "lang": torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])])
+                            .to(self.device)
+                            .float()
                         }
                     else:
                         # goal image is last step of the episode
@@ -316,11 +323,15 @@ class Rollout(Callback):
                         np.asarray([int(global_idx) == self.task_to_id_dict[task][0] for task in groundtruth_task])
                     )
                     if record_video:
-                        self.rollout_video.new_video(obs["rgb_obs"]["rgb_static"], groundtruth_task, mod)
+                        self.rollout_video.new_video(tag=get_video_tag(groundtruth_task, mod))
                     pl_module.reset()  # type: ignore
+                    success = False
                     for step in range(self.ep_len):
                         action = pl_module.step(obs, goal)  # type: ignore
                         obs, _, _, current_info = self.env.step(action)
+                        if record_video:
+                            # update video
+                            self.rollout_video.update(obs["rgb_obs"]["rgb_static"])
                         # check if current step solves a task
                         current_task_info = self.tasks.get_task_info_for_set(start_info, current_info, groundtruth_task)
                         # check if a task was achieved and if that task is a subset of the original tasks
@@ -331,16 +342,15 @@ class Rollout(Callback):
                                 # count successful task rollouts
                                 rollout_task_counter[task_id] += 1
                             # skip current sequence if task was achieved
+                            success = True
                             break
-                        if record_video:
-                            # update video
-                            self.rollout_video.update(obs["rgb_obs"]["rgb_static"])
                     if record_video:
                         if self.add_goal_thumbnail:
                             if mod == "lang":
                                 self.rollout_video.add_language_instruction(language_instruction)
                             else:
                                 self.rollout_video.add_goal_thumbnail(rgb_obs["rgb_static"][i, -1])
+                        self.rollout_video.draw_outcome(success)
                         self.rollout_video.write_to_tmp()
 
             counter[mod] = rollout_task_counter  # type: ignore

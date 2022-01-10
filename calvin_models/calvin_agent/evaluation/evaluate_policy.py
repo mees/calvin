@@ -3,12 +3,13 @@ from collections import Counter
 import logging
 from pathlib import Path
 import time
+sys.path.insert(0, Path(__file__).absolute().parents[2].as_posix())
 
 from calvin_agent.evaluation.multistep_sequences import get_sequences
 from calvin_agent.evaluation.utils import (
     DefaultLangEmbeddings,
     get_default_model_and_env,
-    get_eval_env_state,
+    get_env_state_for_initial_condition,
     join_vis_lang,
 )
 from calvin_agent.utils.utils import get_all_checkpoints, get_last_checkpoint
@@ -71,40 +72,47 @@ class CustomLangEmbeddings:
         raise NotImplementedError
 
 
+def count_success(results):
+    count = Counter(results)
+    step_success = []
+    for i in range(1, 6):
+        n_success = sum(count[j] for j in reversed(range(i, 6)))
+        sr = n_success / len(results)
+        step_success.append(sr)
+    return step_success
+
+
 def evaluate_policy(model, env, lang_embeddings, args):
     conf_dir = Path(__file__).absolute().parents[2] / "conf"
     task_cfg = OmegaConf.load(conf_dir / "callbacks/rollout/tasks/new_playtable_tasks.yaml")
     task_oracle = hydra.utils.instantiate(task_cfg)
     val_annotations = OmegaConf.load(conf_dir / "annotations/new_playtable_validation.yaml")
 
-    eval_sequences = get_sequences()
+    eval_sequences = get_sequences(args.num_sequences)
 
-    results = {}
+    results = []
 
     if not args.debug:
         eval_sequences = tqdm(eval_sequences, position=0, leave=True)
 
-    for eval_sequence in eval_sequences:
-        result = evaluate_sequence(env, model, task_oracle, eval_sequence, lang_embeddings, val_annotations, args)
-        results[eval_sequence] = result
+    for initial_state, eval_sequence in eval_sequences:
+        result = evaluate_sequence(
+            env, model, task_oracle, initial_state, eval_sequence, lang_embeddings, val_annotations, args
+        )
+        results.append(result)
         if not args.debug:
-            count = Counter(np.array(list(results.values())))
-            eval_sequences.set_description(" ".join([f"{k}/5 : {v} |" for k, v in count.items()]) + "|")
-    print(f"Average successful sequence length: {np.mean(list(results.values()))}")
-    count = Counter(np.array(list(results.values())))
-    print("Number of successful subtasks")
-    for i in range(6):
-        print(f"{i} successful tasks: {count[i]} / {len(eval_sequences)} sequences")
-    print("Number of instructions in a row:")
-    print("1: ", (count[1] + count[2] + count[3] + count[4] + count[5]) * 100.0 / len(eval_sequences))
-    print("2: ", (count[2] + count[3] + count[4] + count[5]) * 100.0 / len(eval_sequences))
-    print("3: ", (count[3] + count[4] + count[5]) * 100.0 / len(eval_sequences))
-    print("4: ", (count[4] + count[5]) * 100.0 / len(eval_sequences))
-    print("5: ", (count[5]) * 100.0 / len(eval_sequences))
+            eval_sequences.set_description(
+                " ".join([f"{i + 1}/5 : {v * 100:.1f}% |" for i, v in enumerate(count_success(results))]) + "|"
+            )
+    print(f"Average successful sequence length: {np.mean(results)}")
+    print()
+    print("Success rates for i instructions in a row:")
+    for i, sr in enumerate(count_success(results)):
+        print(f"{i + 1}: {sr * 100:.1f}%")
 
 
-def evaluate_sequence(env, model, task_checker, eval_sequence, lang_embeddings, val_annotations, args):
-    robot_obs, scene_obs = get_eval_env_state()
+def evaluate_sequence(env, model, task_checker, initial_state, eval_sequence, lang_embeddings, val_annotations, args):
+    robot_obs, scene_obs = get_env_state_for_initial_condition(initial_state)
     env.reset(robot_obs=robot_obs, scene_obs=scene_obs)
 
     success_counter = 0
@@ -186,6 +194,7 @@ if __name__ == "__main__":
 
     # Do not change
     args.ep_len = 360
+    args.num_sequences = 1000
 
     if args.custom_lang_embeddings:
         lang_embeddings = CustomLangEmbeddings()

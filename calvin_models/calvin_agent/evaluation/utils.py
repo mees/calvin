@@ -1,20 +1,23 @@
+import contextlib
 import logging
 from pathlib import Path
 
-from calvin_agent.models.play_lmp import PlayLMP
-from calvin_agent.utils.utils import add_text, get_all_checkpoints, get_last_checkpoint
 import cv2
 import hydra
 import numpy as np
+from numpy import pi
 from omegaconf import OmegaConf
-from omegaconf.errors import MissingMandatoryValue
-from pytorch_lightning import seed_everything
+import pyhash
 import torch
 
+from calvin_agent.models.play_lmp import PlayLMP
+from calvin_agent.utils.utils import add_text
+
+hasher = pyhash.fnv1_32()
 logger = logging.getLogger(__name__)
 
 
-def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None):
+def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, lang_embeddings=None):
     train_cfg_path = Path(train_folder) / ".hydra/config.yaml"
     cfg = OmegaConf.load(train_cfg_path)
     cfg = OmegaConf.create(OmegaConf.to_yaml(cfg).replace("calvin_models.", ""))
@@ -28,18 +31,23 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None):
     dataloader = data_module.val_dataloader()
     dataset = dataloader.dataset.datasets["lang"]
     device = torch.device("cuda:0")
+
+    if lang_embeddings is None:
+        lang_embeddings = LangEmbeddings(dataset.abs_datasets_dir, dataset.lang_folder)
+
     if env is None:
-        env = hydra.utils.instantiate(cfg.callbacks.rollout.env_cfg, dataset, device, show_gui=False)
+        rollout_cfg = OmegaConf.load(Path(__file__).parents[2] / "conf/callbacks/rollout/default.yaml")
+        env = hydra.utils.instantiate(rollout_cfg.env_cfg, dataset, device, show_gui=False)
 
     print(f"Loading model from {checkpoint}")
     model = PlayLMP.load_from_checkpoint(checkpoint)
     model.freeze()
-    if cfg.model.decoder.get("load_action_bounds", False):
+    if cfg.model.action_decoder.get("load_action_bounds", False):
         model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None, True)
     model = model.cuda(device)
     print("Successfully loaded model.")
 
-    return model, env, data_module
+    return model, env, data_module, lang_embeddings
 
 
 def join_vis_lang(img, lang_text):
@@ -51,68 +59,15 @@ def join_vis_lang(img, lang_text):
     cv2.waitKey(1)
 
 
-class DefaultLangEmbeddings:
-    def __init__(self, dataset_path):
-        embeddings = np.load(
-            Path(dataset_path) / "validation/lang_annotations/embeddings.npy", allow_pickle=True
-        ).item()
+class LangEmbeddings:
+    def __init__(self, val_dataset_path, lang_folder, device=torch.device("cuda:0")):
+        embeddings = np.load(Path(val_dataset_path) / lang_folder / "embeddings.npy", allow_pickle=True).item()
         # we want to get the embedding for full sentence, not just a task name
         self.lang_embeddings = {v["ann"][0]: v["emb"] for k, v in embeddings.items()}
-        self.device = torch.device("cuda:0")
+        self.device = device
 
     def get_lang_goal(self, task):
-        return {"lang": torch.from_numpy(self.lang_embeddings[task]).to(self.device).squeeze(0)}
-
-
-def get_eval_env_state():
-    robot_obs = np.array(
-        [
-            0.02586889,
-            -0.2313129,
-            0.5712808,
-            3.09045411,
-            -0.02908596,
-            1.50013585,
-            0.07999963,
-            -1.21779124,
-            1.03987629,
-            2.11978254,
-            -2.34205014,
-            -0.87015899,
-            1.64119093,
-            0.55344928,
-            1.0,
-        ]
-    )
-    scene_obs = np.array(
-        [
-            -1.04781977e-06,
-            0.00000000e00,
-            0.00000000e00,
-            2.04697370e-17,
-            0.00000000e00,
-            0.00000000e00,
-            5.00000896e-02,
-            -1.20000177e-01,
-            4.59990009e-01,
-            -2.33735409e-08,
-            -1.62393945e-08,
-            1.57000011e00,
-            2.29995412e-01,
-            -1.19995140e-01,
-            4.59990010e-01,
-            5.67408891e-09,
-            2.11727851e-08,
-            -1.52919521e-06,
-            1.00341633e-01,
-            8.52660710e-02,
-            4.60981664e-01,
-            -2.84972036e-04,
-            1.40530077e-04,
-            1.55882276e00,
-        ]
-    )
-    return robot_obs, scene_obs
+        return {"lang": torch.from_numpy(self.lang_embeddings[task]).to(self.device).squeeze(0).float()}
 
 
 def imshow_tensor(window, img_tensor, wait=0, resize=True, keypoints=None):
@@ -150,9 +105,82 @@ def print_task_log(demo_task_counter, live_task_counter, mod):
     )
 
 
-def format_sftp_path(cfg):
-    """
-    When using network mount from nautilus, format path
-    """
-    if cfg.train_folder.startswith("sftp"):
-        cfg.train_folder = "/run/user/9984/gvfs/sftp:host=" + cfg.train_folder[7:]
+@contextlib.contextmanager
+def temp_seed(seed):
+    state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(state)
+
+
+def get_env_state_for_initial_condition(initial_condition):
+    robot_obs = np.array(
+        [
+            0.02586889,
+            -0.2313129,
+            0.5712808,
+            3.09045411,
+            -0.02908596,
+            1.50013585,
+            0.07999963,
+            -1.21779124,
+            1.03987629,
+            2.11978254,
+            -2.34205014,
+            -0.87015899,
+            1.64119093,
+            0.55344928,
+            1.0,
+        ]
+    )
+    block_rot_z_range = (pi / 2 - pi / 8, pi / 2 + pi / 8)
+    block_slider_left = np.array([-2.40851662e-01, 9.24044687e-02, 4.60990009e-01])
+    block_slider_right = np.array([7.03416330e-02, 9.24044687e-02, 4.60990009e-01])
+    block_table = [
+        np.array([5.00000896e-02, -1.20000177e-01, 4.59990009e-01]),
+        np.array([2.29995412e-01, -1.19995140e-01, 4.59990010e-01]),
+    ]
+    # we want to have a "deterministic" random seed for each initial condition
+    seed = hasher(str(initial_condition.values()))
+    with temp_seed(seed):
+        np.random.shuffle(block_table)
+
+        scene_obs = np.zeros(24)
+        if initial_condition["slider"] == "left":
+            scene_obs[0] = 0.28
+        if initial_condition["drawer"] == "open":
+            scene_obs[1] = 0.22
+        if initial_condition["lightbulb"] == 1:
+            scene_obs[3] = 0.088
+        scene_obs[4] = initial_condition["lightbulb"]
+        scene_obs[5] = initial_condition["led"]
+        # red block
+        if initial_condition["red_block"] == "slider_right":
+            scene_obs[6:9] = block_slider_right
+        elif initial_condition["red_block"] == "slider_left":
+            scene_obs[6:9] = block_slider_left
+        else:
+            scene_obs[6:9] = block_table[0]
+        scene_obs[11] = np.random.uniform(*block_rot_z_range)
+        # blue block
+        if initial_condition["blue_block"] == "slider_right":
+            scene_obs[12:15] = block_slider_right
+        elif initial_condition["blue_block"] == "slider_left":
+            scene_obs[12:15] = block_slider_left
+        elif initial_condition["red_block"] == "table":
+            scene_obs[12:15] = block_table[1]
+        else:
+            scene_obs[12:15] = block_table[0]
+        scene_obs[17] = np.random.uniform(*block_rot_z_range)
+        # pink block
+        if initial_condition["pink_block"] == "slider_right":
+            scene_obs[18:21] = block_slider_right
+        elif initial_condition["pink_block"] == "slider_left":
+            scene_obs[18:21] = block_slider_left
+        else:
+            scene_obs[18:21] = block_table[1]
+        scene_obs[23] = np.random.uniform(*block_rot_z_range)
+
+    return robot_obs, scene_obs

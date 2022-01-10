@@ -1,0 +1,18 @@
+defaults:
+  - /callbacks/rollout/tasks@tasks: new_playtable_tasks
+  - /annotations@val_annotations: new_playtable_validation
+_target_: calvin_agent.rollout.rollout_long_horizon.RolloutLongHorizon
+_recursive_: false
+env_cfg:
+  _target_: calvin_env.envs.play_lmp_wrapper.PlayLMPWrapper
+skip_epochs: 1
+rollout_freq: 1
+num_videos: 16
+num_sequences: 128
+replan_freq: 30
+ep_len: 360
+empty_cache: true
+log_video_to_file: false
+save_dir: ./videos
+lang_folder: ${datamodule.datasets.lang_dataset.lang_folder}
+debug: false
