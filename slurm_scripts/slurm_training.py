@@ -148,3 +148,4 @@ def create_eval_script():
 
 
 submit_job(job_opts)
+create_eval_script()
