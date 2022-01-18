@@ -2,15 +2,17 @@ import argparse
 from collections import Counter
 import logging
 from pathlib import Path
+import sys
 import time
+
 sys.path.insert(0, Path(__file__).absolute().parents[2].as_posix())
 
 from calvin_agent.evaluation.multistep_sequences import get_sequences
 from calvin_agent.evaluation.utils import (
-    DefaultLangEmbeddings,
     get_default_model_and_env,
     get_env_state_for_initial_condition,
     join_vis_lang,
+    LangEmbeddings,
 )
 from calvin_agent.utils.utils import get_all_checkpoints, get_last_checkpoint
 import hydra
@@ -199,7 +201,7 @@ if __name__ == "__main__":
     if args.custom_lang_embeddings:
         lang_embeddings = CustomLangEmbeddings()
     else:
-        lang_embeddings = DefaultLangEmbeddings(args.dataset_path)  # type: ignore
+        lang_embeddings = LangEmbeddings(args.dataset_path)  # type: ignore
 
     # evaluate a custom model
     if args.custom_model:

@@ -202,14 +202,15 @@ class PlayLMP(pl.LightningModule):
             kl_loss += kl
             action_loss += act_loss
             total_loss += mod_loss
-            self.log(f"train/action_loss_{self.modality_scope}", act_loss, on_step=False, on_epoch=True, sync_dist=True)
-            self.log(f"train/total_loss_{self.modality_scope}", mod_loss, on_step=False, on_epoch=True, sync_dist=True)
+            self.log(f"train/kl_loss_scaled_{self.modality_scope}", kl, on_step=False, on_epoch=True)
+            self.log(f"train/action_loss_{self.modality_scope}", act_loss, on_step=False, on_epoch=True)
+            self.log(f"train/total_loss_{self.modality_scope}", mod_loss, on_step=False, on_epoch=True)
         total_loss = total_loss / len(batch)  # divide accumulated gradients by number of datasets
         kl_loss = kl_loss / len(batch)
         action_loss = action_loss / len(batch)
-        self.log("train/kl_loss", kl_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("train/action_loss", action_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("train/total_loss", total_loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train/kl_loss", kl_loss, on_step=False, on_epoch=True)
+        self.log("train/action_loss", action_loss, on_step=False, on_epoch=True)
+        self.log("train/total_loss", total_loss, on_step=False, on_epoch=True)
         return total_loss
 
     def compute_kl_loss(
@@ -217,10 +218,6 @@ class PlayLMP(pl.LightningModule):
     ) -> torch.Tensor:
         kl_loss = D.kl_divergence(pr_dist, pp_dist).mean()
         kl_loss_scaled = kl_loss * self.kl_beta
-        self.log(f"train/kl_loss_{self.modality_scope}", kl_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log(
-            f"train/kl_loss_scaled_{self.modality_scope}", kl_loss_scaled, on_step=False, on_epoch=True, sync_dist=True
-        )
         return kl_loss_scaled
 
     def set_kl_beta(self, kl_beta):

@@ -4,9 +4,8 @@ from itertools import product
 import logging
 import multiprocessing
 
-import numpy as np
-
 from calvin_agent.evaluation.utils import temp_seed
+import numpy as np
 
 logger = logging.getLogger(__name__)
 

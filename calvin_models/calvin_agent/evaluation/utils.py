@@ -2,6 +2,8 @@ import contextlib
 import logging
 from pathlib import Path
 
+from calvin_agent.models.play_lmp import PlayLMP
+from calvin_agent.utils.utils import add_text
 import cv2
 import hydra
 import numpy as np
@@ -9,9 +11,6 @@ from numpy import pi
 from omegaconf import OmegaConf
 import pyhash
 import torch
-
-from calvin_agent.models.play_lmp import PlayLMP
-from calvin_agent.utils.utils import add_text
 
 hasher = pyhash.fnv1_32()
 logger = logging.getLogger(__name__)

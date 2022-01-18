@@ -1,9 +1,8 @@
 import argparse
 from collections import Counter
-
 from pathlib import Path
 
-from calvin_agent.evaluation.utils import LangEmbeddings, get_default_model_and_env, join_vis_lang
+from calvin_agent.evaluation.utils import get_default_model_and_env, join_vis_lang, LangEmbeddings
 from calvin_agent.utils.utils import get_all_checkpoints, get_last_checkpoint
 import hydra
 import numpy as np

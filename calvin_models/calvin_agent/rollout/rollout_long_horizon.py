@@ -5,16 +5,15 @@ import multiprocessing
 import os
 from typing import Any, List
 
+from calvin_agent.evaluation.multistep_sequences import get_sequences
+from calvin_agent.evaluation.utils import get_env_state_for_initial_condition, join_vis_lang, LangEmbeddings
+from calvin_agent.rollout.rollout_video import RolloutVideo
 import hydra
 import numpy as np
 from pytorch_lightning import Callback, LightningModule, Trainer
 from termcolor import colored
 import torch
 import torch.distributed as dist
-
-from calvin_agent.evaluation.multistep_sequences import get_sequences
-from calvin_agent.evaluation.utils import get_env_state_for_initial_condition, join_vis_lang, LangEmbeddings
-from calvin_agent.rollout.rollout_video import RolloutVideo
 
 log_print = logging.getLogger(__name__)
 
