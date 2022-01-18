@@ -155,6 +155,26 @@ Contact [Oier](https://www.oiermees.com/) to add your model here.
 Are you interested in trying  reinforcement learning agents for the different manipulation tasks in the CALVIN environment?
 We provide a [google colab](https://github.com/mees/calvin/blob/main/RL_with_CALVIN.ipynb) to showcase how to leverage the CALVIN task indicators to learn RL agents with a sparse reward.
 
+## FAQ
+
+#### Why do you use EGL rendering?
+We use EGL to move the bullet rendering from cpu (which is the default) to gpu, which is much faster.
+This way, we can also do rollouts during the training of the agent to track its performance.
+By changing from cpu to gpu, the rendered textures change slightly, so be aware of this if you plan on testing pretrained models.
+#### I am training with multiple GPUs and why am I get OOM errors during rollouts?
+PyBullet only recently added an option to select which GPU to use for rendering when using EGL (fix was commited in 3c4cb80
+on Oct 22, 2021, see [here](https://github.com/bulletphysics/bullet3/blob/master/examples/OpenGLWindow/EGLOpenGLWindow.cpp#L134).
+If you have an old version of PyBullet, there is no way to choose the GPU, which can lead to problems on cluster nodes with multiple GPUs, because all instances would be placed on the same GPU, slowing down the rendering and potentially leading to OOM erros.
+
+The fix introduced an environment variable EGL_VISIBLE_DEVICES (similar to CUDA_VISIBLE_DEVICES) which lets you specify the GPU device to render on.
+However, there is one catch: On some machines, the device ids of CUDA and EGL do not match (e.g. CUDA device 0 could be EGL device 3).
+We automatically handle this in our wrapper in calvin_env and find the corresponding egl device id, so you don't have to set EGL_VISIBLE_DEVICES yourself, see [here](https://github.com/mees/calvin_env/blob/main/calvin_env/envs/play_lmp_wrapper.py#L31).
+
+#### I am not interested in the manipulation tasks recorded, can I record different demonstration with teleop?
+Yes, although it is not documented right now, all the code to record data with a VR headset is present in
+calvin_env in [https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacollector.py](https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacollector.py)
+
+
 ## Citation
 
 If you find the dataset or code useful, please cite:
