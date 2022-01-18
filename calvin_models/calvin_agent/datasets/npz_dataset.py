@@ -1,3 +1,4 @@
+from itertools import chain
 import logging
 import os
 from pathlib import Path
@@ -77,8 +78,11 @@ class NpzDataset(BaseDataset):
         -----------
         episode: dict of numpy arrays containing the episode where keys are the names of modalities
         """
+        keys = list(chain(*self.observation_space.values()))
+        keys.remove("language")
+        keys.append("scene_obs")
         episodes = [self.load_episode(self.get_episode_name(file_idx)) for file_idx in range(start_idx, end_idx)]
-        episode = {key: np.stack([ep[key] for ep in episodes]) for key, _ in episodes[0].items()}
+        episode = {key: np.stack([ep[key] for ep in episodes]) for key in keys}
         if self.with_lang:
             episode["language"] = self.lang_ann[self.lang_lookup[idx]][0]  # TODO check  [0]
         return episode
