@@ -182,7 +182,7 @@ If you find the dataset or code useful, please cite:
 ```
 @article{calvin21,
 author = {Oier Mees and Lukas Hermann and Erick Rosete-Beas and Wolfram Burgard},
-title = {CALVIN - A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
+title = {CALVIN: A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
 journal={arXiv preprint arXiv:2112.03227},
 year = 2021,
 }
