@@ -41,7 +41,7 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, 
     print(f"Loading model from {checkpoint}")
     model = PlayLMP.load_from_checkpoint(checkpoint)
     model.freeze()
-    if cfg.model.action_decoder.get("load_action_bounds", False):
+    if cfg.model.decoder.get("load_action_bounds", False):
         model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None, True)
     model = model.cuda(device)
     print("Successfully loaded model.")

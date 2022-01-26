@@ -198,10 +198,9 @@ if __name__ == "__main__":
     args.ep_len = 360
     args.num_sequences = 1000
 
+    lang_embeddings = None
     if args.custom_lang_embeddings:
         lang_embeddings = CustomLangEmbeddings()
-    else:
-        lang_embeddings = LangEmbeddings(args.dataset_path)  # type: ignore
 
     # evaluate a custom model
     if args.custom_model:
@@ -224,5 +223,7 @@ if __name__ == "__main__":
 
         env = None
         for checkpoint in checkpoints:
-            model, env, _ = get_default_model_and_env(args.train_folder, args.dataset_path, checkpoint, env=env)
+            model, env, _, lang_embeddings = get_default_model_and_env(
+                args.train_folder, args.dataset_path, checkpoint, env=env, lang_embeddings=lang_embeddings
+            )
             evaluate_policy(model, env, lang_embeddings, args)
