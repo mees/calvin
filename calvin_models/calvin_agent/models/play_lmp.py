@@ -392,7 +392,7 @@ class PlayLMP(pl.LightningModule):
             # ------------Plan Proposal------------ #
             pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
             sampled_plan = pp_dist.sample()  # sample from proposal net
-        # self.action_decoder.clear_hidden_state()
+        self.action_decoder.clear_hidden_state()
         return sampled_plan, latent_goal
 
     def get_pp_plan_lang(self, obs: dict, goal: dict) -> Tuple[Tensor, Tensor]:
@@ -402,7 +402,7 @@ class PlayLMP(pl.LightningModule):
             # ------------Plan Proposal------------ #
             pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
             sampled_plan = pp_dist.sample()  # sample from proposal net
-
+        self.action_decoder.clear_hidden_state()
         return sampled_plan, latent_goal
 
     @rank_zero_only

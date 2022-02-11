@@ -81,7 +81,9 @@ class LogisticPolicyNetwork(ActionDecoder):
         return loss, pred_actions
 
     def act(self, latent_plan: torch.Tensor, perceptual_emb: torch.Tensor, latent_goal: torch.Tensor) -> torch.Tensor:
-        logit_probs, log_scales, means, self.hidden_state = self(latent_plan, perceptual_emb, latent_goal, None)
+        logit_probs, log_scales, means, self.hidden_state = self(
+            latent_plan, perceptual_emb, latent_goal, self.hidden_state
+        )
         return self._sample(logit_probs, log_scales, means)
 
     def loss(
