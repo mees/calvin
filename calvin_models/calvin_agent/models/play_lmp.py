@@ -22,7 +22,7 @@ class PlayLMP(pl.LightningModule):
         plan_recognition: DictConfig,
         visual_goal: DictConfig,
         language_goal: DictConfig,
-        decoder: DictConfig,
+        action_decoder: DictConfig,
         kl_beta: float,
         optimizer: DictConfig,
         replan_freq: int = 30,
@@ -34,19 +34,19 @@ class PlayLMP(pl.LightningModule):
             plan_proposal,
             plan_recognition,
             visual_goal,
-            decoder,
+            action_decoder,
         )
         self.plan_proposal = hydra.utils.instantiate(plan_proposal)
         self.plan_recognition = hydra.utils.instantiate(plan_recognition)
         self.visual_goal = hydra.utils.instantiate(visual_goal)
         self.language_goal = hydra.utils.instantiate(language_goal) if language_goal else None
-        self.action_decoder: ActionDecoder = hydra.utils.instantiate(decoder)
+        self.action_decoder: ActionDecoder = hydra.utils.instantiate(action_decoder)
         self.kl_beta = kl_beta
         self.modality_scope = "vis"
         self.optimizer_config = optimizer
         # workaround to resolve hydra config file before calling save_hyperparams  until they fix this issue upstream
         # without this, there is conflict between lightning and hydra
-        decoder.out_features = decoder.out_features
+        action_decoder.out_features = action_decoder.out_features
 
         self.optimizer_config["lr"] = self.optimizer_config["lr"]
         self.save_hyperparameters()

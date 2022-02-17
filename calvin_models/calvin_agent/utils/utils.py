@@ -37,6 +37,14 @@ def get_git_commit_hash(repo_path: Path) -> str:
     return repo.head.object.hexsha
 
 
+def get_checkpoints_for_epochs(experiment_folder: Path, epochs: Union[List, str]) -> List:
+    if isinstance(epochs, str):
+        epochs = epochs.split(",")
+        epochs = list(map(int, epochs))
+    ep = lambda s: int(s.stem.split("=")[1])
+    return [chk for chk in get_all_checkpoints(experiment_folder) if ep(chk) in epochs]
+
+
 def get_all_checkpoints(experiment_folder: Path) -> List:
     if experiment_folder.is_dir():
         checkpoint_folder = experiment_folder / "saved_models"
@@ -159,3 +167,13 @@ def add_text(img, lang_text):
             thickness=thickness,
             lineType=cv2.LINE_AA,
         )
+
+
+def format_sftp_path(path):
+    """
+    When using network mount from nautilus, format path
+    """
+    if path.as_posix().startswith("sftp"):
+        uid = os.getuid()
+        path = Path(f"/run/user/{uid}/gvfs/sftp:host={path.as_posix()[6:]}")
+    return path

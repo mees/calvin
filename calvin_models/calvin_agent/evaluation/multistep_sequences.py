@@ -1,8 +1,11 @@
+from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from copy import deepcopy
+import functools
 from itertools import product
 import logging
 import multiprocessing
+from operator import add
 
 from calvin_agent.evaluation.utils import temp_seed
 import numpy as np
@@ -28,23 +31,23 @@ task_categories = {
     "open_drawer": 3,
     "close_drawer": 3,
     "lift_red_block_table": 4,
-    "lift_red_block_slider": 4,
-    "lift_red_block_drawer": 4,
+    "lift_red_block_slider": 5,
+    "lift_red_block_drawer": 6,
     "lift_blue_block_table": 4,
-    "lift_blue_block_slider": 4,
-    "lift_blue_block_drawer": 4,
+    "lift_blue_block_slider": 5,
+    "lift_blue_block_drawer": 6,
     "lift_pink_block_table": 4,
-    "lift_pink_block_slider": 4,
-    "lift_pink_block_drawer": 4,
-    "place_in_slider": 5,
-    "place_in_drawer": 5,
-    "turn_on_lightbulb": 6,
-    "turn_off_lightbulb": 6,
-    "turn_on_led": 6,
-    "turn_off_led": 6,
-    "push_into_drawer": 1,
-    "stack_block": 9,
-    "unstack_block": 10,
+    "lift_pink_block_slider": 5,
+    "lift_pink_block_drawer": 6,
+    "place_in_slider": 7,
+    "place_in_drawer": 7,
+    "turn_on_lightbulb": 8,
+    "turn_off_lightbulb": 8,
+    "turn_on_led": 8,
+    "turn_off_led": 8,
+    "push_into_drawer": 9,
+    "stack_block": 10,
+    "unstack_block": 11,
 }
 
 tasks = {
@@ -344,6 +347,7 @@ def flatten(t):
     return [tuple(item.tolist()) for sublist in t for item in sublist]
 
 
+@functools.lru_cache
 def get_sequences(num_sequences=1000, num_workers=None):
     possible_conditions = {
         "led": [0, 1],
@@ -371,15 +375,29 @@ def get_sequences(num_sequences=1000, num_workers=None):
                     get_sequences_for_state2, zip(initial_states, num_sequences_per_state, range(len(initial_states)))
                 )
             )
-    results = list(zip(np.repeat(initial_states, num_sequences_per_state), results))
+        results = list(zip(np.repeat(initial_states, num_sequences_per_state), results))
+        np.random.shuffle(results)
     logger.info("Done generating evaluation sequences.")
 
     return results
 
 
 if __name__ == "__main__":
-    results = get_sequences(100)
+    results = get_sequences(1000)
+    counters = [Counter() for _ in range(5)]  # type: ignore
     for initial_state, seq in results:
+        for i, task in enumerate(seq):
+            counters[i][task] += 1
+
+    for i, counter in enumerate(counters):
+        print(f"Task {i+1}")
         print()
-        print(initial_state)
-        print(seq)
+        for task, freq in sorted(counter.items(), key=lambda x: x[1], reverse=True):
+            print(f"{task}: {freq / sum(counter.values()) * 100:.2f}")
+        print()
+        print()
+
+    print("overall task probability:")
+    all_counters = functools.reduce(add, counters)
+    for task, freq in sorted(all_counters.items(), key=lambda x: x[1], reverse=True):
+        print(f"{task}: {freq / sum(all_counters.values()) * 100:.2f}")

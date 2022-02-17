@@ -113,7 +113,7 @@ class RolloutLongHorizon(Callback):
         """Called when the validation loop begins."""
         if self.env is None:
             self.device = pl_module.device
-            dataset = trainer.val_dataloaders[0].dataset.datasets["vis"]  # type: ignore
+            dataset = trainer.val_dataloaders[0].dataset.datasets["lang"]  # type: ignore
             from calvin_agent.rollout.rollout import Rollout
 
             for callback in trainer.callbacks:

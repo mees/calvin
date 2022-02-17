@@ -31,4 +31,4 @@ hydra:
           - datamodule.num_workers
           - trainer.limit_train_batches
           - trainer.limit_val_batches
-          - model.decoder.load_action_bounds
+          - model.action_decoder.load_action_bounds

@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 from calvin_agent.models.play_lmp import PlayLMP
-from calvin_agent.utils.utils import add_text
+from calvin_agent.utils.utils import add_text, format_sftp_path
 import cv2
 import hydra
 import numpy as np
@@ -16,10 +16,12 @@ hasher = pyhash.fnv1_32()
 logger = logging.getLogger(__name__)
 
 
-def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, lang_embeddings=None):
+def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, lang_embeddings=None, device_id=0):
     train_cfg_path = Path(train_folder) / ".hydra/config.yaml"
+    train_cfg_path = format_sftp_path(train_cfg_path)
     cfg = OmegaConf.load(train_cfg_path)
     cfg = OmegaConf.create(OmegaConf.to_yaml(cfg).replace("calvin_models.", ""))
+    lang_folder = cfg.datamodule.datasets.lang_dataset.lang_folder
     if not hydra.core.global_hydra.GlobalHydra.instance().is_initialized():
         hydra.initialize(".")
     # since we don't use the trainer during inference, manually set up data_module
@@ -29,19 +31,20 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, 
     data_module.setup()
     dataloader = data_module.val_dataloader()
     dataset = dataloader.dataset.datasets["lang"]
-    device = torch.device("cuda:0")
+    device = torch.device(f"cuda:{device_id}")
 
     if lang_embeddings is None:
-        lang_embeddings = LangEmbeddings(dataset.abs_datasets_dir, dataset.lang_folder)
+        lang_embeddings = LangEmbeddings(dataset.abs_datasets_dir, lang_folder, device=device)
 
     if env is None:
         rollout_cfg = OmegaConf.load(Path(__file__).parents[2] / "conf/callbacks/rollout/default.yaml")
         env = hydra.utils.instantiate(rollout_cfg.env_cfg, dataset, device, show_gui=False)
 
+    checkpoint = format_sftp_path(checkpoint)
     print(f"Loading model from {checkpoint}")
     model = PlayLMP.load_from_checkpoint(checkpoint)
     model.freeze()
-    if cfg.model.decoder.get("load_action_bounds", False):
+    if cfg.model.action_decoder.get("load_action_bounds", False):
         model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None, True)
     model = model.cuda(device)
     print("Successfully loaded model.")
@@ -69,7 +72,7 @@ class LangEmbeddings:
         return {"lang": torch.from_numpy(self.lang_embeddings[task]).to(self.device).squeeze(0).float()}
 
 
-def imshow_tensor(window, img_tensor, wait=0, resize=True, keypoints=None):
+def imshow_tensor(window, img_tensor, wait=0, resize=True, keypoints=None, text=None):
     img_tensor = img_tensor.squeeze()
     img = np.transpose(img_tensor.cpu().numpy(), (1, 2, 0))
     img = np.clip(((img / 2) + 0.5) * 255, 0, 255).astype(np.uint8)
@@ -79,6 +82,9 @@ def imshow_tensor(window, img_tensor, wait=0, resize=True, keypoints=None):
         key_coords = key_coords.reshape(-1, 2)
         cv_kp1 = [cv2.KeyPoint(x=pt[1], y=pt[0], _size=1) for pt in key_coords]
         img = cv2.drawKeypoints(img, cv_kp1, None, color=(255, 0, 0))
+
+    if text is not None:
+        add_text(img, text)
 
     if resize:
         cv2.imshow(window, cv2.resize(img[:, :, ::-1], (500, 500)))

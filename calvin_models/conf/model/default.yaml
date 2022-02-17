@@ -4,7 +4,7 @@ defaults:
   - plan_recognition: default
   - visual_goal: default
   - language_goal: default
-  - decoder: logistic
+  - action_decoder: logistic
   - optimizer: adam
 
 _target_: calvin_agent.models.play_lmp.PlayLMP

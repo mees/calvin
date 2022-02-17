@@ -180,7 +180,7 @@ def test_policy(input_cfg: DictConfig) -> None:
     logger.info("Loading model from checkpoint.")
     model = PlayLMP.load_from_checkpoint(checkpoint)
     model.freeze()
-    if train_cfg.model.decoder.get("load_action_bounds", False):
+    if train_cfg.model.action_decoder.get("load_action_bounds", False):
         model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None)
     model = model.cuda(0)
 
