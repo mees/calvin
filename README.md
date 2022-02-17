@@ -175,6 +175,18 @@ Yes, although it is not documented right now, all the code to record data with a
 calvin_env in [https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacollector.py](https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacollector.py)
 
 
+## Changelog
+
+### 7 Feb 2022
+- Minor changes to the distribution of tasks in the long-horizon multi-step sequences.
+- Changes to the task success criteria of pushing and lifting.  
+- Set `use_nullspace: true` for robot in hydra cfg of dataset. If you downloaded one of the datasets prior to this date,
+edit this line in <PATH_TO_DATASET>/training/.hydra/merged_config.yaml and <PATH_TO_DATASET>/validation/.hydra/merged_config.yaml.
+- Renaming `model.decoder` to `model.action_decoder`.
+
+### 10 Jan 2022
+- Breaking change to evaluation, using different intitial states for environment.
+
 ## Citation
 
 If you find the dataset or code useful, please cite:
