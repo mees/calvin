@@ -71,10 +71,10 @@ $ python training.py hydra.run.dir=runs/my_dir
 ## :framed_picture: Sensory Observations
  CALVIN  supports a range of sensors commonly utilized for visuomotor  control:
 1. **Static camera RGB images** - with shape `200x200x3`.
-2. **Static camera Depth maps** - with shape `200x200x1`.
-3. **Gripper camera RGB images** - with shape `200x200x3`.
-4. **Gripper camera Depth maps** - with shape `200x200x1`.
-5. **Tactile image** - with shape `120x160x2x3`.
+2. **Static camera Depth maps** - with shape `200x200`.
+3. **Gripper camera RGB images** - with shape `84x84x3`.
+4. **Gripper camera Depth maps** - with shape `84x84`.
+5. **Tactile image** - with shape `120x160x6`.
 6. **Proprioceptive state** - EE position (3), EE orientation in euler angles (3), gripper width (1), joint positions (7), gripper action (1).
 
 <p align="center">
@@ -87,6 +87,8 @@ In  order  to  give  researchers  and  practitioners  the freedom to experiment 
 1. **Absolute cartesian pose**  - EE position (3), EE orientation in euler angles (3),  gripper action (1).
 2. **Relative cartesian displacement**  - EE position (3), EE orientation in euler angles (3),  gripper action (1).
 3. **Joint action** -  Joint positions (7),  gripper action (1).
+
+For more information, please refer to this more detailed [README](https://github.com/mees/calvin/blob/main/dataset/README.md).
 
 ## :muscle: Evaluation: The Calvin Challenge
 ### Long-horizon Multi-task Language Control (LH-MTLC)
@@ -179,7 +181,7 @@ calvin_env in [https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacol
 
 ### 7 Feb 2022
 - Minor changes to the distribution of tasks in the long-horizon multi-step sequences.
-- Changes to the task success criteria of pushing and lifting.  
+- Changes to the task success criteria of pushing and lifting.
 - Set `use_nullspace: true` for robot in hydra cfg of dataset. If you downloaded one of the datasets prior to this date,
 edit this line in <PATH_TO_DATASET>/training/.hydra/merged_config.yaml and <PATH_TO_DATASET>/validation/.hydra/merged_config.yaml.
 - Renaming `model.decoder` to `model.action_decoder`.
