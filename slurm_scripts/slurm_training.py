@@ -5,7 +5,6 @@ from pathlib import Path
 import stat
 import subprocess
 
-import git
 from git import Repo
 import numpy as np
 from setuptools import sandbox

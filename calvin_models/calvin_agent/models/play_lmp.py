@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 from calvin_agent.models.decoders.action_decoder import ActionDecoder
 import hydra
@@ -9,7 +9,6 @@ from pytorch_lightning.utilities import rank_zero_only
 import torch
 from torch import Tensor
 import torch.distributions as D
-from torch.nn.functional import mse_loss
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,6 @@ from typing import List, Set
 from calvin_agent.utils.utils import add_text
 import numpy as np
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
-from pytorch_lightning.utilities import rank_zero_only
 import torch
 import torch.distributed as dist
 from torchvision.transforms.functional import resize

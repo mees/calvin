@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import math
-from typing import Dict, Tuple
+from typing import Tuple
 
 import torch
 from torch.distributions import Independent, Normal

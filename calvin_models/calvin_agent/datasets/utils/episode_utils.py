@@ -1,10 +1,9 @@
 import logging
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict
 
 import numpy as np
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from scipy.spatial.transform import Rotation as R
 import torch
 
 logger = logging.getLogger(__name__)

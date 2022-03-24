@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Optional, Tuple
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.parameter import Parameter
 
 
 def nature_cnn(act_fn, num_c):

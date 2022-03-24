@@ -4,7 +4,6 @@ import logging
 from operator import add
 import os
 from pathlib import Path
-import typing
 from typing import Any, Optional
 
 import calvin_agent

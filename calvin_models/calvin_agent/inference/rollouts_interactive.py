@@ -76,7 +76,6 @@ def test_policy(input_cfg: DictConfig) -> None:
         data = np.load(file)
         obs = env.reset(scene_obs=data["scene_obs"], robot_obs=data["robot_obs"])
         start_info = env.get_info()
-        end_info = env.get_info()
         current_img_obs = start_img_obs = obs["rgb_obs"]
         start_state_obs = obs["state_obs"]
         goal_imgs = obs["rgb_obs"]
@@ -153,7 +152,6 @@ def rollout(model, env, tasks, cfg, start_info, current_img_obs, current_state_o
     # goal_imgs = [goal_img.unsqueeze(0).cuda() for goal_img in goal_imgs]
     goal_imgs = goal_imgs[0].contiguous()
     for step in range(cfg.ep_len):
-        current_img_obs = current_img_obs
         #  replan every replan_freq steps (default 30 i.e every second)
         if step % cfg.replan_freq == 0:
             plan, latent_goal = model.get_pp_plan_vision(

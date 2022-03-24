@@ -3,7 +3,7 @@ from itertools import chain
 import logging
 import multiprocessing
 import os
-from typing import Any, List
+from typing import Any
 
 from calvin_agent.evaluation.multistep_sequences import get_sequences
 from calvin_agent.evaluation.utils import get_env_state_for_initial_condition, join_vis_lang, LangEmbeddings

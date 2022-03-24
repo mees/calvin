@@ -5,8 +5,7 @@ from pathlib import Path
 from calvin_agent.evaluation.utils import get_default_model_and_env, join_vis_lang, LangEmbeddings
 from calvin_agent.utils.utils import get_all_checkpoints, get_last_checkpoint
 import hydra
-import numpy as np
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import OmegaConf
 from pytorch_lightning import seed_everything
 from termcolor import colored
 import torch
@@ -33,9 +32,9 @@ def evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint):
 
 
 def rollout(env, model, episode, task_oracle, args, task, lang_embeddings, val_annotations):
-    state_obs, rgb_obs, depth_obs = episode["robot_obs"], episode["rgb_obs"], episode["depth_obs"]
+    # state_obs, rgb_obs, depth_obs = episode["robot_obs"], episode["rgb_obs"], episode["depth_obs"]
     reset_info = episode["state_info"]
-    idx = episode["idx"]
+    # idx = episode["idx"]
     obs = env.reset(robot_obs=reset_info["robot_obs"][0], scene_obs=reset_info["scene_obs"][0])
     # get lang annotation for subtask
     lang_annotation = val_annotations[task][0]
@@ -89,7 +88,6 @@ if __name__ == "__main__":
 
     # Do not change
     args.ep_len = 240
-    lang_embeddings = LangEmbeddings(args.dataset_path)  # type: ignore
 
     checkpoints = []
     if args.checkpoint is None and args.last_k_checkpoints is None:
@@ -100,9 +98,10 @@ if __name__ == "__main__":
         checkpoints = [args.checkpoint]
     elif args.checkpoint is None and args.last_k_checkpoints is not None:
         print(f"Evaluating model with last {args.last_k_checkpoints} checkpoints.")
-        checkpoints = get_all_checkpoints(Path(args.train_folder))[-args.last_k_checkpoints :]
+        checkpoints = get_all_checkpoints(Path(args.train_folder))[-args.last_k_checkpoints:]
 
     env = None
     for checkpoint in checkpoints:
-        model, env, datamodule = get_default_model_and_env(args.train_folder, args.dataset_path, checkpoint, env=env)
+        model, env, datamodule, lang_embeddings = get_default_model_and_env(args.train_folder, args.dataset_path,
+                                                                            checkpoint, env=env)
         evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint)

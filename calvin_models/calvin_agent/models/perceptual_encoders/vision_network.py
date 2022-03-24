@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import torch
 import torch.nn as nn

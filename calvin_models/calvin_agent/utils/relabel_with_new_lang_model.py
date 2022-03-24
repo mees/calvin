@@ -1,10 +1,8 @@
-import argparse
 from pathlib import Path
 
 import hydra
 import numpy as np
-from omegaconf import DictConfig, OmegaConf
-import torch
+from omegaconf import DictConfig
 
 """This script allows for re-annotating video sequences of PlayData.
    Parameters:

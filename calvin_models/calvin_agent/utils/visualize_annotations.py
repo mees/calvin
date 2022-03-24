@@ -1,9 +1,7 @@
 import logging
-import os.path
 
 import cv2
 import hydra
-from matplotlib.animation import ArtistAnimation
 import matplotlib.pyplot as plt
 import numpy as np
 from omegaconf import DictConfig

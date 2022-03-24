@@ -1,6 +1,5 @@
-from typing import List, Tuple
+from typing import List
 
-import numpy as np
 from sentence_transformers import SentenceTransformer
 import torch
 import torch.nn as nn
