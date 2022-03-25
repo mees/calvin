@@ -51,7 +51,7 @@ def main(cfg: DictConfig) -> None:
             imgRGB = seq_img[j].astype(int)
             img = plt.imshow(imgRGB, animated=True)
             imgs.append([img])
-        anim = ArtistAnimation(fig, imgs, interval=50)
+        ArtistAnimation(fig, imgs, interval=50)
         plt.show(block=False)
         lang_ann = [input("Which instructions would you give to the robot to do: (press q to quit)\n")]
         plt.close()

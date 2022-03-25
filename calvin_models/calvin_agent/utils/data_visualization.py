@@ -24,7 +24,7 @@ def visualize(data):
         imgRGB = (imgRGB - imgRGB.min()) / (imgRGB.max() - imgRGB.min())
         img = plt.imshow(imgRGB, animated=True)
         imgs.append([img])
-    anim = ArtistAnimation(fig, imgs, interval=50)
+    ArtistAnimation(fig, imgs, interval=50)
     plt.title(title)
     plt.show()
 
