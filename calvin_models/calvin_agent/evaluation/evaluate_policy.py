@@ -10,11 +10,7 @@ import time
 sys.path.insert(0, Path(__file__).absolute().parents[2].as_posix())
 
 from calvin_agent.evaluation.multistep_sequences import get_sequences
-from calvin_agent.evaluation.utils import (
-    get_default_model_and_env,
-    get_env_state_for_initial_condition,
-    join_vis_lang,
-)
+from calvin_agent.evaluation.utils import get_default_model_and_env, get_env_state_for_initial_condition, join_vis_lang
 from calvin_agent.utils.utils import get_all_checkpoints, get_checkpoints_for_epochs, get_last_checkpoint
 import hydra
 import numpy as np

@@ -98,10 +98,11 @@ if __name__ == "__main__":
         checkpoints = [args.checkpoint]
     elif args.checkpoint is None and args.last_k_checkpoints is not None:
         print(f"Evaluating model with last {args.last_k_checkpoints} checkpoints.")
-        checkpoints = get_all_checkpoints(Path(args.train_folder))[-args.last_k_checkpoints:]
+        checkpoints = get_all_checkpoints(Path(args.train_folder))[-args.last_k_checkpoints :]
 
     env = None
     for checkpoint in checkpoints:
-        model, env, datamodule, lang_embeddings = get_default_model_and_env(args.train_folder, args.dataset_path,
-                                                                            checkpoint, env=env)
+        model, env, datamodule, lang_embeddings = get_default_model_and_env(
+            args.train_folder, args.dataset_path, checkpoint, env=env
+        )
         evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint)

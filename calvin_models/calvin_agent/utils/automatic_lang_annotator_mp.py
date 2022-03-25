@@ -4,7 +4,7 @@ import logging
 from operator import add
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import calvin_agent
 from calvin_agent.training import is_multi_gpu_training, log_rank_0
@@ -50,8 +50,8 @@ class Annotator(Callback):
         self.device = None
         self.lang_folder = cfg.lang_folder
         self.tasks = hydra.utils.instantiate(cfg.callbacks.rollout.tasks)
-        self.demo_task_counter_train = Counter()  # type: typing.Counter[str]
-        self.demo_task_counter_val = Counter()  # type: typing.Counter[str]
+        self.demo_task_counter_train = Counter()  # type: Counter[str]
+        self.demo_task_counter_val = Counter()  # type: Counter[str]
         self.train_dataset = None
         self.val_dataset = None
         self.file_name = "auto_lang_ann.npy"  # + save_format
@@ -60,11 +60,11 @@ class Annotator(Callback):
         self.collected_data_train = {
             "language": {"ann": [], "task": [], "emb": []},
             "info": {"episodes": [], "indx": []},
-        }  # type: typing.Dict
+        }  # type: Dict
         self.collected_data_val = {
             "language": {"ann": [], "task": [], "emb": []},
             "info": {"episodes": [], "indx": []},
-        }  # type: typing.Dict
+        }  # type: Dict
         self.lang_model = None
         self.num_samples_train = None
         self.num_samples_val = None
