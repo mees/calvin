@@ -1,5 +1,8 @@
 # CALVIN
-
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/mees/calvin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mees/calvin/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/mees/calvin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mees/calvin/alerts/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [<b>CALVIN - A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks</b>](https://arxiv.org/pdf/2112.03227.pdf)
 
