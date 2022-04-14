@@ -154,7 +154,6 @@ If you additionally want to sample different language annotations for each seque
 
 ## :chart_with_upwards_trend: SOTA Models
 Open-source models that outperform the MCIL baselines from CALVIN:
-
 <br>
 <b> What Matters in Language Conditioned Robotic Imitation Learning </b>
 <br>
