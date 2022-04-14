@@ -155,6 +155,13 @@ If you additionally want to sample different language annotations for each seque
 ## :chart_with_upwards_trend: SOTA Models
 Open-source models that outperform the MCIL baselines from CALVIN:
 
+<br>
+<b> What Matters in Language Conditioned Robotic Imitation Learning </b>
+<br>
+Oier Mees, Lukas Hermann, Wolfram Burgard
+<br>
+<a href="https://arxiv.org/pdf/2204.06252.pdf"> Paper</a>, <a href="https://github.com/mees/hulc"> Code </a>
+
 Contact [Oier](https://www.oiermees.com/) to add your model here.
 
 ## Reinforcement Learning with CALVIN
