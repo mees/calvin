@@ -27,6 +27,15 @@ then
     mv ABCD_A ABCD_D
     echo "saved folder: task_ABCD_D"
 
+elif [ "$1" = "debug" ]
+then
+
+    echo "Downloading debug dataset ..."
+    wget http://calvin.cs.uni-freiburg.de/dataset/calvin_debug_dataset.zip
+    unzip calvin_debug_dataset.zip && rm calvin_debug_dataset.zip
+    echo "saved folder: calvin_debug_dataset"
+
+
 else
     echo "Failed: Usage download_data.sh D | ABC | ABCD"
     exit 1

@@ -30,10 +30,11 @@ $ sh install.sh
 ```
 If you encounter problems installing pyhash, you might have to downgrade setuptools to a version below 58.
 
-Download dataset (choose which split you want to download with the argument D, ABC or ABCD):
+Download dataset (choose which split you want to download with the argument `D`, `ABC` or `ABCD`): \
+If you want to get started without downloading the whole dataset, use the argument `debug` to download a small debug dataset (1.3 GB).
 ```bash
 $ cd $CALVIN_ROOT/dataset
-$ sh download_data.sh D | ABC | ABCD
+$ sh download_data.sh D | ABC | ABCD | debug
 ```
 ##	:weight_lifting_man: Train Baseline Agent
 Train baseline models:

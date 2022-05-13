@@ -3,7 +3,7 @@ The CALVIN dataset comes with 6 hours of teleoperated play data in each of the 4
 
 ## Download
 
-We provide a download script to download the three different splits:
+We provide a download script to download the three different splits or a small debug dataset:
 
 **1.** [Split D->D](http://calvin.cs.uni-freiburg.de/dataset/task_D_D.zip) (166 GB):
 ```bash
@@ -20,6 +20,13 @@ $ sh download_data.sh ABC
 $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh ABCD
 ```
+
+**4.** [Small debug dataset](http://calvin.cs.uni-freiburg.de/dataset/calvin_debug_dataset.zip) (1.3 GB)
+```bash
+$ cd $CALVIN_ROOT/dataset
+$ sh download_data.sh debug
+```
+
 ## Data Structure
 Each interaction timestep is stored in a dictionary inside a numpy file and contains all corresponding sensory observations, different action spaces, state information and language annoations.
 ### Camera Observations
