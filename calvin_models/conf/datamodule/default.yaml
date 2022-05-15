@@ -1,5 +1,5 @@
 defaults:
-  - datasets: vision_lang
+  - datasets: vision_lang_shm
   - transforms: play_basic
   - proprioception_dims: robot_no_joints #robot_full
   - observation_space: lang_rgb_static

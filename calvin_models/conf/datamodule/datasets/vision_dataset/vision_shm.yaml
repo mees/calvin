@@ -1,12 +1,10 @@
-_target_: calvin_agent.datasets.disk_dataset.DiskDataset
-key: "lang"
-save_format: "npz"
+_target_: calvin_agent.datasets.shm_dataset.ShmDataset
+key: "vis"
 batch_size: 32
 min_window_size: 16
 max_window_size: 32
 proprio_state: ${datamodule.proprioception_dims}
 obs_space: ${datamodule.observation_space}
-skip_frames: 1
 pad: true
 lang_folder: "lang_annotations"
 num_workers: 2

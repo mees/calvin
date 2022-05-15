@@ -1,0 +1,3 @@
+defaults:
+  - vision_dataset: vision_shm
+  - lang_dataset: lang_shm

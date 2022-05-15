@@ -40,8 +40,15 @@ $ sh download_data.sh D | ABC | ABCD | debug
 Train baseline models:
 ```bash
 $ cd $CALVIN_ROOT/calvin_models/calvin_agent
-$ python training.py datamodule.root_data_dir=/path/to/dataset/
+$ python training.py datamodule.root_data_dir=/path/to/dataset/ datamodule/datasets=vision_lang_shm
 ```
+The `vision_lang_shm` option loads the CALVIN dataset into shared memory at the beginning of the training,
+speeding up the data loading during training.
+The preparation of the shared memory cache will take some time
+(approx. 20 min at our SLURM cluster). \
+If you want to use the original data loader (e.g. for debugging) just override the command with `datamodule/datasets=vision_lang`. \
+For an additional speed up, you can disable the evaluation callbacks during training by adding `~callbacks/rollout` and `~callbacks/rollout_lh`
+
 You want to scale your training to a multi-gpu setup? Just specify the [number of GPUs](https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html#select-gpu-devices) and DDP will automatically be used
  for training thanks to [Pytorch Lightning](https://www.pytorchlightning.ai/).
 To train on all available GPUs:
@@ -51,17 +58,17 @@ $ python training.py trainer.gpus=-1
 If you have access to a Slurm cluster, follow this [guide](https://github.com/mees/calvin/blob/main/slurm_scripts/README.md).
 
 You can use [Hydra's](https://hydra.cc/) flexible overriding system for changing hyperparameters.
-For example, to train a model with  rgb images from both static camera and the gripper camera:
+For example, to train a model with  rgb images from both static camera and the gripper camera with relative actions:
 ```bash
-$ python training.py datamodule/observation_space=lang_rgb_static_gripper model/perceptual_encoder=gripper_cam
+$ python training.py datamodule/observation_space=lang_rgb_static_gripper_rel_act model/perceptual_encoder=gripper_cam
 ```
 To train a model with RGB-D from both cameras:
 ```bash
 $ python training.py datamodule/observation_space=lang_rgbd_both model/perceptual_encoder=RGBD_both
 ```
-To train a model with rgb images from the static camera and visual tactile observations:
+To train a model with rgb images from the static camera and visual tactile observations with absolute actions:
 ```bash
-$ python training.py datamodule/observation_space=lang_rgb_static_tactile model/perceptual_encoder=static_RGB_tactile
+$ python training.py datamodule/observation_space=lang_rgb_static_tactile_abs_act model/perceptual_encoder=static_RGB_tactile
 ```
 
 To see all available hyperparameters:
@@ -154,7 +161,7 @@ python utils/relabel_with_new_lang_model.py +path=$CALVIN_ROOT/dataset/task_D_D/
 If you additionally want to sample different language annotations for each sequence (from the same task annotations) in the training split run the same command with the parameter `reannotate=true`.
 
 ## :chart_with_upwards_trend: SOTA Models
-Open-source models that outperform the MCIL baselines from CALVIN:  
+Open-source models that outperform the MCIL baselines from CALVIN:
 <br>
 <b> What Matters in Language Conditioned Robotic Imitation Learning </b>
 <br>
@@ -189,6 +196,9 @@ calvin_env in [https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacol
 
 
 ## Changelog
+
+### 15 May 2022
+- Added shared memory dataset loader for faster training. Refactored data loading classes.
 
 ### 7 Feb 2022
 - Minor changes to the distribution of tasks in the long-horizon multi-step sequences.

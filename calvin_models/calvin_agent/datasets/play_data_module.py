@@ -1,18 +1,16 @@
 import logging
-import os
 from pathlib import Path
 from typing import Dict, List
 
 import calvin_agent
 from calvin_agent.datasets.utils.episode_utils import load_dataset_statistics
+from calvin_agent.datasets.utils.shared_memory_utils import load_shm_lookup, save_shm_lookup, SharedMemoryLoader
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
 import pytorch_lightning as pl
 from pytorch_lightning.trainer.supporters import CombinedLoader
-import torch
-import torch.distributed as dist
-from torch.utils.data import DataLoader, Dataset, DistributedSampler, RandomSampler, Sampler, SequentialSampler
+from torch.utils.data import DataLoader
 import torchvision
 
 logger = logging.getLogger(__name__)
@@ -44,6 +42,7 @@ class PlayDataModule(pl.LightningDataModule):
         self.shuffle_val = shuffle_val
         self.modalities: List[str] = []
         self.transforms = transforms
+        self.use_shm = "shm_dataset" in self.datasets_cfg.lang_dataset._target_
 
     def prepare_data(self, *args, **kwargs):
         # check if files already exist
@@ -58,6 +57,16 @@ class PlayDataModule(pl.LightningDataModule):
             )
             exit(-1)
 
+        if self.use_shm:
+            # When using shared memory dataset, initialize lookups
+            train_shmem_loader = SharedMemoryLoader(self.datasets_cfg, self.training_dir)
+            train_shm_lookup = train_shmem_loader.load_data_in_shared_memory()
+
+            val_shmem_loader = SharedMemoryLoader(self.datasets_cfg, self.val_dir)
+            val_shm_lookup = val_shmem_loader.load_data_in_shared_memory()
+
+            save_shm_lookup(train_shm_lookup, val_shm_lookup)
+
     def setup(self, stage=None):
         transforms = load_dataset_statistics(self.training_dir, self.val_dir, self.transforms)
 
@@ -71,28 +80,30 @@ class PlayDataModule(pl.LightningDataModule):
         self.train_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.train_transforms.items()}
         self.val_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.val_transforms.items()}
         self.train_datasets, self.train_sampler, self.val_datasets, self.val_sampler = {}, {}, {}, {}
+
+        if self.use_shm:
+            train_shm_lookup, val_shm_lookup = load_shm_lookup()
+
         for _, dataset in self.datasets_cfg.items():
             train_dataset = hydra.utils.instantiate(
                 dataset, datasets_dir=self.training_dir, transforms=self.train_transforms
             )
             val_dataset = hydra.utils.instantiate(dataset, datasets_dir=self.val_dir, transforms=self.val_transforms)
-            train_sampler = get_sampler(train_dataset, shuffle=True)
-            val_sampler = get_sampler(val_dataset, shuffle=self.shuffle_val)
+            if self.use_shm:
+                train_dataset.setup_shm_lookup(train_shm_lookup)
+                val_dataset.setup_shm_lookup(val_shm_lookup)
             key = dataset.key
             self.train_datasets[key] = train_dataset
-            self.train_sampler[key] = train_sampler
             self.val_datasets[key] = val_dataset
-            self.val_sampler[key] = val_sampler
             self.modalities.append(key)
 
     def train_dataloader(self):
         return {
             key: DataLoader(
                 dataset,
-                sampler=self.train_sampler[key],
                 batch_size=dataset.batch_size,
                 num_workers=self.num_workers,
-                pin_memory=True,
+                pin_memory=False,
             )
             for key, dataset in self.train_datasets.items()
         }
@@ -101,23 +112,11 @@ class PlayDataModule(pl.LightningDataModule):
         val_dataloaders = {
             key: DataLoader(
                 dataset,
-                sampler=self.val_sampler[key],
                 batch_size=dataset.batch_size,
                 num_workers=self.num_workers,
-                pin_memory=True,
+                pin_memory=False,
             )
             for key, dataset in self.val_datasets.items()
         }
         combined_val_loaders = CombinedLoader(val_dataloaders, "max_size_cycle")
         return combined_val_loaders
-
-
-def get_sampler(dataset: Dataset, shuffle: bool) -> Sampler:
-    if dist.is_available() and dist.is_initialized():
-        return DistributedSampler(dataset=dataset, shuffle=shuffle, seed=int(os.environ["PL_GLOBAL_SEED"]))
-    elif shuffle:
-        return RandomSampler(
-            dataset, generator=torch.Generator().manual_seed(int(os.environ["PL_GLOBAL_SEED"]))
-        )  # type: ignore
-    else:
-        return SequentialSampler(dataset)

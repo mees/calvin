@@ -1,6 +1,8 @@
 import logging
+import os
 from pathlib import Path
-from typing import Dict
+import re
+from typing import Dict, Tuple
 
 import numpy as np
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -138,6 +140,16 @@ def process_actions(
     return {"actions": seq_acts}
 
 
+def process_language(episode: Dict[str, np.ndarray], transforms: Dict, with_lang: bool) -> Dict[str, torch.Tensor]:
+    seq_lang = {"lang": torch.empty(0)}
+    if with_lang:
+        lang = torch.from_numpy(episode["language"]).float()
+        if "language" in transforms:
+            lang = transforms["language"](lang)
+        seq_lang["lang"] = lang
+    return seq_lang
+
+
 def get_state_info_dict(episode: Dict[str, np.ndarray]) -> Dict[str, Dict[str, torch.Tensor]]:
     """
     :param episode: episode loaded by dataset loader
@@ -186,3 +198,26 @@ def load_dataset_statistics(train_dataset_dir, val_dataset_dir, transforms):
                     if not exists:
                         transforms[dataset_type][modality] = ListConfig([*conf_transforms, dataset_trans])
     return transforms
+
+
+def lookup_naming_pattern(dataset_dir: Path, save_format: str) -> Tuple[Tuple[Path, str], int]:
+    """
+    Check naming pattern of dataset files.
+    Args:
+        dataset_dir: Path to dataset.
+        save_format: File format (CALVIN default is npz).
+    Returns:
+        naming_pattern: 'file_0000001.npz' -> ('file_', '.npz')
+        n_digits: Zero padding of file enumeration.
+    """
+    it = os.scandir(dataset_dir)
+    while True:
+        filename = Path(next(it))
+        if save_format in filename.suffix:
+            break
+    aux_naming_pattern = re.split(r"\d+", filename.stem)
+    naming_pattern = (filename.parent / aux_naming_pattern[0], filename.suffix)
+    n_digits = len(re.findall(r"\d+", filename.stem)[0])
+    assert len(naming_pattern) == 2
+    assert n_digits > 0
+    return naming_pattern, n_digits
