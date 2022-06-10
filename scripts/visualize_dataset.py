@@ -26,9 +26,9 @@ if __name__ == '__main__':
             if d not in t:
                 print(f'Data {d} cannot be found in transition')
                 continue
-            
+
             cv2.imshow(d, t[d])
-        
+
         key = cv2.waitKey(0)
         if key == ord('q'):
             break
