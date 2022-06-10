@@ -32,9 +32,9 @@ if __name__ == '__main__':
         key = cv2.waitKey(0)
         if key == ord('q'):
             break
-        elif key == 83: #  Right arrow or p
+        elif key == 83:  # Right arrow
             idx = (idx + 1) % len(files)
-        elif key == 81: #  Left arrow or o
+        elif key == 81:  # Left arrow
             idx = (len(files) + idx - 1) % len(files)
         else:
             print(f'Unrecognized keycode "{key}"')
