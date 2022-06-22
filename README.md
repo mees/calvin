@@ -215,11 +215,12 @@ edit this line in <PATH_TO_DATASET>/training/.hydra/merged_config.yaml and <PATH
 If you find the dataset or code useful, please cite:
 
 ```bibtex
-@article{calvin21,
+@article{mees2022calvin,
 author = {Oier Mees and Lukas Hermann and Erick Rosete-Beas and Wolfram Burgard},
-title = {CALVIN: A benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
-journal={arXiv preprint arXiv:2112.03227},
-year = 2021,
+title = {CALVIN: A Benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
+journal={IEEE Robotics and Automation Letters},
+year={2022},
+publisher={IEEE}
 }
 ```
 
