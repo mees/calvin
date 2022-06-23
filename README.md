@@ -220,6 +220,9 @@ author = {Oier Mees and Lukas Hermann and Erick Rosete-Beas and Wolfram Burgard}
 title = {CALVIN: A Benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
 journal={IEEE Robotics and Automation Letters},
 year={2022},
+volume={7},  
+number={3},  
+pages={7327-7334},
 publisher={IEEE}
 }
 ```
