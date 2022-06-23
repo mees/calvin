@@ -218,12 +218,11 @@ If you find the dataset or code useful, please cite:
 @article{mees2022calvin,
 author = {Oier Mees and Lukas Hermann and Erick Rosete-Beas and Wolfram Burgard},
 title = {CALVIN: A Benchmark for Language-Conditioned Policy Learning for Long-Horizon Robot Manipulation Tasks},
-journal={IEEE Robotics and Automation Letters},
-year={2022},
+journal={IEEE Robotics and Automation Letters (RA-L)},
 volume={7},  
 number={3},  
 pages={7327-7334},
-publisher={IEEE}
+year={2022}
 }
 ```
 
