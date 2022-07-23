@@ -1,5 +1,6 @@
 # Dataset
 The CALVIN dataset comes with 6 hours of teleoperated play data in each of the 4 environments.
+You can use [this script](scripts/visualize_dataset.py) to visualize the dataset.
 
 ## Download
 
