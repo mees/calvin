@@ -12,6 +12,7 @@ defaults:
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
   - override datamodule/observation_space: state_only
+  - override datamodule/datasets: vision_only
 seed: 42
 log_dir: ../
 slurm: false
@@ -22,6 +23,11 @@ with_text: false
 reannotate: false
 prior_steps_window: 16
 validation_scene: calvin_scene_D
+datamodule:
+  datasets:
+    vision_dataset:
+      min_window_size: 64
+      max_window_size: 64
 
 hydra:
   run:

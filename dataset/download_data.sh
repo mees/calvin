@@ -37,6 +37,6 @@ then
 
 
 else
-    echo "Failed: Usage download_data.sh D | ABC | ABCD"
+    echo "Failed: Usage download_data.sh D | ABC | ABCD | debug"
     exit 1
 fi

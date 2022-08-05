@@ -81,9 +81,7 @@ class Annotator(Callback):
 
     @rank_zero_only
     def compute_val_embeddings(self):
-        val_sent = OmegaConf.load(
-            Path(calvin_agent.__file__).parent / f"../conf/annotations/{self.cfg.rollout_sentences}.yaml"
-        )
+        val_sent = self.cfg.val_instructions
         embeddings = {}
         for task, ann in val_sent.items():
             embeddings[task] = {}
@@ -117,8 +115,8 @@ class Annotator(Callback):
         self.create_folders()
         self.lang_model = hydra.utils.instantiate(self.cfg.model)
         self.compute_val_embeddings()
-        self.num_samples_train = int(self.cfg.eps * len(self.train_dataset) / len(self.cfg.annotations.keys()))
-        self.num_samples_val = int(self.cfg.eps * len(self.val_dataset) / len(self.cfg.annotations.keys()))
+        self.num_samples_train = int(self.cfg.eps * len(self.train_dataset) / len(self.cfg.train_instructions.keys()))
+        self.num_samples_val = int(self.cfg.eps * len(self.val_dataset) / len(self.cfg.train_instructions.keys()))
 
     def on_validation_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
         """Called when the validation loop begins."""
@@ -237,7 +235,7 @@ class Annotator(Callback):
     def check_done(self, counter, num_samples, batch_idx, num_batches, mode):
         if batch_idx % 10 == 0:
             log_rank_0(f"{mode} Tasks Objective: {num_samples}")
-            log_rank_0(f"Tasks Lang: {self.cfg.annotations.keys()}")
+            log_rank_0(f"Tasks Lang: {self.cfg.train_instructions.keys()}")
             log_rank_0(f"Tasks Annotations Progress: {counter}")
             log_rank_0(
                 "Progress [ "
@@ -248,7 +246,7 @@ class Annotator(Callback):
                 + "%"
                 + "]"
             )
-        return len(counter.values()) >= len(self.cfg.annotations) and min(counter.values()) >= num_samples
+        return len(counter.values()) >= len(self.cfg.train_instructions) and min(counter.values()) >= num_samples
 
     def select_env(self, dataset, idx):
         if "validation" in dataset.abs_datasets_dir.as_posix():
@@ -282,7 +280,7 @@ class Annotator(Callback):
             task_info = self.tasks.get_task_info(middle_info, goal_info)
             if (
                 len(task_info) != 1
-                or not task_info <= self.cfg.annotations.keys()
+                or not task_info <= self.cfg.train_instructions.keys()
                 or len(self.tasks.get_task_info_for_set(middle_info, close_to_end_info, task_info))
             ):
                 continue
@@ -313,7 +311,7 @@ class Annotator(Callback):
     def label_seq(self, collected_data, dataset, seq_length, idx, task):
         seq_idx = dataset.episode_lookup[idx]
         collected_data["info"]["indx"].append((seq_idx, seq_idx + seq_length))
-        task_lang = self.cfg.annotations[task]
+        task_lang = self.cfg.train_instructions[task]
         lang_ann = task_lang[np.random.randint(len(task_lang))]
         collected_data["language"]["ann"].append(lang_ann)
         collected_data["language"]["task"].append(task)
