@@ -28,6 +28,25 @@ $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh debug
 ```
 
+## Language Embeddings
+Since Sep 16 2022, additional language embeddings are part of the dataset on the server. If you downloaded the dataset before,
+you can manually download the embeddings by running
+```
+cd $CALVIN_ROOT/dataset
+sh download_lang_embeddings.sh D | ABC | ABCD
+```
+Currently, the available embeddings are:
+- lang_all-distilroberta-v1
+- lang_all-MiniLM-L6-v2
+- lang_all-mpnet-base-v2
+- lang_BERT
+- lang_clip_resnet50
+- lang_clip_ViTB32
+- lang_huggingface_distilroberta
+- lang_huggingface_mpnet
+- lang_msmarco-bert-base-dot-v5
+- lang_paraphrase-MiniLM-L3-v2
+
 ## Data Structure
 Each interaction timestep is stored in a dictionary inside a numpy file and contains all corresponding sensory observations, different action spaces, state information and language annoations.
 ### Camera Observations
