@@ -2,7 +2,7 @@ defaults:
   - datasets: vision_lang_shm
   - transforms: play_basic
   - proprioception_dims: robot_no_joints #robot_full
-  - observation_space: lang_rgb_static
+  - observation_space: lang_rgb_static_abs_act
 _target_: calvin_agent.datasets.play_data_module.PlayDataModule
 _recursive_: false
 root_data_dir: "dataset/task_D_D"
