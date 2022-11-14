@@ -199,8 +199,8 @@ calvin_env in [https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacol
 
 ### 16 Sep 2022
 - **MAJOR BUG IN ABC and ABCD dataset:** If you downloaded these datasets before this date you have to do these fixes:
-   - Wrong language annotations in ABC and ABCD dataset. You can download the corrected language embeddings [here](https://github.com/mees/calvin/blob/main/dataset/README.md#language-embeddings). 
-   - Bug in `calvin_env` that only affects the generation of language embeddings. 
+   - Wrong language annotations in ABC and ABCD dataset. You can download the corrected language embeddings [here](https://github.com/mees/calvin/blob/main/dataset/README.md#language-embeddings).
+   - Bug in `calvin_env` that only affects the generation of language embeddings.
    - Wrong `scene_info.npy` in ABC and ABCD dataset. Please replace as follows:
 ```
 cd task_ABCD_D
