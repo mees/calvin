@@ -43,8 +43,8 @@ def rollout(env, model, episode, task_oracle, args, task, lang_embeddings, val_a
     model.reset()
     start_info = env.get_info()
 
-    for step in range(args.ep_len):
-        action = model.step(obs, goal)
+    for step in range(len(episode['actions'])):
+        action = episode['actions'][step] #!!
         obs, _, _, current_info = env.step(action)
         if args.debug:
             img = env.render(mode="rgb_array")
@@ -103,6 +103,6 @@ if __name__ == "__main__":
     env = None
     for checkpoint in checkpoints:
         model, env, datamodule, lang_embeddings = get_default_model_and_env(
-            args.train_folder, args.dataset_path, checkpoint, env=env
+            args.train_folder, args.dataset_path, Path(checkpoint), env=env
         )
         evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint)
