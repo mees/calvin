@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 from pathlib import Path
 import sys
 from typing import List, Union
@@ -55,7 +56,7 @@ def train(cfg: DictConfig) -> None:
 
     # Configure multi-GPU training
     if is_multi_gpu_training(trainer_args["devices"]):
-        trainer_args["strategy"] = DDPStrategy(find_unused_parameters=False)
+        trainer_args["strategy"] = DDPStrategy(find_unused_parameters=False, timeout=timedelta(seconds=18000))
         if not cfg.slurm:
             modify_argv_hydra()
 

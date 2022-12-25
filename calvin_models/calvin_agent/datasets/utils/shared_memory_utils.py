@@ -94,7 +94,7 @@ class SharedMemoryLoader:
     """
 
     def __init__(self, datasets_cfg: DictConfig, dataset_dir: Path):
-        self.obs_space = datasets_cfg.lang_dataset.obs_space
+        self.obs_space = datasets_cfg.vision_dataset.obs_space
         self.dataset_dir = dataset_dir
         self.dataset_type = "train" if "training" in dataset_dir.as_posix() else "val"
         self.lang_folder = datasets_cfg.lang_dataset.lang_folder
