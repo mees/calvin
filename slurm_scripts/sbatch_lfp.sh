@@ -16,7 +16,7 @@ export HYDRA_FULL_ERROR=1
 # Job to perform
 source ~/.bashrc
 conda activate $1
-timeout 23.9h srun python $2 slurm=true hydra.run.dir=$3 trainer.gpus=$4 ${@:5}
+timeout 23.9h srun python $2 slurm=true hydra.run.dir=$3 trainer.devices=$4 ${@:5}
 
 if [[ $? -eq 124 ]]; then
 echo "Time limit exceeded. Resubmit job.";
