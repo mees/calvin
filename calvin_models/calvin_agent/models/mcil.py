@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from calvin_agent.models.decoders.action_decoder import ActionDecoder
 import hydra
@@ -7,13 +7,26 @@ from omegaconf import DictConfig
 import pytorch_lightning as pl
 from pytorch_lightning.utilities import rank_zero_only
 import torch
-from torch import Tensor
 import torch.distributions as D
 
 logger = logging.getLogger(__name__)
 
 
-class PlayLMP(pl.LightningModule):
+class MCIL(pl.LightningModule):
+    """
+    The lightning module used for training.
+
+    Args:
+        perceptual_encoder: DictConfig for perceptual_encoder.
+        plan_proposal: DictConfig for plan_proposal network.
+        plan_recognition: DictConfig for plan_recognition network.
+        language_goal: DictConfig for language_goal encoder.
+        visual_goal: DictConfig for visual_goal encoder.
+        action_decoder: DictConfig for action_decoder.
+        kl_beta: Weight for KL loss term.
+        optimizer: DictConfig for optimizer.
+    """
+
     def __init__(
         self,
         perceptual_encoder: DictConfig,
@@ -26,7 +39,7 @@ class PlayLMP(pl.LightningModule):
         optimizer: DictConfig,
         replan_freq: int = 30,
     ):
-        super(PlayLMP, self).__init__()
+        super(MCIL, self).__init__()
         self.perceptual_encoder = hydra.utils.instantiate(perceptual_encoder)
         self.setup_input_sizes(
             self.perceptual_encoder,
@@ -35,11 +48,17 @@ class PlayLMP(pl.LightningModule):
             visual_goal,
             action_decoder,
         )
+        # plan networks
         self.plan_proposal = hydra.utils.instantiate(plan_proposal)
         self.plan_recognition = hydra.utils.instantiate(plan_recognition)
+
+        # goal encoders
         self.visual_goal = hydra.utils.instantiate(visual_goal)
         self.language_goal = hydra.utils.instantiate(language_goal) if language_goal else None
+
+        # policy network
         self.action_decoder: ActionDecoder = hydra.utils.instantiate(action_decoder)
+
         self.kl_beta = kl_beta
         self.modality_scope = "vis"
         self.optimizer_config = optimizer
@@ -62,12 +81,22 @@ class PlayLMP(pl.LightningModule):
         plan_proposal,
         plan_recognition,
         visual_goal,
-        decoder,
+        action_decoder,
     ):
+        """
+        Configure the input feature sizes of the respective parts of the network.
+
+        Args:
+            perceptual_encoder: DictConfig for perceptual encoder.
+            plan_proposal: DictConfig for plan proposal network.
+            plan_recognition: DictConfig for plan recognition network.
+            visual_goal: DictConfig for visual goal encoder.
+            action_decoder: DictConfig for action decoder network.
+        """
         plan_proposal.perceptual_features = perceptual_encoder.latent_size
         plan_recognition.in_features = perceptual_encoder.latent_size
         visual_goal.in_features = perceptual_encoder.latent_size
-        decoder.perceptual_features = perceptual_encoder.latent_size
+        action_decoder.perceptual_features = perceptual_encoder.latent_size
 
     def configure_optimizers(self):
         optimizer = hydra.utils.instantiate(self.optimizer_config, params=self.parameters())
@@ -78,6 +107,21 @@ class PlayLMP(pl.LightningModule):
     ) -> Tuple[
         torch.Tensor, torch.Tensor, torch.Tensor, torch.distributions.Distribution, torch.distributions.Distribution
     ]:
+        """
+        Main forward pass for training step after encoding raw inputs.
+
+        Args:
+            perceptual_emb: Encoded input modalities.
+            latent_goal: Goal embedding (visual or language goal).
+            train_acts: Ground truth actions.
+
+        Returns:
+            kl_loss: KL loss
+            action_loss: Behavior cloning action loss.
+            total_loss: Sum of kl_loss and action_loss.
+            pp_dist: Plan proposal distribution.
+            pr_dist: Plan recognition distribution
+        """
         # ------------Plan Proposal------------ #
         pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)  # (batch, 256) each
 
@@ -104,6 +148,25 @@ class PlayLMP(pl.LightningModule):
         torch.Tensor,
         torch.Tensor,
     ]:
+        """
+        Main forward pass for validation step after encoding raw inputs.
+
+        Args:
+            perceptual_emb: Encoded input modalities.
+            latent_goal: Goal embedding (visual or language goal).
+            actions: Groundtruth actions.
+
+        Returns:
+            sampled_plan_pp: Plan sampled from plan proposal network.
+            action_loss_pp: Behavior cloning action loss computed with plan proposal network.
+            sampled_plan_pr: Plan sampled from plan recognition network.
+            action_loss_pr: Behavior cloning action loss computed with plan recognition network.
+            kl_loss: KL loss
+            mae_pp: Mean absolute error (L1) of action sampled with input from plan proposal network w.r.t ground truth.
+            mae_pr: Mean absolute error of action sampled with input from plan recognition network w.r.t ground truth.
+            gripper_sr_pp: Success rate of binary gripper action sampled with input from plan proposal network.
+            gripper_sr_pr: Success rate of binary gripper action sampled with input from plan recognition network.
+        """
         # ------------Plan Proposal------------ #
         pp_dist = self.plan_proposal(perceptual_emb[:, 0], latent_goal)  # (batch, 256) each
 
@@ -156,29 +219,35 @@ class PlayLMP(pl.LightningModule):
             gripper_sr_pr,
         )
 
-    def training_step(  # type: ignore
-        self,
-        batch: Dict[
-            str,
-            Dict,
-        ],
-        batch_idx: int,
-    ) -> torch.Tensor:
+    def training_step(self, batch: Dict[str, Dict], batch_idx: int) -> torch.Tensor:  # type: ignore
         """
-        batch: list( batch_dataset_vision, batch_dataset_lang, ..., batch_dataset_differentModalities)
-            - batch_dataset_vision: tuple( train_obs: Tensor,
-                                           train_rgbs: tuple(Tensor, ),
-                                           train_depths: tuple(Tensor, ),
-                                           train_acts: Tensor ),
-                                           info: Dict,
-                                           idx: int
-            - batch_dataset_lang: tuple( train_obs: Tensor,
-                                         train_rgbs: tuple(Tensor, ),
-                                         train_depths: tuple(Tensor, ),
-                                         train_acts: Tensor,
-                                         train_lang: Tensor   ),
-                                         info: Dict,
-                                         idx: int
+        Compute and return the training loss.
+
+        Args:
+            batch (dict):
+                - 'vis' (dict):
+                    - 'rgb_obs' (dict):
+                        - 'rgb_static' (Tensor): RGB camera image of static camera
+                        - ...
+                    - 'depth_obs' (dict):
+                        - 'depth_static' (Tensor): Depth camera image of depth camera
+                        - ...
+                    - 'robot_obs' (Tensor): Proprioceptive state observation.
+                    - 'actions' (Tensor): Ground truth actions.
+                    - 'state_info' (dict):
+                        - 'robot_obs' (Tensor): Unnormalized robot states.
+                        - 'scene_obs' (Tensor): Unnormalized scene states.
+                    - 'idx' (LongTensor): Episode indices.
+                - 'lang' (dict):
+                    Like 'vis' but with additional keys:
+                        - 'language' (Tensor): Embedded Language labels.
+                        - 'use_for_aux_lang_loss' (BoolTensor): Mask of which sequences in the batch to consider for
+                            auxiliary loss.
+            batch_idx (int): Integer displaying index of this batch.
+
+
+        Returns:
+            loss tensor
         """
         kl_loss, action_loss, total_loss = (
             torch.tensor(0.0).to(self.device),
@@ -190,11 +259,10 @@ class PlayLMP(pl.LightningModule):
             perceptual_emb = self.perceptual_encoder(
                 dataset_batch["rgb_obs"], dataset_batch["depth_obs"], dataset_batch["robot_obs"]
             )
-            latent_goal = (
-                self.visual_goal(perceptual_emb[:, -1])
-                if "vis" in self.modality_scope
-                else self.language_goal(dataset_batch["lang"])
-            )
+            if "lang" in self.modality_scope:
+                latent_goal = self.language_goal(dataset_batch["lang"])
+            else:
+                latent_goal = self.visual_goal(perceptual_emb[:, -1])
             kl, act_loss, mod_loss, pp_dist, pr_dist = self.lmp_train(
                 perceptual_emb, latent_goal, dataset_batch["actions"]
             )
@@ -215,6 +283,16 @@ class PlayLMP(pl.LightningModule):
     def compute_kl_loss(
         self, pr_dist: torch.distributions.Distribution, pp_dist: torch.distributions.Distribution
     ) -> torch.Tensor:
+        """
+        Compute the KL divergence loss between the distributions of the plan recognition and plan proposal network.
+
+        Args:
+            pr_dist: Distribution produced by plan recognition network.
+            pp_dist: Distribution produced by plan proposal network.
+
+        Returns:
+            Scaled KL loss.
+        """
         kl_loss = D.kl_divergence(pr_dist, pp_dist).mean()
         kl_loss_scaled = kl_loss * self.kl_beta
         return kl_loss_scaled
@@ -223,29 +301,34 @@ class PlayLMP(pl.LightningModule):
         """Set kl_beta from Callback"""
         self.kl_beta = kl_beta
 
-    def validation_step(  # type: ignore
-        self,
-        batch: Dict[
-            str,
-            Dict,
-        ],
-        batch_idx: int,
-    ) -> Dict[str, torch.Tensor]:
+    def validation_step(self, batch: Dict[str, Dict], batch_idx: int) -> Dict[str, torch.Tensor]:  # type: ignore
         """
-        batch: list( batch_dataset_vision, batch_dataset_lang, ..., batch_dataset_differentModalities)
-            - batch_dataset_vision: tuple( train_obs: Tensor,
-                                           train_rgbs: tuple(Tensor, ),
-                                           train_depths: tuple(Tensor, ),
-                                           train_acts: Tensor ),
-                                           info: Dict,
-                                           idx: int
-            - batch_dataset_lang: tuple( train_obs: Tensor,
-                                         train_rgbs: tuple(Tensor, ),
-                                         train_depths: tuple(Tensor, ),
-                                         train_acts: Tensor,
-                                         train_lang: Tensor   ),
-                                         info: Dict,
-                                         idx: int
+        Compute and log the validation losses and additional metrics.
+
+        Args:
+            batch (dict):
+                - 'vis' (dict):
+                    - 'rgb_obs' (dict):
+                        - 'rgb_static' (Tensor): RGB camera image of static camera
+                        - ...
+                    - 'depth_obs' (dict):
+                        - 'depth_static' (Tensor): Depth camera image of depth camera
+                        - ...
+                    - 'robot_obs' (Tensor): Proprioceptive state observation.
+                    - 'actions' (Tensor): Ground truth actions.
+                    - 'state_info' (dict):
+                        - 'robot_obs' (Tensor): Unnormalized robot states.
+                        - 'scene_obs' (Tensor): Unnormalized scene states.
+                    - 'idx' (LongTensor): Episode indices.
+                - 'lang' (dict):
+                    Like 'vis' but with additional keys:
+                        - 'language' (Tensor): Embedded Language labels.
+                        - 'use_for_aux_lang_loss' (BoolTensor): Mask of which sequences in the batch to consider for
+                            auxiliary loss.
+            batch_idx (int): Integer displaying index of this batch.
+
+        Returns:
+            Dictionary containing losses and the sampled plans of plan recognition and plan proposal networks.
         """
         output = {}
         for self.modality_scope, dataset_batch in batch.items():
@@ -351,11 +434,24 @@ class PlayLMP(pl.LightningModule):
         self.log("val_grip/grip_sr_pp", val_grip_sr_pp / len(self.trainer.datamodule.modalities), sync_dist=True)
 
     def reset(self):
+        """
+        Call this at the beginning of a new rollout when doing inference.
+        """
         self.plan = None
         self.latent_goal = None
         self.rollout_step_counter = 0
 
     def step(self, obs, goal):
+        """
+        Do one step of inference with the model.
+
+        Args:
+            obs (dict): Observation from environment.
+            goal (dict): Goal as visual observation or embedded language instruction.
+
+        Returns:
+            Predicted action.
+        """
         # replan every replan_freq steps (default 30 i.e every second)
         if self.rollout_step_counter % self.replan_freq == 0:
             if "lang" in goal:
@@ -369,17 +465,39 @@ class PlayLMP(pl.LightningModule):
 
     def predict_with_plan(
         self,
-        obs: Dict[str, Dict],
+        obs: Dict[str, Any],
         latent_goal: torch.Tensor,
         sampled_plan: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Pass observation, goal and plan through decoder to get predicted action.
+
+        Args:
+            obs: Observation from environment.
+            latent_goal: Encoded goal.
+            sampled_plan: Sampled plan proposal plan.
+
+        Returns:
+            Predicted action.
+        """
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(obs["rgb_obs"], obs["depth_obs"], obs["robot_obs"])
             action = self.action_decoder.act(sampled_plan, perceptual_emb, latent_goal)
 
         return action
 
-    def get_pp_plan_vision(self, obs: dict, goal: dict) -> Tuple[Tensor, Tensor]:
+    def get_pp_plan_vision(self, obs: dict, goal: dict) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Use plan proposal network to sample new plan using a visual goal embedding.
+
+        Args:
+            obs: Observation from environment.
+            goal: Goal observation (vision & proprioception).
+
+        Returns:
+            sampled_plan: Sampled plan.
+            latent_goal: Encoded visual goal.
+        """
         assert len(obs["rgb_obs"]) == len(goal["rgb_obs"])
         assert len(obs["depth_obs"]) == len(goal["depth_obs"])
         imgs = {k: torch.cat([v, goal["rgb_obs"][k]], dim=1) for k, v in obs["rgb_obs"].items()}  # (1, 2, C, H, W)
@@ -394,7 +512,18 @@ class PlayLMP(pl.LightningModule):
         self.action_decoder.clear_hidden_state()
         return sampled_plan, latent_goal
 
-    def get_pp_plan_lang(self, obs: dict, goal: dict) -> Tuple[Tensor, Tensor]:
+    def get_pp_plan_lang(self, obs: dict, goal: dict) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Use plan proposal network to sample new plan using a visual goal embedding.
+
+        Args:
+            obs: Observation from environment.
+            goal: Embedded language instruction.
+
+        Returns:
+            sampled_plan: Sampled plan.
+            latent_goal: Encoded language goal.
+        """
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(obs["rgb_obs"], obs["depth_obs"], obs["robot_obs"])
             latent_goal = self.language_goal(goal["lang"])

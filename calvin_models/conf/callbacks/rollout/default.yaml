@@ -3,7 +3,7 @@ defaults:
 _target_: calvin_agent.rollout.rollout.Rollout
 _recursive_: false
 env_cfg:
-  _target_: calvin_env.envs.play_lmp_wrapper.PlayLMPWrapper
+  _target_: calvin_agent.wrappers.calvin_env_wrapper.CalvinEnvWrapper
 skip_epochs: 1
 rollout_freq: 1
 video: true

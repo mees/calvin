@@ -2,7 +2,7 @@ import contextlib
 import logging
 from pathlib import Path
 
-from calvin_agent.models.play_lmp import PlayLMP
+from calvin_agent.models.mcil import MCIL
 from calvin_agent.utils.utils import add_text, format_sftp_path
 import cv2
 import hydra
@@ -42,7 +42,7 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, 
 
     checkpoint = format_sftp_path(checkpoint)
     print(f"Loading model from {checkpoint}")
-    model = PlayLMP.load_from_checkpoint(checkpoint)
+    model = MCIL.load_from_checkpoint(checkpoint)
     model.freeze()
     if cfg.model.action_decoder.get("load_action_bounds", False):
         model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None, True)

@@ -33,7 +33,7 @@ class DiskDataset(BaseDataset):
     def __init__(
         self,
         *args: Any,
-        skip_frames: int = 0,
+        skip_frames: int = 1,
         save_format: str = "npz",
         pretrain: bool = False,
         **kwargs: Any,

@@ -1,4 +1,5 @@
-gpus: 1
+devices: 1
+accelerator: gpu
 precision: 16
 val_check_interval: 1.0
 max_epochs: 100

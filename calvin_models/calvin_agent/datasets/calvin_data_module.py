@@ -17,12 +17,11 @@ logger = logging.getLogger(__name__)
 DEFAULT_TRANSFORM = OmegaConf.create({"train": None, "val": None})
 
 
-class PlayDataModule(pl.LightningDataModule):
+class CalvinDataModule(pl.LightningDataModule):
     def __init__(
         self,
         datasets: DictConfig,
         root_data_dir: str = "data",
-        num_workers: int = 8,
         transforms: DictConfig = DEFAULT_TRANSFORM,
         shuffle_val: bool = False,
         **kwargs: Dict,
@@ -33,7 +32,6 @@ class PlayDataModule(pl.LightningDataModule):
         self.val_datasets = None
         self.train_sampler = None
         self.val_sampler = None
-        self.num_workers = num_workers
         root_data_path = Path(root_data_dir)
         if not root_data_path.is_absolute():
             root_data_path = Path(calvin_agent.__file__).parent / root_data_path
@@ -42,6 +40,7 @@ class PlayDataModule(pl.LightningDataModule):
         self.shuffle_val = shuffle_val
         self.modalities: List[str] = []
         self.transforms = transforms
+
         self.use_shm = "shm_dataset" in self.datasets_cfg.vision_dataset._target_
 
     def prepare_data(self, *args, **kwargs):
@@ -102,7 +101,7 @@ class PlayDataModule(pl.LightningDataModule):
             key: DataLoader(
                 dataset,
                 batch_size=dataset.batch_size,
-                num_workers=self.num_workers,
+                num_workers=dataset.num_workers,
                 pin_memory=False,
             )
             for key, dataset in self.train_datasets.items()
@@ -113,7 +112,7 @@ class PlayDataModule(pl.LightningDataModule):
             key: DataLoader(
                 dataset,
                 batch_size=dataset.batch_size,
-                num_workers=self.num_workers,
+                num_workers=dataset.num_workers,
                 pin_memory=False,
             )
             for key, dataset in self.val_datasets.items()

@@ -16,7 +16,7 @@ defaults:
   - _self_
 
 seed: 42
-log_dir: ../
+log_dir: ../../
 slurm: false
 eps: 0.01
 postprocessing: true
@@ -33,10 +33,9 @@ datamodule:
 
 hydra:
   run:
-    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}_${hydra.job.override_dirname}
+    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}_lang_ann
   sweep:
-    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
-    subdir: ${hydra.job.override_dirname}
+    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}_lang_ann
   job:
     config:
       override_dirname:

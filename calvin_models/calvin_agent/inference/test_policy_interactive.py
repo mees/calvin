@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def rollout(model, episode, env, tasks, demo_task_counter, live_task_counter, cfg, sbert):
     """
     Args:
-        model: PlayLMP model
+        model: MCIL model
         episode: Batch from dataloader
              state_obs: Tensor,
              rgb_obs: tuple(Tensor, ),

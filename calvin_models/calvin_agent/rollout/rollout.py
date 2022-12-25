@@ -9,7 +9,6 @@ from calvin_agent.rollout.rollout_video import RolloutVideo
 from calvin_agent.utils.utils import get_portion_of_batch_ids
 import hydra
 import numpy as np
-import pytorch_lightning as pl
 from pytorch_lightning import Callback, LightningModule, Trainer
 import torch
 import torch.distributed as dist
@@ -128,9 +127,7 @@ class Rollout(Callback):
                     save_dir=self.save_dir,
                 )
             self.embeddings = (
-                np.load(dataset.abs_datasets_dir / self.lang_folder / "embeddings.npy", allow_pickle=True,).reshape(
-                    -1
-                )[0]
+                np.load(dataset.abs_datasets_dir / self.lang_folder / "embeddings.npy", allow_pickle=True).item()
                 if "lang" in self.modalities
                 else None
             )
@@ -169,7 +166,7 @@ class Rollout(Callback):
                     # log rollout videos
                     self.rollout_video.log(pl_module.global_step)
                 # collect the task rollout counters of all validation batches and sum across tasks
-                acc_score = 0
+                acc_score = torch.tensor(0.0, device=pl_module.device)
                 for mod in self.modalities:
                     rollout_task_counter = reduce(add, [x["rollout_task_counter"][mod] for x in outputs[0]])
                     if dist.is_available() and dist.is_initialized():
@@ -187,7 +184,7 @@ class Rollout(Callback):
                         on_step=False,
                         sync_dist=True,
                     )
-                    acc_score += score  # type: ignore
+                    acc_score += score
                     print()
                     log_rank_0(f"Evaluating {mod} task success rates:")
                     for i in range(rollout_task_counter.shape[0]):
@@ -209,7 +206,7 @@ class Rollout(Callback):
                     print()
                 pl_module.log(
                     "tasks/average_sr",
-                    torch.tensor(acc_score / len(self.modalities)),
+                    acc_score / len(self.modalities),
                     on_step=False,
                     sync_dist=True,
                 )
@@ -264,7 +261,10 @@ class Rollout(Callback):
 
     def env_rollouts(
         self,
-        batch: dict,
+        batch: Dict[
+            str,
+            Dict,
+        ],
         pl_module: LightningModule,
     ) -> Dict[str, torch.Tensor]:
         """
@@ -403,15 +403,12 @@ class Rollout(Callback):
                 batch_seq_ids.append(idx.cpu().numpy()[i])
         return task_ids, batch_seq_ids
 
-    def on_save_checkpoint(self, trainer: Trainer, pl_module: pl.LightningModule, checkpoint: Dict[str, Any]) -> dict:  # type: ignore
+    def on_save_checkpoint(self, trainer: Trainer, pl_module: LightningModule, checkpoint: Dict[str, Any]) -> None:  # type: ignore
         checkpoint["task_to_id_dict"] = self.task_to_id_dict
         checkpoint["id_to_task_dict"] = self.id_to_task_dict
         checkpoint["groundtruth_task_counter"] = self.groundtruth_task_counter
-        return checkpoint
 
-    def on_load_checkpoint(  # type: ignore
-        self, trainer: Trainer, pl_module: LightningModule, callback_state: Dict[str, Any]
-    ) -> None:
-        self.task_to_id_dict = callback_state.get("task_to_id_dict", None)
-        self.id_to_task_dict = callback_state.get("id_to_task_dict", None)
-        self.groundtruth_task_counter = callback_state.get("groundtruth_task_counter", None)
+    def on_load_checkpoint(self, trainer: Trainer, pl_module: LightningModule, checkpoint: Dict[str, Any]) -> None:
+        self.task_to_id_dict = checkpoint.get("task_to_id_dict", None)
+        self.id_to_task_dict = checkpoint.get("id_to_task_dict", None)
+        self.groundtruth_task_counter = checkpoint.get("groundtruth_task_counter", None)

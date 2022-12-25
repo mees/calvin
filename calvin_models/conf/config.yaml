@@ -9,6 +9,7 @@ defaults:
 
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
+  - _self_
 
 seed: 42
 log_dir: ../

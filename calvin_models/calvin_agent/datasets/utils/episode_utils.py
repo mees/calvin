@@ -152,8 +152,13 @@ def process_language(episode: Dict[str, np.ndarray], transforms: Dict, with_lang
 
 def get_state_info_dict(episode: Dict[str, np.ndarray]) -> Dict[str, Dict[str, torch.Tensor]]:
     """
-    :param episode: episode loaded by dataset loader
-    :return: info dict of full robot and scene state (for env resets)
+    Create a dictionary with raw state observations for environment resets.
+
+    Args:
+        episode: Sequence dictionary.
+
+    Returns:
+         Info dict of full robot and scene state (for env resets).
     """
     return {
         "state_info": {
@@ -172,40 +177,45 @@ def load_dataset_statistics(train_dataset_dir, val_dataset_dir, transforms):
         train_dataset_dir: path of the training folder
         val_dataset_dir: path of the validation folder
         transforms: transforms loaded from hydra conf
+
     Returns:
         transforms: potentially updated transforms
     """
     paths = {"train": train_dataset_dir, "val": val_dataset_dir}
     for dataset_type in ["train", "val"]:
-
-        statistics = OmegaConf.load(Path(paths[dataset_type]) / "statistics.yaml")
-        # Hack for maintaining two repositories with transforms
-        statistics = OmegaConf.create(OmegaConf.to_yaml(statistics).replace("calvin_models.", ""))
-        # this ugly piece of code only exists because OmegaConf actually can't merge ListConfigs.
-        # we do not want to override everything, but just the transforms that are specified in both
-        # see https://stackoverflow.com/questions/61315623/omegaconf-can-i-influence-how-lists-are-merged
-        for modality in transforms[dataset_type]:
-            if modality in statistics:
-                conf_transforms = transforms[dataset_type][modality]
-                dataset_transforms = statistics[modality]
-                for dataset_trans in dataset_transforms:
-                    exists = False
-                    for i, conf_trans in enumerate(conf_transforms):
-                        if dataset_trans["_target_"] == conf_trans["_target_"]:
-                            exists = True
-                            transforms[dataset_type][modality][i] = dataset_trans
-                            break
-                    if not exists:
-                        transforms[dataset_type][modality] = ListConfig([*conf_transforms, dataset_trans])
+        try:
+            statistics = OmegaConf.load(Path(paths[dataset_type]) / "statistics.yaml")
+            # Hack for maintaining two repositories with transforms
+            statistics = OmegaConf.create(OmegaConf.to_yaml(statistics).replace("calvin_models.", ""))
+            # this ugly piece of code only exists because OmegaConf actually can't merge ListConfigs.
+            # we do not want to override everything, but just the transforms that are specified in both
+            # see https://stackoverflow.com/questions/61315623/omegaconf-can-i-influence-how-lists-are-merged
+            for modality in transforms[dataset_type]:
+                if modality in statistics:
+                    conf_transforms = transforms[dataset_type][modality]
+                    dataset_transforms = statistics[modality]
+                    for dataset_trans in dataset_transforms:
+                        exists = False
+                        for i, conf_trans in enumerate(conf_transforms):
+                            if dataset_trans["_target_"] == conf_trans["_target_"]:
+                                exists = True
+                                transforms[dataset_type][modality][i] = dataset_trans
+                                break
+                        if not exists:
+                            transforms[dataset_type][modality] = ListConfig([*conf_transforms, dataset_trans])
+        except FileNotFoundError:
+            logger.warning("Could not load statistics.yaml")
     return transforms
 
 
 def lookup_naming_pattern(dataset_dir: Path, save_format: str) -> Tuple[Tuple[Path, str], int]:
     """
     Check naming pattern of dataset files.
+
     Args:
         dataset_dir: Path to dataset.
         save_format: File format (CALVIN default is npz).
+
     Returns:
         naming_pattern: 'file_0000001.npz' -> ('file_', '.npz')
         n_digits: Zero padding of file enumeration.

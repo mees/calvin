@@ -7,13 +7,14 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import calvin_agent
-from calvin_agent.training import is_multi_gpu_training, log_rank_0
+from calvin_agent.training import log_rank_0
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Callback, LightningModule, seed_everything, Trainer
-from pytorch_lightning.plugins import DDPPlugin
+from pytorch_lightning.strategies import DDPStrategy
 from pytorch_lightning.utilities import rank_zero_only
+from pytorch_lightning.utilities.types import STEP_OUTPUT
 import torch
 import torch.distributed as dist
 from torch.nn import Linear
@@ -49,7 +50,7 @@ class Annotator(Callback):
         self.cfg = cfg
         self.device = None
         self.lang_folder = cfg.lang_folder
-        self.tasks = hydra.utils.instantiate(cfg.callbacks.rollout.tasks)
+        self.tasks = hydra.utils.instantiate(cfg.callbacks.rollout_lh.tasks)
         self.demo_task_counter_train = Counter()  # type: Counter[str]
         self.demo_task_counter_val = Counter()  # type: Counter[str]
         self.train_dataset = None
@@ -99,13 +100,13 @@ class Annotator(Callback):
 
         self.envs = {
             scene: hydra.utils.instantiate(
-                self.cfg.callbacks.rollout.env_cfg, self.val_dataset, pl_module.device, scene=scene
+                self.cfg.callbacks.rollout_lh.env_cfg, self.val_dataset, pl_module.device, scene=scene
             )
             for scene, _ in self.scene_idx_info.items()
         }
         if self.cfg.validation_scene not in self.envs:
             self.envs[self.cfg.validation_scene] = hydra.utils.instantiate(
-                self.cfg.callbacks.rollout.env_cfg,
+                self.cfg.callbacks.rollout_lh.env_cfg,
                 self.val_dataset,
                 pl_module.device,
                 scene=self.cfg.validation_scene,
@@ -162,13 +163,7 @@ class Annotator(Callback):
             self.finished_annotation_val = True
 
     def on_train_batch_end(  # type: ignore
-        self,
-        trainer: Trainer,
-        pl_module: LightningModule,
-        outputs: Any,
-        batch: Any,
-        batch_idx: int,
-        dataloader_idx: int,
+        self, trainer: Trainer, pl_module: LightningModule, outputs: STEP_OUTPUT, batch: Any, batch_idx: int
     ) -> None:
         batch = batch["vis"] if isinstance(batch, dict) else batch
 
@@ -324,9 +319,9 @@ class LangAnnotationModel(LightningModule):
         self.finished_annotation_train = False
         self.dummy_net = Linear(1, 1)
 
-    def on_train_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:  # type: ignore
+    def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:  # type: ignore
         if self.finished_annotation_train:
-            return -1  # type: ignore
+            return -1
 
     def training_step(self, batch, batch_idx):
         return self.dummy_net(torch.Tensor([0.0]).to(self.device))
@@ -353,13 +348,12 @@ def main(cfg: DictConfig) -> None:
         "callbacks": callbacks,
         "num_sanity_val_steps": 0,
         "max_epochs": 1,
-        "progress_bar_refresh_rate": 0,
-        "weights_summary": None,
+        "enable_progress_bar": False,
+        "enable_model_summary": False,
     }
     # Configure multi-GPU training
-    if is_multi_gpu_training(trainer_args["gpus"]):  # type: ignore
-        trainer_args["accelerator"] = "ddp"
-        trainer_args["plugins"] = DDPPlugin(find_unused_parameters=False)
+    if trainer_args["devices"] > 1:  # type: ignore
+        trainer_args["strategy"] = DDPStrategy(find_unused_parameters=False)
 
     trainer = Trainer(**trainer_args)
 
