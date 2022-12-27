@@ -28,6 +28,13 @@ $ cd $CALVIN_ROOT/dataset
 $ sh download_data.sh debug
 ```
 
+YOu can verify the integrity of the downloaded zips with the following commands:
+```bash
+$ cd $CALVIN_ROOT/dataset
+$ wget http://calvin.cs.uni-freiburg.de/dataset/sha256sum.txt
+$ sha256sum --check --ignore-missing sha256sum.txt
+```
+
 ## Language Embeddings
 Since Sep 16 2022, additional language embeddings are part of the dataset on the server. If you downloaded the dataset before,
 you can manually download the embeddings by running
