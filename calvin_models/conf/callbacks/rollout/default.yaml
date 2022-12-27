@@ -1,5 +1,6 @@
 defaults:
-  - tasks: new_playtable_tasks
+  - /callbacks/rollout/tasks@tasks: new_playtable_tasks
+  - /annotations@val_annotations: new_playtable_validation
 _target_: calvin_agent.rollout.rollout.Rollout
 _recursive_: false
 env_cfg:

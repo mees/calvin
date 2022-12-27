@@ -11,7 +11,7 @@ from termcolor import colored
 import torch
 
 
-def evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint):
+def evaluate_policy_singlestep(model, env, datamodule, args, checkpoint):
     conf_dir = Path(__file__).absolute().parents[2] / "conf"
     task_cfg = OmegaConf.load(conf_dir / "callbacks/rollout/tasks/new_playtable_tasks.yaml")
     task_oracle = hydra.utils.instantiate(task_cfg)
@@ -25,26 +25,25 @@ def evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint):
     for task, ids in task_to_id_dict.items():
         for i in ids:
             episode = dataset[int(i)]
-            results[task] += rollout(env, model, episode, task_oracle, args, task, lang_embeddings, val_annotations)
+            results[task] += rollout(env, model, episode, task_oracle, args, task, val_annotations)
         print(f"{task}: {results[task]} / {len(ids)}")
 
     print(f"SR: {sum(results.values()) / sum(len(x) for x in task_to_id_dict.values()) * 100:.1f}%")
 
 
-def rollout(env, model, episode, task_oracle, args, task, lang_embeddings, val_annotations):
+def rollout(env, model, episode, task_oracle, args, task, val_annotations):
     # state_obs, rgb_obs, depth_obs = episode["robot_obs"], episode["rgb_obs"], episode["depth_obs"]
     reset_info = episode["state_info"]
     # idx = episode["idx"]
     obs = env.reset(robot_obs=reset_info["robot_obs"][0], scene_obs=reset_info["scene_obs"][0])
     # get lang annotation for subtask
     lang_annotation = val_annotations[task][0]
-    # get language goal embedding
-    goal = lang_embeddings.get_lang_goal(lang_annotation)
+
     model.reset()
     start_info = env.get_info()
 
     for step in range(args.ep_len):
-        action = model.step(obs, goal)
+        action = model.step(obs, lang_annotation)
         obs, _, _, current_info = env.step(action)
         if args.debug:
             img = env.render(mode="rgb_array")
@@ -102,7 +101,5 @@ if __name__ == "__main__":
 
     env = None
     for checkpoint in checkpoints:
-        model, env, datamodule, lang_embeddings = get_default_model_and_env(
-            args.train_folder, args.dataset_path, checkpoint, env=env
-        )
-        evaluate_policy(model, env, datamodule, lang_embeddings, args, checkpoint)
+        model, env, datamodule = get_default_model_and_env(args.train_folder, args.dataset_path, checkpoint, env=env)
+        evaluate_policy_singlestep(model, env, datamodule, args, checkpoint)

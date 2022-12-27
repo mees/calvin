@@ -1,10 +1,12 @@
+from datetime import timedelta
 import logging
 import os
-from datetime import timedelta
 from pathlib import Path
 import sys
 from typing import List, Union
 
+# This is for using the locally installed repo clone when using slurm
+import calvin_agent
 from lightning_lite.accelerators.cuda import num_cuda_devices
 from pytorch_lightning.strategies import DDPStrategy
 
@@ -30,7 +32,7 @@ def train(cfg: DictConfig) -> None:
     """
     # sets seeds for numpy, torch, python.random and PYTHONHASHSEED.
     seed_everything(cfg.seed, workers=True)  # type: ignore
-    datamodule = hydra.utils.instantiate(cfg.datamodule)
+    datamodule = hydra.utils.instantiate(cfg.datamodule, training_repo_root=Path(calvin_agent.__file__).parent)
     chk = get_last_checkpoint(Path.cwd())
 
     # Load Model
@@ -50,20 +52,20 @@ def train(cfg: DictConfig) -> None:
         **cfg.trainer,
         "logger": train_logger,
         "callbacks": callbacks,
-        "resume_from_checkpoint": chk,
         "benchmark": False,
     }
 
     # Configure multi-GPU training
     if is_multi_gpu_training(trainer_args["devices"]):
-        trainer_args["strategy"] = DDPStrategy(find_unused_parameters=False, timeout=timedelta(seconds=18000))
+        # increase default timeout for loading data into shared memory
+        trainer_args["strategy"] = DDPStrategy(find_unused_parameters=False, timeout=timedelta(seconds=3600))
         if not cfg.slurm:
             modify_argv_hydra()
 
     trainer = Trainer(**trainer_args)
 
     # Start training
-    trainer.fit(model, datamodule=datamodule)
+    trainer.fit(model, datamodule=datamodule, ckpt_path=chk)  # type: ignore
 
 
 def setup_callbacks(callbacks_cfg: DictConfig) -> List[Callback]:
@@ -130,7 +132,16 @@ def modify_argv_hydra() -> None:
 
 
 def is_multi_gpu_training(devices: Union[int, str, ListConfig]) -> bool:
-    """ """
+    """
+    Check if training on multiple GPUs.
+    See https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html#devices
+
+     Args:
+        devices: int, str or ListConfig specifying devices
+
+    Returns:
+        True if multi-gpu training (ddp), False otherwise.
+    """
     num_gpu_available = num_cuda_devices()
     if isinstance(devices, int):
         return devices > 1 or (devices == -1 and num_gpu_available > 1)

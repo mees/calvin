@@ -6,7 +6,7 @@ import os
 from typing import Any
 
 from calvin_agent.evaluation.multistep_sequences import get_sequences
-from calvin_agent.evaluation.utils import get_env_state_for_initial_condition, join_vis_lang, LangEmbeddings
+from calvin_agent.evaluation.utils import get_env_state_for_initial_condition, join_vis_lang
 from calvin_agent.rollout.rollout_video import RolloutVideo
 import hydra
 import numpy as np
@@ -131,9 +131,7 @@ class RolloutLongHorizon(Callback):
                     log_to_file=self.log_video_to_file,
                     save_dir=self.save_dir,
                 )
-            self.lang_embeddings = LangEmbeddings(
-                dataset.abs_datasets_dir, dataset.lang_folder, device=pl_module.device
-            )
+            pl_module.load_lang_embeddings(dataset.abs_datasets_dir / dataset.lang_folder / "embeddings.npy")  # type: ignore
             if dist.is_available() and dist.is_initialized():
                 self.eval_sequences = sequences_for_rank(self.num_sequences)
             else:
@@ -204,13 +202,11 @@ class RolloutLongHorizon(Callback):
         obs = self.env.get_obs()
         # get lang annotation for subtask
         lang_annotation = self.val_annotations[subtask][0]
-        # get language goal embedding
-        goal = self.lang_embeddings.get_lang_goal(lang_annotation)
         model.reset()
         start_info = self.env.get_info()
         success = False
         for step in range(self.ep_len):
-            action = model.step(obs, goal)
+            action = model.step(obs, lang_annotation)
             obs, _, _, current_info = self.env.step(action)
             if self.debug and os.environ.get("DISPLAY") is not None:
                 img = self.env.render(mode="rgb_array")

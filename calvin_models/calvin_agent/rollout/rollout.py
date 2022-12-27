@@ -76,6 +76,7 @@ class Rollout(Callback):
         min_window_size,
         max_window_size,
         lang_folder,
+        val_annotations,
         id_selection_strategy="select_first",
     ):
         self.env = None  # type: Any
@@ -100,6 +101,7 @@ class Rollout(Callback):
         self.modalities = []  # ["vis", "lang"] if self.lang else ["vis"]
         self.embeddings = None
         self.add_goal_thumbnail = add_goal_thumbnail
+        self.val_annotations = val_annotations
         self.lang_folder = lang_folder
         self.pick_task_ids = partial(
             eval(id_selection_strategy), min_window_size=min_window_size, max_window_size=max_window_size
@@ -126,11 +128,8 @@ class Rollout(Callback):
                     log_to_file=self.log_video_to_file,
                     save_dir=self.save_dir,
                 )
-            self.embeddings = (
-                np.load(dataset.abs_datasets_dir / self.lang_folder / "embeddings.npy", allow_pickle=True).item()
-                if "lang" in self.modalities
-                else None
-            )
+            if "lang" in self.modalities:
+                pl_module.load_lang_embeddings(dataset.abs_datasets_dir / dataset.lang_folder / "embeddings.npy")  # type: ignore
 
     def on_validation_batch_end(
         self,
@@ -302,14 +301,9 @@ class Rollout(Callback):
                     start_info = self.env.get_info()
 
                     if mod == "lang":
+                        # language goal
                         _task = np.random.choice(list(groundtruth_task))
-                        task_embeddings = self.embeddings[_task]["emb"]
-                        language_instruction = self.embeddings[_task]["ann"][0]
-                        goal = {
-                            "lang": torch.tensor(task_embeddings[np.random.randint(task_embeddings.shape[0])])
-                            .to(self.device)
-                            .float()
-                        }
+                        goal = self.val_annotations[_task][0]
                     else:
                         # goal image is last step of the episode
                         goal = {
@@ -347,7 +341,7 @@ class Rollout(Callback):
                     if record_video:
                         if self.add_goal_thumbnail:
                             if mod == "lang":
-                                self.rollout_video.add_language_instruction(language_instruction)
+                                self.rollout_video.add_language_instruction(goal)
                             else:
                                 self.rollout_video.add_goal_thumbnail(rgb_obs["rgb_static"][i, -1])
                         self.rollout_video.draw_outcome(success)

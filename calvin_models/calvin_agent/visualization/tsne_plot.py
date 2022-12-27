@@ -65,7 +65,7 @@ class TSNEPlot(Callback):
                 if dist.get_rank() != 0:
                     return
 
-            x_tsne = self._get_tsne(sampled_plans)
+            x_tsne = self._get_tsne(sampled_plans.view(-1, pl_module.action_decoder.plan_features))  # type: ignore
             if self.task_labels is not None:
                 self._create_tsne_figure(
                     label_list=self.task_labels,
@@ -77,7 +77,7 @@ class TSNEPlot(Callback):
                 )
 
     def _get_tsne(self, sampled_plans):
-        x_tsne = TSNE(perplexity=self.perplexity, n_jobs=self.n_jobs).fit_transform(sampled_plans.view(-1, 256).cpu())
+        x_tsne = TSNE(perplexity=self.perplexity, n_jobs=self.n_jobs).fit_transform(sampled_plans.cpu())
         return x_tsne
 
     def _create_tsne_figure(self, label_list, x_tsne, all_idx, step, logger, name):

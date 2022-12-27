@@ -1,6 +1,7 @@
 import logging
+import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import calvin_agent
 from calvin_agent.datasets.utils.episode_utils import load_dataset_statistics
@@ -15,13 +16,15 @@ import torchvision
 
 logger = logging.getLogger(__name__)
 DEFAULT_TRANSFORM = OmegaConf.create({"train": None, "val": None})
+ONE_EP_DATASET_URL = "http://www.informatik.uni-freiburg.de/~meeso/50steps.tar.xz"
 
 
 class CalvinDataModule(pl.LightningDataModule):
     def __init__(
         self,
         datasets: DictConfig,
-        root_data_dir: str = "data",
+        training_repo_root: Optional[Path] = None,
+        root_data_dir: str = "datasets/task_D_D",
         transforms: DictConfig = DEFAULT_TRANSFORM,
         shuffle_val: bool = False,
         **kwargs: Dict,
@@ -34,7 +37,8 @@ class CalvinDataModule(pl.LightningDataModule):
         self.val_sampler = None
         root_data_path = Path(root_data_dir)
         if not root_data_path.is_absolute():
-            root_data_path = Path(calvin_agent.__file__).parent / root_data_path
+            assert training_repo_root is not None, "If root_data_path isn't absolute, please provide training_repo_root"
+            root_data_path = training_repo_root / root_data_path
         self.training_dir = root_data_path / "training"
         self.val_dir = root_data_path / "validation"
         self.shuffle_val = shuffle_val
@@ -49,12 +53,17 @@ class CalvinDataModule(pl.LightningDataModule):
 
         # download and unpack images
         if not dataset_exist:
-            logger.error(
-                "please download the dataset before starting a training! Specify the dataset path with "
-                "datamodule.root_data_dir=/path/to/dataset/ "
-                "(make sure to use an absolute path)"
-            )
-            exit(-1)
+            if "CI" not in os.environ:
+                print(f"No dataset found in {self.training_dir}.")
+                print("For information how to download to full CALVIN dataset, please visit")
+                print("https://github.com/mees/calvin/tree/main/dataset")
+                print("Do you wish to download small debug dataset to continue training?")
+                s = input("YES / no")
+                if s == "no":
+                    exit()
+            logger.info(f"downloading dataset to {self.training_dir} and {self.val_dir}")
+            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.training_dir)
+            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.val_dir)
 
         if self.use_shm:
             # When using shared memory dataset, initialize lookups
