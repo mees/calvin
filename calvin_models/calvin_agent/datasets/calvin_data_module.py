@@ -33,8 +33,6 @@ class CalvinDataModule(pl.LightningDataModule):
         self.datasets_cfg = datasets
         self.train_datasets = None
         self.val_datasets = None
-        self.train_sampler = None
-        self.val_sampler = None
         root_data_path = Path(root_data_dir)
         if not root_data_path.is_absolute():
             assert training_repo_root is not None, "If root_data_path isn't absolute, please provide training_repo_root"
@@ -87,7 +85,7 @@ class CalvinDataModule(pl.LightningDataModule):
         }
         self.train_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.train_transforms.items()}
         self.val_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.val_transforms.items()}
-        self.train_datasets, self.train_sampler, self.val_datasets, self.val_sampler = {}, {}, {}, {}
+        self.train_datasets, self.val_datasets = {}, {}
 
         if self.use_shm:
             train_shm_lookup, val_shm_lookup = load_shm_lookup()
