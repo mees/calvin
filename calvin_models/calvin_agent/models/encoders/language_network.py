@@ -6,15 +6,11 @@ import torch.nn as nn
 
 
 class SBert(nn.Module):
-    def __init__(self, nlp_model):
+    def __init__(self, nlp_model: str):
+        #  choose model from https://www.sbert.net/docs/pretrained_models.html
         super().__init__()
-        if nlp_model == "mpnet":
-            weights = "paraphrase-mpnet-base-v2"
-        elif nlp_model == "multi":
-            weights = "paraphrase-multilingual-mpnet-base-v2"
-        else:
-            weights = "paraphrase-MiniLM-L6-v2"
-        self.model = SentenceTransformer(weights)
+        assert isinstance(nlp_model, str)
+        self.model = SentenceTransformer(nlp_model)
 
     def forward(self, x: List) -> torch.Tensor:
         emb = self.model.encode(x, convert_to_tensor=True)
