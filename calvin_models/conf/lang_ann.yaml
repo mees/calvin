@@ -13,7 +13,7 @@ defaults:
   - override hydra/hydra_logging: colorlog
   - override datamodule/observation_space: state_only
   - override datamodule/datasets: vision_only
-  - override datamodule/datasets/vision_dataset: vision_shm
+#  - override datamodule/datasets/vision_dataset: vision_shm
   - _self_
 
 seed: 42
@@ -31,6 +31,7 @@ datamodule:
     vision_dataset:
       min_window_size: 64
       max_window_size: 64
+  shuffle_val: true
 
 hydra:
   run:
