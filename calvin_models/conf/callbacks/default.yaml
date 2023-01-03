@@ -1,5 +1,5 @@
 defaults:
-#  - rollout: default
+  - rollout: default
   - rollout_lh: default
   - checkpoint: save_all
   - tsne_plot: default
