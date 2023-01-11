@@ -1,0 +1,491 @@
+callbacks:
+  rollout:
+    tasks:
+      _target_: calvin_env.envs.tasks.Tasks
+      tasks:
+        rotate_red_block_right:
+        - rotate_object
+        - block_red
+        - -60
+        rotate_red_block_left:
+        - rotate_object
+        - block_red
+        - 60
+        rotate_blue_block_right:
+        - rotate_object
+        - block_blue
+        - -60
+        rotate_blue_block_left:
+        - rotate_object
+        - block_blue
+        - 60
+        rotate_pink_block_right:
+        - rotate_object
+        - block_pink
+        - -60
+        rotate_pink_block_left:
+        - rotate_object
+        - block_pink
+        - 60
+        push_red_block_right:
+        - push_object
+        - block_red
+        - 0.1
+        - 0
+        push_red_block_left:
+        - push_object
+        - block_red
+        - -0.1
+        - 0
+        push_blue_block_right:
+        - push_object
+        - block_blue
+        - 0.1
+        - 0
+        push_blue_block_left:
+        - push_object
+        - block_blue
+        - -0.1
+        - 0
+        push_pink_block_right:
+        - push_object
+        - block_pink
+        - 0.1
+        - 0
+        push_pink_block_left:
+        - push_object
+        - block_pink
+        - -0.1
+        - 0
+        move_slider_left:
+        - move_door_rel
+        - base__slide
+        - 0.15
+        move_slider_right:
+        - move_door_rel
+        - base__slide
+        - -0.15
+        open_drawer:
+        - move_door_rel
+        - base__drawer
+        - 0.12
+        close_drawer:
+        - move_door_rel
+        - base__drawer
+        - -0.12
+        lift_red_block_table:
+        - lift_object
+        - block_red
+        - 0.05
+        - table
+        - base_link
+        lift_red_block_slider:
+        - lift_object
+        - block_red
+        - 0.03
+        - table
+        - plank_link
+        lift_red_block_drawer:
+        - lift_object
+        - block_red
+        - 0.05
+        - table
+        - drawer_link
+        lift_blue_block_table:
+        - lift_object
+        - block_blue
+        - 0.05
+        - table
+        - base_link
+        lift_blue_block_slider:
+        - lift_object
+        - block_blue
+        - 0.03
+        - table
+        - plank_link
+        lift_blue_block_drawer:
+        - lift_object
+        - block_blue
+        - 0.05
+        - table
+        - drawer_link
+        lift_pink_block_table:
+        - lift_object
+        - block_pink
+        - 0.05
+        - table
+        - base_link
+        lift_pink_block_slider:
+        - lift_object
+        - block_pink
+        - 0.03
+        - table
+        - plank_link
+        lift_pink_block_drawer:
+        - lift_object
+        - block_pink
+        - 0.05
+        - table
+        - drawer_link
+        place_in_slider:
+        - place_object
+        - table
+        - plank_link
+        place_in_drawer:
+        - place_object
+        - table
+        - drawer_link
+        stack_block:
+        - stack_objects
+        unstack_block:
+        - unstack_objects
+        turn_on_lightbulb:
+        - toggle_light
+        - lightbulb
+        - 0
+        - 1
+        turn_off_lightbulb:
+        - toggle_light
+        - lightbulb
+        - 1
+        - 0
+        turn_on_led:
+        - toggle_light
+        - led
+        - 0
+        - 1
+        turn_off_led:
+        - toggle_light
+        - led
+        - 1
+        - 0
+        push_into_drawer:
+        - push_object_into
+        - - block_red
+          - block_blue
+          - block_pink
+        - table
+        - base_link
+        - table
+        - drawer_link
+    _target_: calvin_agent.rollout.rollout.Rollout
+    _recursive_: false
+    env_cfg:
+      _target_: calvin_env.envs.play_lmp_wrapper.PlayLMPWrapper
+    skip_epochs: 1
+    rollout_freq: 3
+    video: true
+    num_rollouts_per_task: 10
+    check_percentage_of_batch: 1
+    replan_freq: 30
+    ep_len: 120
+    empty_cache: true
+    log_video_to_file: false
+    save_dir: ./videos
+    start_robot_neutral: false
+    add_goal_thumbnail: true
+    min_window_size: ${datamodule.datasets.vision_dataset.min_window_size}
+    max_window_size: ${datamodule.datasets.vision_dataset.max_window_size}
+    id_selection_strategy: select_longest
+    lang_folder: ${datamodule.datasets.lang_dataset.lang_folder}
+  checkpoint:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    save_top_k: -1
+    verbose: true
+    monitor: val_act/action_loss_pp
+    mode: min
+    dirpath: saved_models
+    filename: '{epoch}'
+  tsne_plot:
+    _target_: calvin_agent.visualization.tsne_plot.TSNEPlot
+    perplexity: 40
+    n_jobs: 8
+    plot_percentage: 0.2
+    opacity: 0.3
+    marker_size: 5
+  kl_schedule:
+    _target_: calvin_agent.utils.kl_callbacks.KLConstantSchedule
+datamodule:
+  datasets:
+    vision_dataset:
+      _target_: calvin_agent.datasets.disk_dataset.DiskDataset
+      key: vis
+      batch_size: 32
+      min_window_size: 16
+      max_window_size: 32
+      skip_frames: 1
+      proprio_state: ${datamodule.proprioception_dims}
+      obs_space: ${datamodule.observation_space}
+      pad: true
+      lang_folder: lang_annotations
+      num_workers: 2
+    lang_dataset:
+      _target_: calvin_agent.datasets.disk_dataset.DiskDataset
+      key: lang
+      batch_size: 32
+      min_window_size: 16
+      max_window_size: 32
+      skip_frames: 1
+      proprio_state: ${datamodule.proprioception_dims}
+      obs_space: ${datamodule.observation_space}
+      pad: true
+      lang_folder: lang_annotations
+      num_workers: 2
+  transforms:
+    train:
+      rgb_static:
+      - _target_: torchvision.transforms.Resize
+        size: 200
+      - _target_: calvin_agent.utils.transforms.ScaleImageTensor
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.5
+        std:
+        - 0.5
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+      rgb_gripper:
+      - _target_: torchvision.transforms.Resize
+        size: 84
+      - _target_: calvin_agent.utils.transforms.ScaleImageTensor
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.5
+        std:
+        - 0.5
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+      depth_static:
+      - _target_: torchvision.transforms.Resize
+        size: 200
+      - _target_: calvin_agent.utils.transforms.AddDepthNoise
+        shape:
+        - 1000.0
+        rate:
+        - 1000.0
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+      depth_gripper:
+      - _target_: torchvision.transforms.Resize
+        size: 84
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+      rgb_tactile:
+      - _target_: torchvision.transforms.Resize
+        size: 70
+      - _target_: torchvision.transforms.RandomCrop
+        size: 64
+      - _target_: calvin_agent.utils.transforms.ScaleImageTensor
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.5
+        std:
+        - 0.5
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+      depth_tactile:
+      - _target_: torchvision.transforms.Resize
+        size: 64
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.1
+        std:
+        - 0.2
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+      robot_obs:
+      - _target_: calvin_agent.utils.transforms.NormalizeVector
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+      scene_obs:
+      - _target_: calvin_agent.utils.transforms.NormalizeVector
+      - _target_: calvin_agent.utils.transforms.AddGaussianNoise
+        mean:
+        - 0.0
+        std:
+        - 0.01
+    val:
+      rgb_static:
+      - _target_: torchvision.transforms.Resize
+        size: 200
+      - _target_: calvin_agent.utils.transforms.ScaleImageTensor
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.5
+        std:
+        - 0.5
+      rgb_gripper:
+      - _target_: torchvision.transforms.Resize
+        size: 84
+      - _target_: calvin_agent.utils.transforms.ScaleImageTensor
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.5
+        std:
+        - 0.5
+      depth_static:
+      - _target_: torchvision.transforms.Resize
+        size: 200
+      depth_gripper:
+      - _target_: torchvision.transforms.Resize
+        size: 84
+      rgb_tactile:
+      - _target_: torchvision.transforms.Resize
+        size: 70
+      - _target_: torchvision.transforms.RandomCrop
+        size: 64
+      - _target_: calvin_agent.utils.transforms.ScaleImageTensor
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.5
+        std:
+        - 0.5
+      depth_tactile:
+      - _target_: torchvision.transforms.Resize
+        size: 64
+      - _target_: torchvision.transforms.Normalize
+        mean:
+        - 0.1
+        std:
+        - 0.2
+      robot_obs:
+      - _target_: calvin_agent.utils.transforms.NormalizeVector
+      scene_obs:
+      - _target_: calvin_agent.utils.transforms.NormalizeVector
+  proprioception_dims:
+    n_state_obs: 8
+    keep_indices:
+    - - 0
+      - 7
+    - - 14
+      - 15
+    robot_orientation_idx:
+    - 3
+    - 6
+    normalize: true
+    normalize_robot_orientation: true
+  observation_space:
+    rgb_obs:
+    - rgb_static
+    - rgb_gripper
+    depth_obs: []
+    state_obs:
+    - robot_obs
+    actions:
+    - rel_actions
+    language:
+    - language
+  _target_: calvin_agent.datasets.play_data_module.PlayDataModule
+  _recursive_: false
+model:
+  perceptual_encoder:
+    vision_static:
+      _target_: calvin_agent.models.perceptual_encoders.vision_network.VisionNetwork
+      input_width: 200
+      input_height: 200
+      activation_function: ReLU
+      dropout_vis_fc: 0.0
+      l2_normalize_output: false
+      visual_features: 64
+      num_c: 3
+    vision_gripper: {}
+    depth_static: {}
+    depth_gripper: {}
+    proprio:
+      _target_: calvin_agent.models.perceptual_encoders.proprio_encoder.IdentityEncoder
+      proprioception_dims: ${datamodule.proprioception_dims}
+    tactile: {}
+    _target_: calvin_agent.models.perceptual_encoders.concat_encoders.ConcatEncoders
+    _recursive_: false
+  plan_proposal:
+    _target_: calvin_agent.models.plan_encoders.plan_proposal_net.PlanProposalNetwork
+    perceptual_features: ???
+    latent_goal_features: 32
+    plan_features: 256
+    activation_function: ReLU
+    min_std: 0.0001
+  plan_recognition:
+    _target_: calvin_agent.models.plan_encoders.plan_recognition_net.PlanRecognitionNetwork
+    in_features: ???
+    plan_features: 256
+    action_space: ${datamodule.action_space}
+    birnn_dropout_p: 0.0
+    min_std: 0.0001
+  visual_goal:
+    _target_: calvin_agent.models.encoders.goal_encoders.VisualGoalEncoder
+    in_features: ???
+    hidden_size: 2048
+    latent_goal_features: 32
+    l2_normalize_goal_embeddings: false
+    activation_function: ReLU
+  language_goal:
+    _target_: calvin_agent.models.encoders.goal_encoders.LanguageGoalEncoder
+    language_features: 384
+    hidden_size: 2048
+    latent_goal_features: 32
+    word_dropout_p: 0.0
+    l2_normalize_goal_embeddings: false
+    activation_function: ReLU
+  action_decoder:
+    _target_: calvin_agent.models.decoders.logistic_policy_network.LogisticPolicyNetwork
+    n_mixtures: 10
+    hidden_size: 2048
+    out_features: ${datamodule.action_space}
+    log_scale_min: -7.0
+    act_max_bound: ${datamodule.action_max}
+    act_min_bound: ${datamodule.action_min}
+    dataset_dir: ${datamodule.root_data_dir}
+    policy_rnn_dropout_p: 0.0
+    load_action_bounds: true
+    num_classes: 256
+    perceptual_features: ??
+    latent_goal_features: 32
+    plan_features: 256
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${training.lr}
+  _target_: calvin_agent.models.play_lmp.PlayLMP
+  _recursive_: false
+  kl_beta: ${loss.kl_beta}
+loss:
+  kl_beta: 0.001
+training:
+  lr: 0.0001
+trainer:
+  gpus: 8
+  precision: 16
+  val_check_interval: 1.0
+  max_epochs: 100
+logger:
+  _target_: pytorch_lightning.loggers.WandbLogger
+  save_dir: .
+  name: play_lmp
+  group: play_lmp
+  log_model: false
+  project: multi_play
+  entity: multimodal_control
+  id: ???
+seed: 42
+log_dir: ../
+slurm: true

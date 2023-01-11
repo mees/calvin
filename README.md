@@ -140,8 +140,9 @@ For this, implement `CustomLangEmbeddings` in `evaluate_policy.py` and add `--cu
 Alternatively, you can evaluate the policy on single tasks and without resetting the robot to a neutral position.
 Note that this evaluation is currently only available for our baseline agent.
 ```
-$ python evaluation/evaluate_policy_singlestep.py --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER> [--checkpoint <PATH/TO/CHECKPOINT>] [--debug]
+$ python calvin_models/calvin_agent/evaluation/evaluate_policy_singlestep.py --dataset_path <PATH/TO/DATASET> --train_folder <PATH/TO/TRAINING/FOLDER> [--checkpoint <PATH/TO/CHECKPOINT>] [--debug]
 ```
+
 
 ### Pre-trained Model
 Download the [MCIL](http://calvin.cs.uni-freiburg.de/model_weights/D_D_static_rgb_baseline.zip) model checkpoint trained on the static camera rgb images on environment D.
