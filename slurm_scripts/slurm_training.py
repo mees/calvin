@@ -24,6 +24,8 @@ parser.add_argument("--cpus", type=int, default=8)
 parser.add_argument("--days", type=int, default=1)
 parser.add_argument("-v", "--venv", type=str)
 parser.add_argument("-p", "--partition", type=str, default="alldlc_gpu-rtx2080")
+parser.add_argument("--login_node", type=str, default="kis3bat1")
+parser.add_argument("-x", "--exclude", type=str)
 parser.add_argument("--no_clone", action="store_true")
 args, unknownargs = parser.parse_known_args()
 
@@ -57,11 +59,15 @@ if not args.no_clone:
     args.script = repo_target_dir / os.path.relpath(args.script, repo_src_dir)
     args.train_file = repo_target_dir / os.path.relpath(args.train_file, repo_src_dir)
 
-# if not args.cpus:
-# args.cpus = args.gpus * 8
+if args.partition == "test":
+    args.partition = "testdlc_gpu-rtx2080"
+
+args.time = f"{args.days}-00:00"
+if args.partition == "testdlc_gpu-rtx2080":
+    args.time = "01:00:00"
 
 job_opts = {
-    "script": f"{args.script.as_posix()} {args.venv} {args.train_file.as_posix()} {log_dir.as_posix()} {args.gpus} {' '.join(unknownargs)}",
+    "script": f"{args.script.as_posix()} {args.venv} {args.login_node} {args.train_file.as_posix()} {log_dir.as_posix()} {args.gpus} {' '.join(unknownargs)}",
     "partition": args.partition,
     "mem": args.mem,
     "ntasks-per-node": args.gpus,
@@ -71,8 +77,11 @@ job_opts = {
     "error": os.path.join(log_dir, "%x.%N.%j.err"),
     "job-name": args.job_name,
     "mail-type": "END,FAIL",
-    "time": f"{args.days}-00:00",
+    "time": args.time,
 }
+
+if args.exclude is not None:
+    job_opts["exclude"] = ",".join(map(lambda x: f"dlcgpu{int(x):02d}", args.exclude.split(",")))
 
 
 def submit_job(job_info):

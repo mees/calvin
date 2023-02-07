@@ -1,2 +1,2 @@
 _target_: calvin_agent.models.encoders.language_network.SBert
-nlp_model: mini
+nlp_model: paraphrase-MiniLM-L6-v2

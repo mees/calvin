@@ -16,14 +16,17 @@ export HYDRA_FULL_ERROR=1
 # Job to perform
 source ~/.bashrc
 conda activate $1
-timeout 23.9h srun python $2 slurm=true hydra.run.dir=$3 trainer.gpus=$4 ${@:5}
+timeout 23.8h srun python $3 slurm=true hydra.run.dir=$4 trainer.devices=$5 ${@:6}
 
 if [[ $? -eq 124 ]]; then
 echo "Time limit exceeded. Resubmit job.";
-ssh ${USER}@kis2bat3 <<ENDSSH
-sh $3/resume_training.sh
+ssh ${USER}@$2 <<ENDSSH
+sh $4/resume_training.sh
 ENDSSH
 fi
+
+rm /dev/shm/train_*
+rm /dev/shm/val_*
 
 # Print some Information about the end-time to STDOUT
 echo "DONE";

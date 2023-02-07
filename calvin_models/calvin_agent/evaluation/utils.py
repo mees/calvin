@@ -1,8 +1,12 @@
+from collections import Counter
 import contextlib
+import json
 import logging
+import os
 from pathlib import Path
+from pydoc import locate
 
-from calvin_agent.models.play_lmp import PlayLMP
+from calvin_agent.models.mcil import MCIL
 from calvin_agent.utils.utils import add_text, format_sftp_path
 import cv2
 import hydra
@@ -16,15 +20,17 @@ hasher = pyhash.fnv1_32()
 logger = logging.getLogger(__name__)
 
 
-def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, lang_embeddings=None, device_id=0):
+def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, device_id=0):
     train_cfg_path = Path(train_folder) / ".hydra/config.yaml"
     train_cfg_path = format_sftp_path(train_cfg_path)
     cfg = OmegaConf.load(train_cfg_path)
-    cfg = OmegaConf.create(OmegaConf.to_yaml(cfg).replace("calvin_models.", ""))
     lang_folder = cfg.datamodule.datasets.lang_dataset.lang_folder
     if not hydra.core.global_hydra.GlobalHydra.instance().is_initialized():
-        hydra.initialize(".")
+        hydra.initialize("../../conf/datamodule/datasets")
+    # we don't want to use shm dataset for evaluation
+    datasets_cfg = hydra.compose("vision_lang.yaml", overrides=["lang_dataset.lang_folder=" + lang_folder])
     # since we don't use the trainer during inference, manually set up data_module
+    cfg.datamodule.datasets = datasets_cfg
     cfg.datamodule.root_data_dir = dataset_path
     data_module = hydra.utils.instantiate(cfg.datamodule, num_workers=0)
     data_module.prepare_data()
@@ -33,23 +39,30 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, 
     dataset = dataloader.dataset.datasets["lang"]
     device = torch.device(f"cuda:{device_id}")
 
-    if lang_embeddings is None:
-        lang_embeddings = LangEmbeddings(dataset.abs_datasets_dir, lang_folder, device=device)
-
     if env is None:
         rollout_cfg = OmegaConf.load(Path(__file__).parents[2] / "conf/callbacks/rollout/default.yaml")
         env = hydra.utils.instantiate(rollout_cfg.env_cfg, dataset, device, show_gui=False)
 
     checkpoint = format_sftp_path(checkpoint)
     print(f"Loading model from {checkpoint}")
-    model = PlayLMP.load_from_checkpoint(checkpoint)
+    # import the model class that was used for the training
+    model_cls = locate(cfg.model._target_)
+    model = model_cls.load_from_checkpoint(checkpoint)
+    model.load_lang_embeddings(dataset.abs_datasets_dir / dataset.lang_folder / "embeddings.npy")
     model.freeze()
     if cfg.model.action_decoder.get("load_action_bounds", False):
         model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None, True)
     model = model.cuda(device)
     print("Successfully loaded model.")
 
-    return model, env, data_module, lang_embeddings
+    return model, env, data_module
+
+
+def collect_plan(model, plans, subtask):
+    try:
+        plans[subtask].append((model.plan.cpu(), model.latent_goal.cpu()))
+    except AttributeError:
+        return
 
 
 def join_vis_lang(img, lang_text):
@@ -61,15 +74,86 @@ def join_vis_lang(img, lang_text):
     cv2.waitKey(1)
 
 
-class LangEmbeddings:
-    def __init__(self, val_dataset_path, lang_folder, device=torch.device("cuda:0")):
-        embeddings = np.load(Path(val_dataset_path) / lang_folder / "embeddings.npy", allow_pickle=True).item()
-        # we want to get the embedding for full sentence, not just a task name
-        self.lang_embeddings = {v["ann"][0]: v["emb"] for k, v in embeddings.items()}
-        self.device = device
+def count_success(results):
+    count = Counter(results)
+    step_success = []
+    for i in range(1, 6):
+        n_success = sum(count[j] for j in reversed(range(i, 6)))
+        sr = n_success / len(results)
+        step_success.append(sr)
+    return step_success
 
-    def get_lang_goal(self, task):
-        return {"lang": torch.from_numpy(self.lang_embeddings[task]).to(self.device).squeeze(0).float()}
+
+def print_and_save(results, sequences, log_dir, epoch=None):
+    current_data = {}
+    print(f"Results for Epoch {epoch}:")
+    avg_seq_len = np.mean(results)
+    chain_sr = {i + 1: sr for i, sr in enumerate(count_success(results))}
+    print(f"Average successful sequence length: {avg_seq_len}")
+    print("Success rates for i instructions in a row:")
+    for i, sr in chain_sr.items():
+        print(f"{i}: {sr * 100:.1f}%")
+
+    cnt_success = Counter()
+    cnt_fail = Counter()
+
+    for result, (_, sequence) in zip(results, sequences):
+        for successful_tasks in sequence[:result]:
+            cnt_success[successful_tasks] += 1
+        if result < len(sequence):
+            failed_task = sequence[result]
+            cnt_fail[failed_task] += 1
+
+    total = cnt_success + cnt_fail
+    task_info = {}
+    for task in total:
+        task_info[task] = {"success": cnt_success[task], "total": total[task]}
+        print(f"{task}: {cnt_success[task]} / {total[task]} |  SR: {cnt_success[task] / total[task] * 100:.1f}%")
+
+    data = {"avg_seq_len": avg_seq_len, "chain_sr": chain_sr, "task_info": task_info}
+
+    current_data[epoch] = data
+
+    print()
+    previous_data = {}
+    try:
+        with open(log_dir / "results.json", "r") as file:
+            previous_data = json.load(file)
+    except FileNotFoundError:
+        pass
+    json_data = {**previous_data, **current_data}
+    with open(log_dir / "results.json", "w") as file:
+        json.dump(json_data, file)
+    print(
+        f"Best model: epoch {max(json_data, key=lambda x: json_data[x]['avg_seq_len'])} "
+        f"with average sequences length of {max(map(lambda x: x['avg_seq_len'], json_data.values()))}"
+    )
+
+
+def create_tsne(plan_dict, log_dir, epoch):
+    ids, labels, plans, latent_goals = zip(
+        *[
+            (i, label, latent_goal, plan)
+            for i, (label, plan_list) in enumerate(plan_dict.items())
+            for latent_goal, plan in plan_list
+        ]
+    )
+    latent_goals = torch.cat(latent_goals)
+    plans = torch.cat(plans)
+    np.savez(f"{log_dir / f'tsne_data_{epoch}.npz'}", ids=ids, labels=labels, plans=plans, latent_goals=latent_goals)
+
+
+def get_log_dir(log_dir):
+    if log_dir is not None:
+        log_dir = Path(log_dir)
+        os.makedirs(log_dir, exist_ok=True)
+    else:
+        log_dir = Path(__file__).parents[3] / "evaluation"
+        if not log_dir.exists():
+            log_dir = Path("/tmp/evaluation")
+            os.makedirs(log_dir, exist_ok=True)
+    print(f"logging to {log_dir}")
+    return log_dir
 
 
 def imshow_tensor(window, img_tensor, wait=0, resize=True, keypoints=None, text=None):

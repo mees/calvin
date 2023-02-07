@@ -42,6 +42,7 @@ class LogisticPolicyNetwork(ActionDecoder):
         self.n_dist = n_mixtures
         self.log_scale_min = log_scale_min
         self.num_classes = num_classes
+        self.plan_features = plan_features
         in_features = perceptual_features + latent_goal_features + plan_features
         self.out_features = out_features
         self.rnn = nn.RNN(

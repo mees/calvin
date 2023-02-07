@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 from calvin_agent.evaluation.utils import imshow_tensor
-from calvin_agent.models.play_lmp import PlayLMP
+from calvin_agent.models.mcil import MCIL
 from calvin_agent.utils.utils import get_last_checkpoint
 import cv2
 import hydra
@@ -62,7 +62,7 @@ def test_policy(input_cfg: DictConfig) -> None:
     tasks = hydra.utils.instantiate(cfg.callbacks.rollout.tasks)
     checkpoint = get_checkpoint(cfg)
     logger.info("Loading model from checkpoint.")
-    model = PlayLMP.load_from_checkpoint(checkpoint)
+    model = MCIL.load_from_checkpoint(checkpoint)
     model.freeze()
     # model.action_decoder._setup_action_bounds(cfg.datamodule.root_data_dir, None, None)
     model = model.cuda(0)

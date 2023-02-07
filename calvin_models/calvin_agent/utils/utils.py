@@ -29,8 +29,11 @@ def timeit(method):
 
 
 def get_git_commit_hash(repo_path: Path) -> str:
-    repo = git.Repo(search_parent_directories=True, path=repo_path.parent)
-    assert repo, "not a repo"
+    try:
+        repo = git.Repo(search_parent_directories=True, path=repo_path.parent)
+    except git.exc.InvalidGitRepositoryError:
+        return "Not a git repository. Are you using pycharm remote interpreter?"
+
     changed_files = [item.a_path for item in repo.index.diff(None)]
     if changed_files:
         print("WARNING uncommitted modified files: {}".format(",".join(changed_files)))
@@ -61,15 +64,6 @@ def get_last_checkpoint(experiment_folder: Path) -> Union[Path, None]:
     if len(checkpoints):
         return checkpoints[-1]
     return None
-
-
-def save_executed_code() -> None:
-    print(hydra.utils.get_original_cwd())
-    print(os.getcwd())
-    shutil.copytree(
-        os.path.join(hydra.utils.get_original_cwd(), "calvin_agent"),
-        os.path.join(hydra.utils.get_original_cwd(), f"{os.getcwd()}/code/calvin_agent"),
-    )
 
 
 def info_cuda() -> Dict[str, Union[str, List[str]]]:

@@ -1,6 +1,7 @@
 import logging
+import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import calvin_agent
 from calvin_agent.datasets.utils.episode_utils import load_dataset_statistics
@@ -15,14 +16,15 @@ import torchvision
 
 logger = logging.getLogger(__name__)
 DEFAULT_TRANSFORM = OmegaConf.create({"train": None, "val": None})
+ONE_EP_DATASET_URL = "http://www.informatik.uni-freiburg.de/~meeso/50steps.tar.xz"
 
 
-class PlayDataModule(pl.LightningDataModule):
+class CalvinDataModule(pl.LightningDataModule):
     def __init__(
         self,
         datasets: DictConfig,
-        root_data_dir: str = "data",
-        num_workers: int = 8,
+        training_repo_root: Optional[Path] = None,
+        root_data_dir: str = "datasets/task_D_D",
         transforms: DictConfig = DEFAULT_TRANSFORM,
         shuffle_val: bool = False,
         **kwargs: Dict,
@@ -31,17 +33,16 @@ class PlayDataModule(pl.LightningDataModule):
         self.datasets_cfg = datasets
         self.train_datasets = None
         self.val_datasets = None
-        self.train_sampler = None
-        self.val_sampler = None
-        self.num_workers = num_workers
         root_data_path = Path(root_data_dir)
         if not root_data_path.is_absolute():
-            root_data_path = Path(calvin_agent.__file__).parent / root_data_path
+            assert training_repo_root is not None, "If root_data_path isn't absolute, please provide training_repo_root"
+            root_data_path = training_repo_root / root_data_path
         self.training_dir = root_data_path / "training"
         self.val_dir = root_data_path / "validation"
         self.shuffle_val = shuffle_val
         self.modalities: List[str] = []
         self.transforms = transforms
+
         self.use_shm = "shm_dataset" in self.datasets_cfg.vision_dataset._target_
 
     def prepare_data(self, *args, **kwargs):
@@ -50,12 +51,17 @@ class PlayDataModule(pl.LightningDataModule):
 
         # download and unpack images
         if not dataset_exist:
-            logger.error(
-                "please download the dataset before starting a training! Specify the dataset path with "
-                "datamodule.root_data_dir=/path/to/dataset/ "
-                "(make sure to use an absolute path)"
-            )
-            exit(-1)
+            if "CI" not in os.environ:
+                print(f"No dataset found in {self.training_dir}.")
+                print("For information how to download to full CALVIN dataset, please visit")
+                print("https://github.com/mees/calvin/tree/main/dataset")
+                print("Do you wish to download small debug dataset to continue training?")
+                s = input("YES / no")
+                if s == "no":
+                    exit()
+            logger.info(f"downloading dataset to {self.training_dir} and {self.val_dir}")
+            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.training_dir)
+            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.val_dir)
 
         if self.use_shm:
             # When using shared memory dataset, initialize lookups
@@ -79,7 +85,7 @@ class PlayDataModule(pl.LightningDataModule):
         }
         self.train_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.train_transforms.items()}
         self.val_transforms = {key: torchvision.transforms.Compose(val) for key, val in self.val_transforms.items()}
-        self.train_datasets, self.train_sampler, self.val_datasets, self.val_sampler = {}, {}, {}, {}
+        self.train_datasets, self.val_datasets = {}, {}
 
         if self.use_shm:
             train_shm_lookup, val_shm_lookup = load_shm_lookup()
@@ -102,7 +108,7 @@ class PlayDataModule(pl.LightningDataModule):
             key: DataLoader(
                 dataset,
                 batch_size=dataset.batch_size,
-                num_workers=self.num_workers,
+                num_workers=dataset.num_workers,
                 pin_memory=False,
             )
             for key, dataset in self.train_datasets.items()
@@ -113,8 +119,9 @@ class PlayDataModule(pl.LightningDataModule):
             key: DataLoader(
                 dataset,
                 batch_size=dataset.batch_size,
-                num_workers=self.num_workers,
+                num_workers=dataset.num_workers,
                 pin_memory=False,
+                shuffle=self.shuffle_val,
             )
             for key, dataset in self.val_datasets.items()
         }

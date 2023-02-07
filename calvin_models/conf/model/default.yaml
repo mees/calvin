@@ -7,7 +7,7 @@ defaults:
   - action_decoder: logistic
   - optimizer: adam
 
-_target_: calvin_agent.models.play_lmp.PlayLMP
+_target_: calvin_agent.models.mcil.MCIL
 _recursive_: false
 
 kl_beta: ${loss.kl_beta}
