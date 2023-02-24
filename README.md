@@ -202,6 +202,13 @@ calvin_env in [https://github.com/mees/calvin_env/blob/main/calvin_env/vrdatacol
 
 
 ## Changelog
+### 24 Feb 2023
+- Wrong `scene_info.npy` in D dataset. Note that we have updated the corresponding checksum. Please replace as follows:
+```
+cd task_D_D
+wget http://calvin.cs.uni-freiburg.de/scene_info_fix/task_D_D_scene_info.zip
+unzip task_D_D_scene_info.zip && rm task_D_D_scene_info.zip
+```
 
 ### 16 Sep 2022
 - **MAJOR BUG IN ABC and ABCD dataset:** If you downloaded these datasets before this date you have to do these fixes:
