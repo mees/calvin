@@ -170,7 +170,7 @@ Open-source models that outperform the MCIL baselines from CALVIN:
 <br>
 Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <br>
-<a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="http://hulc2.cs.uni-freiburg.de/"> Code </a>
+<a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
 <b> Language Control Diffusion: Efficiently Scaling through Space, Time, and Tasks</b>
 <br>
