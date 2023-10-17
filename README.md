@@ -172,6 +172,12 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <br>
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
+<b> Zero-Shot Robotic Manipulation With Pretrained Image-Editing Diffusion Models</b>
+<br>
+Kevin Black, Mitsuhiko Nakamoto, Pranav Atreya, Homer Walke, Chelsea Finn, Aviral Kumar, Sergey Levine
+<br>
+<a href="https://arxiv.org/pdf/2310.10639.pdf"> Paper</a>, <a href="https://github.com/kvablack/susie"> Code </a>
+
 <b> Language Control Diffusion: Efficiently Scaling through Space, Time, and Tasks</b>
 <br>
 Eddie Zhang, Yujie Lu, William Wang, Amy Zhang
