@@ -49,12 +49,15 @@ def get_checkpoints_for_epochs(experiment_folder: Path, epochs: Union[List, str]
 
 
 def get_all_checkpoints(experiment_folder: Path) -> List:
-    if experiment_folder.is_dir():
-        checkpoint_folder = experiment_folder / "saved_models"
-        if checkpoint_folder.is_dir():
-            checkpoints = sorted(Path(checkpoint_folder).iterdir(), key=lambda chk: chk.stat().st_mtime)
-            if len(checkpoints):
-                return [chk for chk in checkpoints if chk.suffix == ".ckpt"]
+    if not experiment_folder.is_dir():
+        return []
+    checkpoint_folder = experiment_folder / "saved_models"
+    if checkpoint_folder.is_dir():
+        return get_all_checkpoints(checkpoint_folder)
+
+    checkpoints = sorted(Path(experiment_folder).iterdir(), key=lambda chk: chk.stat().st_mtime)
+    if len(checkpoints):
+        return [chk for chk in checkpoints if chk.suffix == ".ckpt"]
     return []
 
 

@@ -39,6 +39,12 @@ EP_LEN = 360
 NUM_SEQUENCES = 1000
 
 
+def get_epoch(checkpoint):
+    if "=" not in checkpoint.stem:
+        return "0"
+    checkpoint.stem.split("=")[1]
+
+
 def make_env(dataset_path):
     val_folder = Path(dataset_path) / "validation"
     env = get_env(val_folder, show_gui=False)
@@ -235,7 +241,7 @@ def main():
 
         env = None
         for checkpoint in checkpoints:
-            epoch = checkpoint.stem.split("=")[1]
+            epoch = get_epoch(checkpoint)
             model, env, _ = get_default_model_and_env(
                 args.train_folder,
                 args.dataset_path,
