@@ -16,7 +16,6 @@ import torchvision
 
 logger = logging.getLogger(__name__)
 DEFAULT_TRANSFORM = OmegaConf.create({"train": None, "val": None})
-ONE_EP_DATASET_URL = "http://www.informatik.uni-freiburg.de/~meeso/50steps.tar.xz"
 
 
 class CalvinDataModule(pl.LightningDataModule):
@@ -51,17 +50,11 @@ class CalvinDataModule(pl.LightningDataModule):
 
         # download and unpack images
         if not dataset_exist:
-            if "CI" not in os.environ:
-                print(f"No dataset found in {self.training_dir}.")
-                print("For information how to download to full CALVIN dataset, please visit")
-                print("https://github.com/mees/calvin/tree/main/dataset")
-                print("Do you wish to download small debug dataset to continue training?")
-                s = input("YES / no")
-                if s == "no":
-                    exit()
-            logger.info(f"downloading dataset to {self.training_dir} and {self.val_dir}")
-            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.training_dir)
-            torchvision.datasets.utils.download_and_extract_archive(ONE_EP_DATASET_URL, self.val_dir)
+            logger.error(f"""No dataset found in {Path(self.training_dir).parent}.
+                Please make sure you set the correct dataset path.
+                For information how to download one of the CALVIN datasets, please visit
+                https://github.com/mees/calvin/tree/main/dataset""")
+            exit()
 
         if self.use_shm:
             # When using shared memory dataset, initialize lookups
