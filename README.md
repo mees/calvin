@@ -172,6 +172,19 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <br>
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
+
+<b> Unleashing Large-Scale Video Generative Pre-training for Visual Robot Manipulation</b>
+<br>
+Hongtao Wu, Ya Jing, Chilam Cheang, Guangzeng Chen, Jiafeng Xu, Xinghang Li, Minghuan Liu, Hang Li, Tao Kong
+<br>
+<a href="https://arxiv.org/pdf/2312.13139.pdf"> Paper</a>, <a href="https://gr1-manipulation.github.io"> Code </a>
+
+<b> Vision-Language Foundation Models as Effective Robot Imitators</b>
+<br>
+Xinghang Li, Minghuan Liu, Hanbo Zhang, Cunjun Yu, Jie Xu, Hongtao Wu, Chilam Cheang, Ya Jing, Weinan Zhang, Huaping Liu, Hang Li, and Tao Kong
+<br>
+<a href="https://arxiv.org/pdf/2311.01378.pdf"> Paper</a>, <a href="https://github.com/RoboFlamingo/RoboFlamingo"> Code </a>
+
 <b> Zero-Shot Robotic Manipulation With Pretrained Image-Editing Diffusion Models</b>
 <br>
 Kevin Black, Mitsuhiko Nakamoto, Pranav Atreya, Homer Walke, Chelsea Finn, Aviral Kumar, Sergey Levine
