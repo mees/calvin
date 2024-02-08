@@ -165,6 +165,9 @@ If you additionally want to sample different language annotations for each seque
 
 ## :chart_with_upwards_trend: SOTA Models
 Open-source models that outperform the MCIL baselines from CALVIN:
+
+For a detailed overview of the evaluation performances, have a look at our **[LEADERBOARD](http://calvin.cs.uni-freiburg.de/)**.
+
 <br>
 <b> Grounding Language with Visual Affordances over Unstructured Data</b>
 <br>

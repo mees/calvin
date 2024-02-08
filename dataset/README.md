@@ -127,9 +127,8 @@ The `embeddings.npy` file is only present on the validation folder, this file co
 
 ## Visualize Language Annotations
 We provide a script to generate a video that visualizes the language annotations of the recorded play data.
-By default we visualize the first 100 sequences, but feel free to more sequences (just change this [line](https://github.com/mees/calvin/blob/main/calvin_models/calvin_agent/utils/visualize_annotations.py#L57)).
-A example video is.
+By default we visualize the first 100 sequences, but feel free to more sequences (just change this [line](https://github.com/mees/calvin/blob/main/calvin_models/calvin_agent/utils/visualize_annotations.py#L55)).
 ```
 cd $CALVIN_ROOT/calvin_models/calvin_agent
-python utils/visualize_annotations.py datamodule.root_data_dir=$CALVIN_ROOT/dataset/task_D_D/ datamodule/observation_space=lang_rgb_static
+python utils/visualize_annotations.py datamodule.root_data_dir=$CALVIN_ROOT/dataset/task_D_D/ datamodule/observation_space=lang_rgb_static_rel_act
 ```
