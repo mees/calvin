@@ -176,6 +176,12 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
 
+<b> 3D Diffuser Actor: Policy Diffusion with 3D Scene Representations</b>
+<br>
+Tsung-Wei Ke, Nikolaos Gkanatsios, Katerina Fragkiadaki
+<br>
+<a href="https://arxiv.org/pdf/2402.10885.pdf"> Paper</a>, <a href="https://github.com/nickgkan/3d_diffuser_actor"> Code </a>
+
 <b> Unleashing Large-Scale Video Generative Pre-training for Visual Robot Manipulation</b>
 <br>
 Hongtao Wu, Ya Jing, Chilam Cheang, Guangzeng Chen, Jiafeng Xu, Xinghang Li, Minghuan Liu, Hang Li, Tao Kong
