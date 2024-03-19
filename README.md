@@ -212,6 +212,12 @@ Oier Mees, Lukas Hermann, Wolfram Burgard
 <br>
 <a href="https://arxiv.org/pdf/2204.06252.pdf"> Paper</a>, <a href="https://github.com/lukashermann/hulc"> Code </a>
 
+<b> Language-Conditioned Imitation Learning with Base Skill Priors under Unstructured Data</b>
+<br>
+Hongkuan Zhou, Zhenshan Bing, Xiangtong Yao, Xiaojie Su, Chenguang Yang, Kai Huang, Alios Knoll
+<br>
+<a href="https://arxiv.org/pdf/2305.19075.pdf"> Paper</a>, <a href="https://github.com/hk-zh/spil"> Code
+
 Contact [Oier](https://www.oiermees.com/) to add your model here.
 
 ## Reinforcement Learning with CALVIN
