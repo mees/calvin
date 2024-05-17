@@ -13,10 +13,9 @@ import hydra
 import numpy as np
 from numpy import pi
 from omegaconf import OmegaConf
-import pyhash
+import mmh3
 import torch
 
-hasher = pyhash.fnv1_32()
 logger = logging.getLogger(__name__)
 
 
@@ -232,7 +231,7 @@ def get_env_state_for_initial_condition(initial_condition):
         np.array([2.29995412e-01, -1.19995140e-01, 4.59990010e-01]),
     ]
     # we want to have a "deterministic" random seed for each initial condition
-    seed = hasher(str(initial_condition.values()))
+    seed = mmh3.hash(str(initial_condition.values()))
     with temp_seed(seed):
         np.random.shuffle(block_table)
 
