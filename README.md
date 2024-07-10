@@ -176,6 +176,12 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
 
+<b> Multimodal Diffusion Transformer: Learning Versatile Behavior from Multimodal Goals </b>
+<br>
+Moritz Reuss, Ömer Erdinç Yağmurlu, Fabian Wenzel, Rudolf Lioutikov
+<br>
+<a href="https://arxiv.org/pdf/2407.05996"> Paper</a>, <a href="https://github.com/intuitive-robots/mdt_policy"> Code </a>
+
 <b> 3D Diffuser Actor: Policy Diffusion with 3D Scene Representations</b>
 <br>
 Tsung-Wei Ke, Nikolaos Gkanatsios, Katerina Fragkiadaki
