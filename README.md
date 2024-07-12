@@ -169,6 +169,13 @@ Open-source models that outperform the MCIL baselines from CALVIN:
 For a detailed overview of the evaluation performances, have a look at our **[LEADERBOARD](http://calvin.cs.uni-freiburg.de/)**.
 
 <br>
+<b> RoboUniView: Visual-Language Model with Unified View Representation for Robotic Manipulaiton</b>
+<br>
+Fanfan Liu, Feng Yan, Liming Zheng, Chengjian Feng, Yiyang Huang, Lin Ma
+<br>
+<a href="https://arxiv.org/pdf/2406.18977v1"> Paper</a>, <a href="https://liufanfanlff.github.io/RoboUniview.github.io"> Project </a>
+
+<br>
 <b> Grounding Language with Visual Affordances over Unstructured Data</b>
 <br>
 Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
