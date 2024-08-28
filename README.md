@@ -175,6 +175,11 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <br>
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
+<b> GR-MG: Leveraging Partially Annotated Data via Multi-Modal Goal Conditioned Policy </b>
+<br>
+{Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
+<br>
+<a href="https://arxiv.org/pdf/2408.14368"> Paper</a>, <a href="https://github.com/bytedance/GR-MG/"> Code </a>
 
 <b> Multimodal Diffusion Transformer: Learning Versatile Behavior from Multimodal Goals </b>
 <br>
