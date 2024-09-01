@@ -183,7 +183,7 @@ Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
 
 <b> RoboUniView: Visual-Language Model with Unified View Representation for Robotic Manipulation </b>
 <br>
-Fanfan Liu, Feng Yan, Liming Zheng, Yiyang Huang, Chengjian Feng, and Lin Ma
+Fanfan Liu, Feng Yan, Liming Zheng, Yiyang Huang, Chengjian Feng, Lin Ma
 <br>
 <a href="https://arxiv.org/pdf/2406.18977v2"> Paper</a>, <a href="https://github.com/liufanfanlff/RoboUniview"> Code </a>
 
