@@ -177,9 +177,15 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 
 <b> GR-MG: Leveraging Partially Annotated Data via Multi-Modal Goal Conditioned Policy </b>
 <br>
-{Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
+Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
 <br>
 <a href="https://arxiv.org/pdf/2408.14368"> Paper</a>, <a href="https://github.com/bytedance/GR-MG/"> Code </a>
+
+<b> RoboUniView: Visual-Language Model with Unified View Representation for Robotic Manipulation </b>
+<br>
+Fanfan Liu, Feng Yan, Liming Zheng, Yiyang Huang, Chengjian Feng, and Lin Ma
+<br>
+<a href="https://arxiv.org/pdf/2406.18977v2"> Paper</a>, <a href="https://github.com/liufanfanlff/RoboUniview"> Code </a>
 
 <b> Multimodal Diffusion Transformer: Learning Versatile Behavior from Multimodal Goals </b>
 <br>
