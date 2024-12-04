@@ -181,6 +181,12 @@ Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
 <br>
 <a href="https://arxiv.org/pdf/2408.14368"> Paper</a>, <a href="https://github.com/bytedance/GR-MG/"> Code </a>
 
+<b> DeeR-VLA: Dynamic Inference of Multimodal Large Language Models for Efficient Robot Execution </b>
+<br>
+Ang Yue, Yulin Wang, Bingyi Kang, Yizeng Han, Shenzhi Wang, Shiji Song, Jiashi Feng, Gao Huang
+<br>
+<a href="https://arxiv.org/pdf/2411.02359"> Paper</a>, <a href="https://github.com/yueyang130/DeeR-VLA"> Code </a>
+
 <b> RoboUniView: Visual-Language Model with Unified View Representation for Robotic Manipulation </b>
 <br>
 Fanfan Liu, Feng Yan, Liming Zheng, Yiyang Huang, Chengjian Feng, Lin Ma
