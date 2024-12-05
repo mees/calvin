@@ -189,7 +189,7 @@ Qingwen Bu, Jia Zeng, Li Chen, Yanchao Yang, Guyue Zhou, Junchi Yan, Ping Luo, H
 
 <b> DeeR-VLA: Dynamic Inference of Multimodal Large Language Models for Efficient Robot Execution </b>
 <br>
-Ang Yue, Yulin Wang, Bingyi Kang, Yizeng Han, Shenzhi Wang, Shiji Song, Jiashi Feng, Gao Huang
+Yang Yue, Yulin Wang, Bingyi Kang, Yizeng Han, Shenzhi Wang, Shiji Song, Jiashi Feng, Gao Huang
 <br>
 <a href="https://arxiv.org/pdf/2411.02359"> Paper</a>, <a href="https://github.com/yueyang130/DeeR-VLA"> Code </a>
 
