@@ -181,6 +181,12 @@ Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
 <br>
 <a href="https://arxiv.org/pdf/2408.14368"> Paper</a>, <a href="https://github.com/bytedance/GR-MG/"> Code </a>
 
+<b> Closed-Loop Visuomotor Control with Generative Expectation for Robotic Manipulation </b>
+<br>
+Qingwen Bu, Jia Zeng, Li Chen, Yanchao Yang, Guyue Zhou, Junchi Yan, Ping Luo, Heming Cui, Yi Ma, Hongyang Li
+<br>
+<a href="https://arxiv.org/pdf/2409.09016"> Paper</a>, <a href="https://github.com/OpenDriveLab/CLOVER"> Code </a>
+
 <b> DeeR-VLA: Dynamic Inference of Multimodal Large Language Models for Efficient Robot Execution </b>
 <br>
 Ang Yue, Yulin Wang, Bingyi Kang, Yizeng Han, Shenzhi Wang, Shiji Song, Jiashi Feng, Gao Huang
@@ -209,7 +215,7 @@ Tsung-Wei Ke, Nikolaos Gkanatsios, Katerina Fragkiadaki
 <br>
 Hongtao Wu, Ya Jing, Chilam Cheang, Guangzeng Chen, Jiafeng Xu, Xinghang Li, Minghuan Liu, Hang Li, Tao Kong
 <br>
-<a href="https://arxiv.org/pdf/2312.13139.pdf"> Paper</a>, <a href="https://gr1-manipulation.github.io"> Code </a>
+<a href="https://arxiv.org/pdf/2312.13139.pdf"> Paper</a>, <a href="https://github.com/bytedance/GR-1"> Code </a>
 
 <b> Vision-Language Foundation Models as Effective Robot Imitators</b>
 <br>
