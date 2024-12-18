@@ -181,6 +181,12 @@ Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
 <br>
 <a href="https://arxiv.org/pdf/2408.14368"> Paper</a>, <a href="https://github.com/bytedance/GR-MG/"> Code </a>
 
+<b> Efficient Diffusion Transformer Policies with Mixture of Expert Denoisers for Multitask Learning </b>
+<br>
+Moritz Reuss, Jyothish Pari, Pulkit Agrawal, Rudolf Lioutikov
+<br>
+<a href="https://arxiv.org/pdf/2412.12953"> Paper</a>, <a href="https://github.com/intuitive-robots/MoDE_Diffusion_Policy"> Code </a>
+
 <b> Closed-Loop Visuomotor Control with Generative Expectation for Robotic Manipulation </b>
 <br>
 Qingwen Bu, Jia Zeng, Li Chen, Yanchao Yang, Guyue Zhou, Junchi Yan, Ping Luo, Heming Cui, Yi Ma, Hongyang Li
