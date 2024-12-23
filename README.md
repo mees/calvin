@@ -181,6 +181,12 @@ Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
 <br>
 <a href="https://arxiv.org/pdf/2408.14368"> Paper</a>, <a href="https://github.com/bytedance/GR-MG/"> Code </a>
 
+<b> GHIL-Glue: Hierarchical Control with Filtered Subgoal Images </b>
+<br>
+Kyle B Hatch, Ashwin Balakrishna, Oier Mees, Suraj Nair, Seohong Park, Blake Wulfe, Masha Itkina, Benjamin Eysenbach, Sergey Levine, Thomas Kollar, Benjamin Burchfiel
+<br>
+<a href="https://arxiv.org/pdf/2410.20018"> Paper</a>, <a href="https://github.com/kyle-hatch-tri/ghil-glue"> Code </a>
+
 <b> Efficient Diffusion Transformer Policies with Mixture of Expert Denoisers for Multitask Learning </b>
 <br>
 Moritz Reuss, Jyothish Pari, Pulkit Agrawal, Rudolf Lioutikov
