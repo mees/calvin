@@ -193,6 +193,12 @@ Moritz Reuss, Jyothish Pari, Pulkit Agrawal, Rudolf Lioutikov
 <br>
 <a href="https://arxiv.org/pdf/2412.12953"> Paper</a>, <a href="https://github.com/intuitive-robots/MoDE_Diffusion_Policy"> Code </a>
 
+<b> Incorporating Task Progress Knowledge for Subgoal Generation in Robotic Manipulation through Image Edits </b>
+<br>
+Xuhui Kang, Yen-Ling Kuo
+<br>
+<a href="https://arxiv.org/pdf/2410.11013"> Paper</a>, <a href="https://github.com/Shua-Kang/TaKSIE"> Code </a>
+
 <b> Closed-Loop Visuomotor Control with Generative Expectation for Robotic Manipulation </b>
 <br>
 Qingwen Bu, Jia Zeng, Li Chen, Yanchao Yang, Guyue Zhou, Junchi Yan, Ping Luo, Heming Cui, Yi Ma, Hongyang Li
