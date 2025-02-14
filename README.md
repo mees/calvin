@@ -175,7 +175,11 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <br>
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
-
+<b> Predictive Inverse Dynamics Models are Scalable Learners for Robotic Manipulation </b>
+<br>
+Yang Tian, Sizhe Yang, Jia Zeng, Ping Wang, Dahua Lin, Hao Dong, Jiangmiao Pang
+<br>
+<a href="https://arxiv.org/pdf/2412.15109"> Paper</a>, <a href="https://github.com/OpenRobotLab/Seer/"> Code </a>
 
 <b> Diffusion Transformer Policy: Scaling Diffusion Transformer for Generalist Vision-Language-Action Learning </b>
 <br>
