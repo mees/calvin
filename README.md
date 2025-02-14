@@ -175,6 +175,14 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <br>
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
+
+
+<b> Diffusion Transformer Policy: Scaling Diffusion Transformer for Generalist Vision-Language-Action Learning </b>
+<br>
+Zhi Hou, Tianyi Zhang, Yuwen Xiong, Hengjun Pu, Chengyang Zhao, Ronglei Tong, Yu Qiao, Jifeng Dai, Yuntao Chen
+<br>
+<a href="https://arxiv.org/pdf/2410.15959"> Paper</a>, <a href="https://github.com/zhihou7/dit_policy_vla"> Code </a>
+
 <b> GR-MG: Leveraging Partially Annotated Data via Multi-Modal Goal Conditioned Policy </b>
 <br>
 Peiyan Li, Hongtao Wu, Yan Huang, Chilam Cheang, Liang Wang, Tao Kong
