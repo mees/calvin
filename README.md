@@ -175,6 +175,13 @@ Oier Mees, Jessica Borja-Diaz, Wolfram Burgard
 <br>
 <a href="https://arxiv.org/pdf/2210.01911.pdf"> Paper</a>, <a href="https://github.com/mees/hulc2"> Code </a>
 
+<b> FLOWER: Democratizing Generalist Robot Policies with Efficient Vision-Language-Action Flow Policies </b>
+<br>
+Moritz Reuss, Hongyi Zhou, Marcel Rühle, Ömer Erdinç Yağmurlu, Fabian Otto, Rudolf Lioutikov
+<br>
+<a href="https://arxiv.org/pdf/2509.04996"> Paper</a>, <a href="https://intuitive-robots.github.io/flower_vla/"> Code </a>
+
+
 <b> Unified Vision-Language-Action Model </b>
 <br>
 Yuqi Wang, Xinghang Li, Wenxuan Wang, Junbo Zhang, Yingyan Li, Yuntao Chen, Xinlong Wang, Zhaoxiang Zhang
